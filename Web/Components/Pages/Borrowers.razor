@@ -1,0 +1,189 @@
+@page "/Borrower"
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.Borrowers
+@using Domain.ValueObjects
+
+@inject IBorrowerService BorrowerService
+
+@inject IDialogService DialogService
+
+<PageTitle>Borrower</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Employees</MudText>
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="text-transform:none;">
+            Add Borrower
+        </MudButton>
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+        <MudItem xs="12" sm="4">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Variant="Variant.Outlined" 
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
+                          Margin="Margin.Dense" Class="bg-white rounded-lg" />
+        </MudItem>
+        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Share" Size="Size.Small" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+            <MudSelect T="string" Label="FirstName" Dense="true" Margin="Margin.Dense" Outlined="true" Style="width: 150px; background: white;">
+                <MudSelectItem Value="@("All")" />
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    @* 3. THE DATAGRID *@
+    <MudDataGrid T="Borrower" Items="@_borrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add Borrowe"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    Import
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText>
+            <MudSpacer />
+            <MudMenu Label="Add Borrower" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="Borrower" />
+            <HierarchyColumn T="Borrower" />
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <TemplateColumn Title="FirstName">
+                <CellTemplate>
+                    @* <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudAvatar Size="Size.Small"><MudImage Src="@context.Item.AvatarUrl" /></MudAvatar>
+                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.FirstName</MudText>
+                    </MudStack> *@
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
+            <PropertyColumn Property="x => x.LastName" Title="LastName" />
+            <PropertyColumn Property="x => x.BorrowerTypeId" Title="BorrowerType" />
+            <PropertyColumn Property="x => x.sex" Title="Sex" />
+            <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" />
+            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" />
+            <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
+            <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
+            <PropertyColumn Property="x => x.SpouceIdNumber" Title="SpouceIdNumber" />
+            <PropertyColumn Property="x => x.SpouceName" Title="SpouceName" />
+            <PropertyColumn Property="x => x.Province" Title="Province" />
+            <PropertyColumn Property="x => x.District" Title="District" />
+            <PropertyColumn Property="x => x.Sector" Title="Sector" />
+            <PropertyColumn Property="x => x.Cell" Title="Cell" />
+            <PropertyColumn Property="x => x.Village" Title="Village" />
+            
+                @* <CellTemplate>
+                    <div class="d-flex align-center gap-2">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background-color: @(context.Item.Status == "Full-time" ? "#4ade80" : "#f59e0b");"></div>
+                        <MudText Typo="Typo.body2">@context.Item.Status</MudText>
+                    </div>
+                </CellTemplate> *@
+        
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+        <ChildRowContent>
+            <MudPaper Elevation="0" Class="pa-6 mx-12 my-2 rounded-lg" Style="background-color: #f8faff; border: 1px solid #eef2f6;">
+                <MudGrid>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">IdentificationNumber</MudText>
+                        <MudText Typo="Typo.body2">@context.Item.IdentificationNumber</MudText>
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">SpouceIdNumber</MudText>
+                        <MudText Typo="Typo.body2">@context.Item.SpouceIdNumber</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </ChildRowContent>
+        
+        <PagerContent>
+            <MudDataGridPager T="Borrower" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+       List<Borrower> _borrowers = new();
+
+           private HashSet<Borrower> _selectedItems = new();
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadBorrower();
+         
+    }
+    
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var dialog = await DialogService.ShowAsync<BorrowerCreateDialog>("Add Borrower", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+          
+             await LoadBorrower();
+        }
+    }
+     private async Task LoadBorrower()
+    {
+        _borrowers = await BorrowerService.GetAllBorrowersAsync();
+        StateHasChanged();
+    }
+        private Color GetStatusColor(LoanStatus status)
+    {
+        return status.ToString() switch
+        {
+            "Dormant" => Color. Warning,
+            "Active" => Color.Success,
+            "Closed" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+
+
+
+}

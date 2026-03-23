@@ -1,0 +1,284 @@
+﻿@* @inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<style>
+
+    body {
+        background-color: #B2D7FF !important; 
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    
+    .app-container {
+        width: 95vw;
+        height: 90vh;
+        background-color: white;
+        border-radius: 40px; 
+        box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.1);
+        overflow: hidden; 
+        display: flex;
+        position: relative;
+    }
+
+    
+    .mud-layout {
+        width: 100%;
+    }
+</style>
+
+<div class="app-container">
+    <MudLayout>
+        <MudAppBar Elevation="0" Color="Color.Transparent" Style="backdrop-filter: blur(8px);">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Search" Color="Color.Default" />
+            <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+            <MudAvatar Size="Size.Small" Class="ml-4">
+                <MudImage Src="Images/avatar.png" />
+            </MudAvatar>
+        </MudAppBar>
+        <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="@DrawerVariant.Persistent" ClipMode="DrawerClipMode.Always">
+            <NavMenu />
+        </MudDrawer>
+        <MudMainContent Class="pa-6" Style="background-color: #F4F7FE;">
+            @Body
+        </MudMainContent>
+    </MudLayout>
+</div>
+
+@code {
+    bool _drawerOpen = true;
+    bool _isDarkMode = false;
+
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#4318FF",
+            AppbarBackground = "rgba(255,255,255,0.7)", 
+            Background = "#F4F7FE",
+            DrawerBackground = "#111C44",
+            DrawerText = "#A3AED0",
+            DrawerIcon = "#A3AED0",
+            Surface = "#FFFFFF",
+            TextPrimary = "#1B2559",
+            TextSecondary = "#A3AED0",
+            ActionDefault = "#A3AED0"
+        }
+    };
+
+    protected override void OnInitialized()
+    {
+        _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+        _theme.Typography.Default.FontSize = ".875rem";
+        _theme.Typography.Default.FontWeight = "400";
+        _theme.Typography.Default.LetterSpacing = ".02em";
+    }
+
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
+} *@
+@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<style>
+    body {
+        background-color: #B2D7FF !important; 
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    .app-container {
+        width: 95vw;
+        height: 90vh;
+        background-color: white;
+        border-radius: 40px;
+        box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        display: flex;
+        position: relative;
+
+        /* Styling for the column headers */
+.mud-table-head .mud-table-cell {
+    color: #A3AED0 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    font-weight: 700 !important;
+}
+
+/* Rounded corners for input fields */
+.rounded-lg .mud-outlined-border {
+    border-radius: 12px !important;
+}
+
+/* Light blue background for selected rows */
+.mud-table-row-selected {
+    background-color: #F4F7FE !important;
+}
+
+/* Style for the mini drawer icons to be centered */
+.mud-drawer-mini .mud-nav-link {
+    justify-content: center !important;
+    padding: 12px  !important;
+    margin: 4px 4px !important;
+    margin-bottom: 20px;
+   
+    height: 90% !important; /* Force it to match app-container height */
+    border-top-left-radius: 40px !important;    /* Match top corner */
+    border-bottom-left-radius: 40px !important;
+    
+}
+
+/* The blue highlight for the active menu item */
+.mud-nav-link.active {
+    background-color: #4318FF !important;
+    color: white !important;
+}
+
+.mud-nav-link.active .mud-nav-link-icon-default {
+    color: white !important;
+}
+
+/* Ensure icons are a consistent muted color when not active */
+.mud-nav-link-icon-default {
+    color: #A3AED0 !important;
+}
+
+
+.mud-drawer {
+    height: 100% !important; /* Force it to match app-container height */
+    border-top-left-radius: 40px !important;    /* Match top corner */
+    border-bottom-left-radius: 40px !important; /* Match bottom corner */
+}
+
+    }
+</style>
+
+
+<div class="app-container">
+    <MudLayout>
+        @* AppBar is now transparent with NO blur *@
+        <MudAppBar Elevation="0" Color="Color.Transparent">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
+            <MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.Search" Color="Color.Default" />
+            <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+            <MudIconButton
+            Icon="@(_isDarkMode 
+                ? Icons.Material.Filled.LightMode 
+                : Icons.Material.Filled.DarkMode)"
+            Color="Color.Inherit"
+            OnClick="ToggleTheme" />
+        </MudAppBar>
+
+        <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="@DrawerVariant.Persistent" ClipMode="DrawerClipMode.Always">
+            <NavMenu />
+        </MudDrawer>
+
+        <MudDrawer @bind-Open="_drawerOpen" 
+           Variant="DrawerVariant.Mini" 
+           OpenMiniOnHover="false" 
+           Elevation="0" 
+           Class="py-4"
+           Style="background-color: #111C44;">
+    
+    @* Top Logo/Icon Area *@
+    <div class="d-flex align-center justify-center mb-10">
+        <MudIcon Icon="@Icons.Material.Filled.Home" Color="Color.Primary" Size="Size.Large" />
+        @if (_drawerOpen)
+    {
+        <div class="d-flex flex-column">
+            <MudText Typo="Typo.h6" Style="color: white; font-weight: 800; line-height: 1.1; font-family: 'Century Gothic';">
+                DIGITAL LOAN
+            </MudText>
+            <MudText Style="color: #A3AED0; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">
+                PLATFORM
+            </MudText>
+        </div>
+    }
+    </div>
+
+
+    <NavMenu IsMini="!_drawerOpen" />
+</MudDrawer>
+
+<MudMainContent Class="pa-6">
+    <MudPaper Elevation="0" Class="pa-8 rounded-xl" Style="min-height: 80vh;">
+        @Body
+    </MudPaper>
+</MudMainContent>
+
+        @* Content is now contained strictly inside the white card area *@
+        <MudMainContent Class="pa-8" Style="background-color: #FFFFFF;">
+            @* The title is moved here to be part of the card content *@
+            <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559; margin-bottom: 24px;">
+                Employees
+            </MudText>
+            
+            @Body
+        </MudMainContent>
+    </MudLayout>
+</div>
+
+@code {
+    bool _drawerOpen = true;
+    bool _isDarkMode = false;
+  
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#4318FF",
+            Background = "#FFFFFF", // Changed to white to match the card look
+            DrawerBackground = "#111C44",
+            DrawerText = "#A3AED0",
+            Surface = "#FFFFFF",
+            TextPrimary = "#1B2559",
+        },
+
+
+PaletteDark = new PaletteDark()
+    {
+        Primary = "#6366F1",
+        Background = "#0B1139", // Deep Navy background
+        Surface = "#111C44",    // Slate/Navy card (matches your sidebar)
+        AppbarBackground = "#0B1139",
+        DrawerBackground = "#111C44",
+        TextPrimary = "#FFFFFF",
+        TextSecondary = "#A3AED0",
+        TableLines = "#1B254B",
+        Divider = "#1B254B"
+        }
+
+    };
+
+
+    protected override void OnInitialized()
+    {
+        _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+        _theme.Typography.Default.FontWeight = "400";
+    }
+
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
+    void ToggleTheme() => _isDarkMode = !_isDarkMode;
+
+    
+}
+
+

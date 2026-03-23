@@ -1,0 +1,71 @@
+﻿@* <div class="d-flex flex-column align-start px-4 py-6"> *@
+    
+    @* Logo Section *@
+    @* <div class="mb-10 px-2">
+        <MudText Typo="Typo.h6" Style="color: white; font-weight: 800; letter-spacing: 1px;">
+            <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />
+            LOAN PLATFORM
+        </MudText>
+    </div>
+
+    <MudNavMenu Class="mud-width-full">
+        <MudNavLink Href="/home" 
+                    Match="NavLinkMatch.All" 
+                    Icon="@Icons.Material.Outlined.Home" 
+                    Style="color: #A3AED0; margin-bottom: 8px;">
+            Dashboard
+        </MudNavLink>
+        
+        <MudNavLink Href="/employees" 
+                    Match="NavLinkMatch.Prefix" 
+                    Icon="@Icons.Material.Outlined.TableChart" 
+                    Style="color: #A3AED0; margin-bottom: 8px;">
+            My Loans
+        </MudNavLink>
+
+        <MudNavLink Href="/employees" 
+                    Icon="@Icons.Material.Outlined.Person" 
+                    Style="color: #A3AED0;">
+            Employees
+        </MudNavLink>
+    </MudNavMenu>
+</div> *@
+
+<style>
+    .mud-nav-link.active {
+        color: white !important;
+        background-color: transparent !important;
+        font-weight: 700;
+        border-right: 4px solid #4318FF;
+    }
+    .mud-nav-link.active .mud-nav-link-icon {
+        color: #4318FF !important;
+    }
+</style>
+
+
+
+@code {
+    [Parameter] public bool IsMini { get; set; }
+}
+
+<MudNavMenu>
+    <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
+        @(!IsMini ? "Dashboard" : "")
+    </MudNavLink>
+    
+    <MudNavLink href="/loans" Icon="@Icons.Material.Outlined.AccountBalanceWallet">
+        @(!IsMini ? "My Loans" : "")
+    </MudNavLink>
+
+    <MudNavLink href="/employees" Icon="@Icons.Material.Outlined.Group">
+        @(!IsMini ? "Employees" : "")
+    </MudNavLink>
+    <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
+        @(!IsMini ? "Borrowers" : "")
+    </MudNavLink>
+    
+    <MudNavLink href="/settings" Icon="@Icons.Material.Outlined.Settings">
+        @(!IsMini ? "Settings" : "")
+    </MudNavLink>
+</MudNavMenu>

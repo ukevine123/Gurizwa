@@ -1,0 +1,105 @@
+@page "/employees"
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Employees</MudText>
+        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="text-transform:none;">
+            Add employee
+        </MudButton>
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+        <MudItem xs="12" sm="4">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Variant="Variant.Outlined" 
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
+                          Margin="Margin.Dense" Class="bg-white rounded-lg" />
+        </MudItem>
+        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Share" Size="Size.Small" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+            <MudSelect T="string" Label="Experience" Dense="true" Margin="Margin.Dense" Outlined="true" Style="width: 150px; background: white;">
+                <MudSelectItem Value="@("All")" />
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+
+    @* 3. THE DATAGRID *@
+    <MudDataGrid T="Employee" Items="@_employees" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+        <Columns>
+            <SelectColumn T="Employee" />
+            <HierarchyColumn T="Employee" />
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <TemplateColumn Title="Name">
+                <CellTemplate>
+                    <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudAvatar Size="Size.Small"><MudImage Src="@context.Item.AvatarUrl" /></MudAvatar>
+                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.Name</MudText>
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Position" Title="Position" />
+            <PropertyColumn Property="x => x.Department" Title="Department" />
+            <PropertyColumn Property="x => x.Experience" Title="Experience" />
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    <div class="d-flex align-center gap-2">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background-color: @(context.Item.Status == "Full-time" ? "#4ade80" : "#f59e0b");"></div>
+                        <MudText Typo="Typo.body2">@context.Item.Status</MudText>
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
+            <TemplateColumn>
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+        <ChildRowContent>
+            <MudPaper Elevation="0" Class="pa-6 mx-12 my-2 rounded-lg" Style="background-color: #f8faff; border: 1px solid #eef2f6;">
+                <MudGrid>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Office</MudText>
+                        <MudText Typo="Typo.body2">@context.Item.Office</MudText>
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Subordinates</MudText>
+                        <MudText Typo="Typo.body2">@context.Item.Subordinates</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </ChildRowContent>
+        
+        <PagerContent>
+            <MudDataGridPager T="Employee" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+    private string _searchString = "";
+    private HashSet<Employee> _selectedItems = new();
+    private List<Employee> _employees = new();
+
+    protected override void OnInitialized()
+    {
+        _employees = new List<Employee>
+        {
+            new Employee { Id = "143", Name = "Evgeni Kondrashev", Position = "Lead iOS developer", Department = "iOS development", Experience = "1 year", Status = "Full-time", Office = "Minsk, Lenina 34/2", Subordinates = "Audrey Flores", AvatarUrl = "https://i.pravatar.cc/150?u=1" },
+            new Employee { Id = "008", Name = "Konstantin Konstantinopolsky", Position = "Graphic designer", Department = "Marketing", Experience = "2 years", Status = "Full-time", Office = "Warsaw, Royal St 5", Subordinates = "None", AvatarUrl = "https://i.pravatar.cc/150?u=2" },
+            new Employee { Id = "005", Name = "Ronald-Alexander Williamson", Position = "Lead UX designer", Department = "Design", Experience = "3 years", Status = "Part-time", Office = "Berlin, Main St 12", Subordinates = "Arlene Fox", AvatarUrl = "https://i.pravatar.cc/150?u=3" }
+        };
+    }
+}
