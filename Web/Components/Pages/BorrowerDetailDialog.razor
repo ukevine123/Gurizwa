@@ -1,0 +1,102 @@
+
+@using Domain.Entities
+
+@using Domain.ValueObjects
+@using Application.Services.Borrowers
+@using System.Globalization
+
+@inject NavigationManager NavigationManager
+
+ <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="BackToBorrower" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to List
+                </MudButton>
+<MudDialog>
+    
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2"/> Borrower Details
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_borrowers == null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudGrid Spacing="2">
+                <MudItem xs="6">
+                    <MudTextField Label="Account ID" Value="@_borrowers.Id" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Account Number" Value="@_borrowers.FirstName" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Balance" Value="@_borrowers.LastName" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Balance" Value="@_borrowers.sex" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Balance" Value="@_borrowers.Maritalstatus" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Balance" Value="@_borrowers.DateOfBirth" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Balance" Value="@_borrowers.IdentificationNumber" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Email" Value="@_borrowers.Email" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="PhoneNumber" Value="@_borrowers.PhoneNumber" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="SpouceIdNumber" Value="@_borrowers.SpouceIdNumber" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="SpouceIdNumber" Value="@_borrowers.SpouceName" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Province" Value="@_borrowers.Province" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="District" Value="@_borrowers.District" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Sector" Value="@_borrowers.Sector" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Cell" Value="@_borrowers.Cell" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Village" Value="@_borrowers.Village" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+              
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int Id { get; set; } 
+    
+    [Inject] IBorrowerService BorrowerService { get; set; }
+
+    private Borrower _borrowers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _borrowers = await BorrowerService.GetBorrowerById(Id);
+    }
+    private void Close() => MudDialog.Close();
+     private void BackToBorrower()
+    {
+        NavigationManager.NavigateTo("/Borrower");
+    }
+}

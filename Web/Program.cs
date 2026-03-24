@@ -22,6 +22,7 @@ builder.Services.AddRazorComponents()
 
     builder.Services.AddScoped<IBorrowerService, BorrowerService>();
     builder.Services.AddScoped<IBorrowerTypeService, BorrowerTypeService>();
+    
 
 var app = builder.Build();
 

@@ -24,10 +24,10 @@ namespace  Application.Services.BorrowerTypes
         {
             await _borrowerType.CreateBorrowerType( borrowerTypeDTO);
         }
-    //   public async Task UpdateBorrower(int Id, UpdateBorrowerDTO borrowerDTO)
-    //     {
-    //         await _borrowerType.UpdateBorrower(Id, borrowerDTO);
-    //     }
+      public async Task UpdateBorrowerType(int Id, UpdateBorrowTypeDTO borrowerTypeDTO)
+        {
+            await _borrowerType.UpdateBorrowerType(Id, borrowerTypeDTO);
+        }
     }
 
     

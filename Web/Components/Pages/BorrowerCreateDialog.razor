@@ -82,14 +82,14 @@
                             }
                         </MudSelect>
                     </MudItem>
-                <MudItem  xs="12">
+                <MudItem  xs="6">
                 <MudTextField Label="FirstName"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.FirstName"
                               For="@(() => Model.FirstName)" />
                 </MudItem>
-                <MudItem  xs="12">
+                <MudItem  xs="6">
                 <MudTextField Label="LastName"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
@@ -145,8 +145,7 @@
                Margin="Margin.Dense"
                AdornmentIcon="@Icons.Material.Filled.Transgender"
                AdornmentColor="Color.Primary">
-        
-        @* If Model.sex is NOT nullable, this line is just a visual label *@
+    
         <MudSelectItem T="Sex" Disabled="true">-- Select Sex --</MudSelectItem>
 
         @foreach (Sex item in Enum.GetValues(typeof(Sex)))
@@ -227,7 +226,7 @@
                               @bind-Value="Model.Cell"
                               For="@(() => Model.Cell)" />
                 </MudItem>
-                  <MudItem  xs="6">
+                  <MudItem  xs="12">
                 <MudTextField Label="Village"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
@@ -244,9 +243,6 @@
                     Add Borrower
                 </MudButton>
                 </MudItem>
-
-
-
             </MudGrid>
 
         </EditForm>

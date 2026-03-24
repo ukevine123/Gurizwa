@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories
 {
 public class BorrowerTypeRepository : IBorrowerType
-
   {
       private readonly ApplicationDbContext dbContext;
 
@@ -31,13 +30,21 @@ public class BorrowerTypeRepository : IBorrowerType
             var borrowerType = new BorrowerType
             {
                 Type = borrowerTypeDTO.Type,
-                 Status = "Active",
-                
+                 Status = "Active",   
   
             };
             await dbContext.BorrowerTypes.AddAsync(borrowerType);
             await dbContext.SaveChangesAsync();
             
+        }
+         public async Task UpdateBorrowerType(int Id,UpdateBorrowTypeDTO borrowerTypeDTO)
+        {
+            var borrowerType = dbContext.BorrowerTypes.Find(Id);
+            if (borrowerType != null)
+            {
+                borrowerType.Type = borrowerTypeDTO.Type;
+                
+            }
         }
        
 }}

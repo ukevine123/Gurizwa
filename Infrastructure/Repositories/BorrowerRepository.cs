@@ -48,7 +48,6 @@ namespace Infrastructure.Repositories
             dbContext.Borrowers.Add(_borrower);
             dbContext.SaveChanges();
         }
-
         public async Task UpdateBorrower(int Id,UpdateBorrowerDTO borrowerDTO)
         {
             var _borrower = dbContext.Borrowers.Find(Id);
