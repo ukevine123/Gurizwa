@@ -1,0 +1,166 @@
+@page "/Guarantor"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.Guarantors
+@using Domain.ValueObjects
+@inject IGuarantorService GuarantorService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<PageTitle>Guarantors</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Guarantor</MudText>
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+
+        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+     
+        </MudItem>
+    </MudGrid>
+
+    @* 3. THE DATAGRID *@
+    <MudDataGrid T="Guarantor" Items="@_guarantor" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Guarantor</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add Guarantor"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    Import
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            @* <MudText Typo="Typo.h5" Color="Color.Primary">Guarantor</MudText> *@
+            <MudSpacer />
+            <MudMenu Label="Add Guarantor" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="Guarantor" />
+            @* <HierarchyColumn T="Guarantor" />
+            <PropertyColumn Property="x => x.Id" Title="ID" /> *@
+            <TemplateColumn Title="FirstName">
+                <CellTemplate>
+                   
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
+            <PropertyColumn Property="x => x.LastName" Title="LastName" />
+            <PropertyColumn Property="x => x.GuarantorType.Name" Title="GuarantorType" />
+            <PropertyColumn Property="x => x.Identification" Title="Identification" />
+            <PropertyColumn Property="x => x.LoanApplicationId" Title="LoanApplication" />
+            <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" />
+            <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
+            <PropertyColumn Property="x => x.Province" Title="Province" />
+            <PropertyColumn Property="x => x.District" Title="District" />
+            <PropertyColumn Property="x => x.Sector" Title="Sector" />
+            <PropertyColumn Property="x => x.Cell" Title="Cell" />
+            <PropertyColumn Property="x => x.Village" Title="Village" />
+            
+
+        </Columns>
+        
+        <PagerContent>
+            <MudDataGridPager T="Guarantor" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+    private IEnumerable<Guarantor> FilteredGuarantor => _guarantor
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                    x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                    x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+     //s
+       List<Guarantor> _guarantor = new();
+    private HashSet<Guarantor> _selectedItems = new();
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadGuarantor();
+         
+    }
+    
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var dialog = await DialogService.ShowAsync<CreateGuarantorDialog>("Add Guarantor", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+             await LoadGuarantor();
+        }
+    }
+     private async Task LoadGuarantor()
+    {
+        _guarantor = await GuarantorService.GetAllGuarantorsAsync();
+        StateHasChanged();
+    }
+        private Color GetStatusColor(LoanStatus status)
+        {
+        return status.ToString() switch
+        {
+            "Dormant" => Color. Warning,
+            "Active" => Color.Success,
+            "Closed" => Color.Error,
+            _ => Color.Default
+        };
+       }
+
+    private async Task OpenDetailDialog(int id)
+    {
+        var parameters = new DialogParameters<BorrowerDetailDialog> { { x => x.Id, id } };
+        await DialogService.ShowAsync<BorrowerDetailDialog>("View Details", parameters);
+    }
+
+     private async Task OpenEditDialog(int id)
+    {
+        var parameters = new DialogParameters<EditBorrowerDialog> { { x => x.Id, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EditBorrowerDialog>("Edit Guarantor", parameters, options);
+        var result = await dialog.Result;
+    }
+
+
+}

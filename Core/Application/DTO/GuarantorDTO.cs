@@ -15,6 +15,7 @@ namespace Application.DTO
         public string Sector {get;set;}
         public string Cell {get;set;}
         public string Village {get;set;}
+         public string CreatedBy {get;set;} 
     }
     public class UpdateGuarantorDTO
     {

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260323094809_Initiail")]
-    partial class Initiail
+    [Migration("20260327220319_InitialFixPaths")]
+    partial class InitialFixPaths
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -106,12 +106,20 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("KinPhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Maritalstatus")
                         .HasColumnType("int");
+
+                    b.Property<string>("NextOfKin")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -126,11 +134,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SpouceIdNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SpouceName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Village")
@@ -141,6 +147,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BorrowerTypeId");
 
                     b.ToTable("Borrowers");
                 });
@@ -232,6 +240,8 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GuarantorTypeId");
+
                     b.ToTable("Guarantors");
                 });
 
@@ -291,21 +301,55 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("DateofApplication")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("LoanProductId")
+                        .HasColumnType("int");
+
                     b.Property<int>("PaymentModalityId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("PreferredDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
+                    b.Property<int>("providedDocumentId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BorrowerId");
+
+                    b.HasIndex("LoanProductId");
+
+                    b.HasIndex("PaymentModalityId");
+
+                    b.HasIndex("providedDocumentId");
+
                     b.ToTable("LoanApplications");
+                });
+
+            modelBuilder.Entity("Domain.Entities.LoanProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("InterestRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProductName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LoanProducts");
                 });
 
             modelBuilder.Entity("Domain.Entities.PaymentModality", b =>
@@ -347,20 +391,74 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DocumentFile")
+                    b.Property<byte[]>("DocumentFile")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("DocumentName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("LoanApplicationId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("ProvidedDocuments");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Borrower", b =>
+                {
+                    b.HasOne("Domain.Entities.BorrowerType", "BorrowerType")
+                        .WithMany()
+                        .HasForeignKey("BorrowerTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BorrowerType");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Guarantor", b =>
+                {
+                    b.HasOne("Domain.Entities.GuarantorType", "GuarantorType")
+                        .WithMany()
+                        .HasForeignKey("GuarantorTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GuarantorType");
+                });
+
+            modelBuilder.Entity("Domain.Entities.LoanApplication", b =>
+                {
+                    b.HasOne("Domain.Entities.Borrower", "Borrower")
+                        .WithMany()
+                        .HasForeignKey("BorrowerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
+                        .WithMany()
+                        .HasForeignKey("LoanProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.PaymentModality", "PaymentModality")
+                        .WithMany()
+                        .HasForeignKey("PaymentModalityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.ProvidedDocument", "ProvidedDocument")
+                        .WithMany()
+                        .HasForeignKey("providedDocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Borrower");
+
+                    b.Navigation("LoanProduct");
+
+                    b.Navigation("PaymentModality");
+
+                    b.Navigation("ProvidedDocument");
                 });
 #pragma warning restore 612, 618
         }

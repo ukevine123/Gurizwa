@@ -1,0 +1,155 @@
+@page "/loanProducts"
+@using Application.Interfaces
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.LoanProducts
+
+
+@inject ILoanProductService LoanProductService
+@inject NavigationManager Navigation
+
+@inject IDialogService DialogService
+
+<PageTitle>LoanProducts</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">LoanProducts</MudText>
+        @* <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="text-transform:none;">
+            Add LoanProduct
+        </MudButton> *@
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+        @* <MudItem xs="12" sm="4">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Variant="Variant.Outlined" 
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
+                          Margin="Margin.Dense" Class="bg-white rounded-lg" />
+        </MudItem> *@
+        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"  />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+            @* <MudSelect T="string" Label="FirstName" Dense="true" Margin="Margin.Dense" Outlined="true" Style="width: 150px; background: white;">
+                <MudSelectItem Value="@("All")" />
+            </MudSelect> *@
+        </MudItem>
+    </MudGrid>
+
+    @* 3. THE DATAGRID *@
+    <MudDataGrid T="LoanProduct" Items="@_loanProducts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">LoanProduct</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add LoanProduct"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    print
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">LoanProduct</MudText>
+            <MudSpacer />
+            <MudMenu Label="Add LoanProduct" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">print</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="LoanProduct" />
+            <HierarchyColumn T="LoanProduct" />
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <TemplateColumn>
+                <CellTemplate>
+                    @* <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudAvatar Size="Size.Small"><MudImage Src="@context.Item.AvatarUrl" /></MudAvatar>
+                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.FirstName</MudText>
+                    </MudStack> *@
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.ProductName" Title="ProductName" />
+            <PropertyColumn Property="x => x.InterestRate" Title="InterestRate" Format="0.00' %'" />
+            <PropertyColumn Property="x => x.Description" Title="Description" />
+
+          </Columns>
+           
+                
+        
+        <PagerContent>
+            <MudDataGridPager T="LoanProduct" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+       List<LoanProduct> _loanProducts = new();
+
+           private HashSet<LoanProduct> _selectedItems = new();
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadLoanProduct();
+         
+    }
+    
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<LoanProductDialog>("Add LoanProduct", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+          
+             await LoadLoanProduct();
+        }
+    }
+     private async Task LoadLoanProduct()
+    {
+        _loanProducts = await LoanProductService.GetAllLoanProductsAsync();
+        StateHasChanged();
+    }
+        @* private Color GetStatusColor(LoanStatus status)
+    {
+        return status.ToString() switch
+        {
+            "Dormant" => Color. Warning,
+            "Active" => Color.Success,
+            "Closed" => Color.Error,
+            _ => Color.Default
+        };
+    } *@
+
+     private async Task OpenEditDialog(int id)
+    {
+        Navigation.NavigateTo($"/loanproducts/edit/{id}");
+    }
+
+
+}

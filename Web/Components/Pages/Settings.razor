@@ -1,0 +1,101 @@
+@page "/settings"
+
+@using Application.Interfaces
+@using Domain.Entities
+@using Application.Services.AccountTypes
+
+@inject IDialogService DialogService
+@inject IAccountTypeService AccountTypeService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 p-3">
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        
+        @* --- TAB 1: ACCOUNT TYPES --- *@
+        <MudTabPanel Text="Account Types" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T="AccountType"
+                         Items="@AccountTypes"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">Account Types</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Account Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateAccountType">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+
+                <Columns>
+                    <SelectColumn T="AccountType" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.AccountTypeName" Title="Account Type" Sortable="true" />
+
+                    @* <TemplateColumn Title="Actions">
+                        <CellTemplate>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense="true" Size="Size.Small">
+                                <MudMenuItem Icon="@Icons.Material.Filled.Info">Details</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Edit">Edit</MudMenuItem>
+                            </MudMenu>
+                        </CellTemplate>
+                    </TemplateColumn> *@
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="AccountType" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
+        
+        @* --- TAB 2 --- *@
+        <MudTabPanel Text="Tab Two">
+            <MudText>Content Two</MudText>
+        </MudTabPanel>
+
+        @* --- TAB 3 --- *@
+        <MudTabPanel Text="Tab Three">
+            <MudText>Content Three</MudText>
+        </MudTabPanel>
+
+        @* --- TAB 4 --- *@
+        <MudTabPanel Text="Tab Disabled" Disabled="true">
+            <MudText>Content Disabled</MudText>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private List<AccountType> AccountTypes = new();
+    private readonly DialogOptions _closeButton2 = new() { CloseButton = true };
+
+    private async Task LoadAccountType()
+    {
+        // Added a check to ensure we get a fresh list
+        var result = await AccountTypeService.GetAllAccountTypesAsync();
+        AccountTypes = result?.ToList() ?? new List<AccountType>();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountType();
+    }
+
+    private async Task GoToCreateAccountType()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<AccountTypeDialog>("Add Account Type", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100); // Small delay to let DB catch up if needed
+            await LoadAccountType();
+        }
+    }
+}

@@ -1,0 +1,25 @@
+<script>
+    window.downloadFileFromBase64 = (fileName, base64Data) => {
+        // 1. Convert Base64 to a Byte Array
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+
+        // 2. Create a Blob (Binary Large Object)
+        const blob = new Blob([byteArray], { type: "application/octet-stream" });
+
+        // 3. Create a temporary link and "click" it
+        const url = window.URL.createObjectURL(blob);
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? "download";
+        anchorElement.click();
+
+        // 4. Cleanup
+        window.URL.revokeObjectURL(url);
+        anchorElement.remove();
+    }
+</script>

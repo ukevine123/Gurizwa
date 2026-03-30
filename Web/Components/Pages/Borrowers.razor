@@ -20,17 +20,12 @@
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
-        @* <MudItem xs="12" sm="4">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search" Variant="Variant.Outlined" 
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
-                          Margin="Margin.Dense" Class="bg-white rounded-lg" />
-        </MudItem> *@
 
         <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
@@ -38,13 +33,7 @@
             }
             <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
             <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-            @* <MudSelect T="Borrower" Label="Borrower" Dense="true" Margin="Margin.Dense" Outlined="true" Style="width: 150px; background: white;">
-    <MudSelectItem T="Borrower" Value="null">All Borrowers</MudSelectItem>
-    @foreach (var borrower in _borrowers)
-{
-    <MudSelectItem T="Borrower" Value="@borrower">@borrower.FirstName</MudSelectItem>
-}
-</MudSelect> *@
+     
         </MudItem>
     </MudGrid>
 
@@ -53,7 +42,7 @@
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
                   <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText>
             <MudSpacer />
 
             <MudMenu Label="Add Borrowe"
@@ -74,7 +63,7 @@
         </ToolBarContent>
 
           <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText>
+            @* <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText> *@
             <MudSpacer />
             <MudMenu Label="Add Borrower" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
                 <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
@@ -84,45 +73,31 @@
 
         <Columns>
             <SelectColumn T="Borrower" />
-            <HierarchyColumn T="Borrower" />
-            <PropertyColumn Property="x => x.Id" Title="ID" />
-            <TemplateColumn Title="FirstName">
+            @* <HierarchyColumn T="Borrower" />
+            <PropertyColumn Property="x => x.Id" Title="ID" /> *@
+            <TemplateColumn >
                 <CellTemplate>
-                    @* <MudStack Row="true" AlignItems="AlignItems.Center">
-                        <MudAvatar Size="Size.Small"><MudImage Src="@context.Item.AvatarUrl" /></MudAvatar>
-                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.FirstName</MudText>
-                    </MudStack> *@
+                   
                 </CellTemplate>
             </TemplateColumn>
             <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
             <PropertyColumn Property="x => x.LastName" Title="LastName" />
-            <PropertyColumn Property="x => x.BorrowerTypeId" Title="BorrowerType" />
+            <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
             <PropertyColumn Property="x => x.sex" Title="Sex" />
-            <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" />
-            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" />
+            @* <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" /> *@
+            @* <PropertyColumn Property="x => x.KinPhoneNumber" Title="KinPhoneNumber" /> *@
             <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
             <PropertyColumn Property="x => x.Email" Title="Email" />
             <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
-            <PropertyColumn Property="x => x.SpouceIdNumber" Title="SpouceIdNumber" />
-            <PropertyColumn Property="x => x.SpouceName" Title="SpouceName" />
+            @* <PropertyColumn Property="x => x.SpouceIdNumber" Title="SpouceIdNumber" /> *@
+            @* <PropertyColumn Property="x => x.SpouceName" Title="SpouceName" /> *@
             <PropertyColumn Property="x => x.Province" Title="Province" />
             <PropertyColumn Property="x => x.District" Title="District" />
-            <PropertyColumn Property="x => x.Sector" Title="Sector" />
-            <PropertyColumn Property="x => x.Cell" Title="Cell" />
-            <PropertyColumn Property="x => x.Village" Title="Village" />
+            @* <PropertyColumn Property="x => x.Sector" Title="Sector" /> *@
+            @* <PropertyColumn Property="x => x.Cell" Title="Cell" />
+            <PropertyColumn Property="x => x.Village" Title="Village" /> *@
             
-                @* <CellTemplate>
-                    <div class="d-flex align-center gap-2">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background-color: @(context.Item.Status == "Full-time" ? "#4ade80" : "#f59e0b");"></div>
-                        <MudText Typo="Typo.body2">@context.Item.Status</MudText>
-                    </div>
-                </CellTemplate> *@
-        
-            @* <TemplateColumn>
-                <CellTemplate>
-                    <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" />
-                </CellTemplate>
-            </TemplateColumn> *@
+
         </Columns>
         
         <PagerContent>

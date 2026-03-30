@@ -1,0 +1,169 @@
+@page "/LoanApplication"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.LoanApplications
+@using Domain.ValueObjects
+
+@inject ILoanApplicationService LoanApplicationService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<PageTitle>LoanApplication</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Application</MudText>
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+
+        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+     
+        </MudItem>
+    </MudGrid>
+
+    @* 3. THE DATAGRID *@
+    <MudDataGrid T="LoanApplication" Items="@_loanApplication" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Application</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add LoanApplication"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    Import
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
+            <MudSpacer />
+            <MudMenu Label="Add LoanApplication" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="LoanApplication" />
+            <HierarchyColumn T="LoanApplication" />
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <TemplateColumn Title="Product">
+                <CellTemplate>
+                   
+                </CellTemplate>
+            </TemplateColumn>
+           <PropertyColumn Property="x => x.LoanProduct.ProductName" Title="Product" />
+            <PropertyColumn Property="x => x.Borrower.FirstName" Title="Borrower" />
+            <PropertyColumn Property="x => x.PaymentModality.Mode" Title="Payment Method" />
+            <PropertyColumn Property="x => x.AmountRequested" Title="AmountRequested" />
+            <PropertyColumn Property="x => x.DateofApplication" Title="DateofApplication" />
+            @* <PropertyColumn Property="x => x.Status" Title="Status" /> *@
+            <PropertyColumn Property="x => x.PreferredDate" Title="PreferredDate" />
+            @* <PropertyColumn Property="x => x.ApprovedBy" Title="ApprovedBy" /> *@
+            
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    <MudChip T="string" 
+                            Color="@GetStatusColor(context.Item.Status)" 
+                            Size="Size.Small" 
+                            Variant="Variant.Text">
+                        @context.Item.Status
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        
+        <PagerContent>
+            <MudDataGridPager T="LoanApplication" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+    private IEnumerable<LoanApplication> FilteredBorrowers => _loanApplication
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    
+            x.ApprovedBy.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+     //s
+       List<LoanApplication> _loanApplication = new();
+    private HashSet<LoanApplication> _selectedItems = new();
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadLoanApplication();
+         
+    }
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var dialog = await DialogService.ShowAsync<ApplicationCreateDialog>("Add Application", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+             await LoadLoanApplication();
+        }
+    }
+     private async Task LoadLoanApplication()
+    {
+        _loanApplication = await LoanApplicationService.GetAllLoanApplicationsAsync();
+        StateHasChanged();
+    }
+        private Color GetStatusColor(LoanStatus status)
+        {
+        return status.ToString() switch
+        {
+            "Applied" => Color. Warning,
+            "Confirmed" => Color.Success,
+            "Rejected" => Color.Error,
+            _ => Color.Default
+        };
+       }
+
+    private async Task OpenDetailDialog(int id)
+    {
+        var parameters = new DialogParameters<BorrowerDetailDialog> { { x => x.Id, id } };
+        await DialogService.ShowAsync<BorrowerDetailDialog>("View Details", parameters);
+    }
+
+     private async Task OpenEditDialog(int id)
+    {
+        var parameters = new DialogParameters<EditBorrowerDialog> { { x => x.Id, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EditBorrowerDialog>("Edit Application", parameters, options);
+        var result = await dialog.Result;
+    }
+
+
+}

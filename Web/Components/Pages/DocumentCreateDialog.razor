@@ -1,0 +1,161 @@
+
+@using  Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Domain.Entities
+@using Application.Services.ProvidedDocuments
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize] *@
+@inject NavigationManager Navigation
+@inject IProvidedDocumentService ProvidedDocumentService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MudDialog Style=" overflow:hidden;">
+
+    <DialogContent>
+
+        <!-- ══════════ HEADER ══════════ -->
+        <MudPaper Elevation="0"
+                 Style="background: linear-gradient(135deg, #5a55e6 );
+                         padding:14px 18px; margin-bottom:16px;">
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
+                         Style="color:white; font-size:1.0rem;" />
+
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700;">
+                        Add Document
+                    </MudText>
+                    
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <MudStack Spacing="2">
+                <!-- SECTION : BASIC INFO -->
+                @* <MudText Typo="Typo.caption"
+                         Style="color:#9E9E9E; font-weight:600;
+                         letter-spacing:.08em; text-transform:uppercase;">
+                    Basic Information *@
+                @* </MudText> *@
+
+               <MudGrid Spacing="1" Class="align-items-center">
+
+                    <MudItem xs="6">
+                        <MudTextField Label="DocumentName"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      @bind-Value="Model.DocumentName"
+                                      For="@(() => Model.DocumentName)" />
+                                      
+                    </MudItem>
+
+                     
+                 <MudItem xs="6">
+    @* 1. Remove the 'For' attribute here to stop the CS0029 error *@
+    <MudFileUpload T="IBrowserFile" OnFilesChanged="UploadDocument">
+        <ActivatorContent>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.CloudUpload">
+                @(Model.DocumentFile == null ? "Upload Document" : "File Selected")
+            </MudButton>
+        </ActivatorContent>
+    </MudFileUpload>
+
+    @* 2. Manually add a validation message if you want to show 'Required' errors *@
+    <MudValidationMessage For="@(() => Model.DocumentFile)" />
+
+    @if (Model.DocumentFile != null)
+    {
+        <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Success">
+            Successfully captured binary data.
+        </MudText>
+    }
+</MudItem>
+
+                </MudGrid>
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+
+        <MudStack Row="true" Spacing="2" Style="width:100%;" Class="px-2 pb-2">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       FullWidth="true"
+                       ButtonType="ButtonType.Submit"
+                       OnClick="onValidSubmit"
+                       Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px; flex:1; border-radius:8px;">
+
+                Add Document
+            </MudButton>
+
+        </MudStack>
+    </DialogActions>
+
+</MudDialog>
+
+@code{
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+    private void Cancel() => MudDialog.Cancel();
+    private CreateProvidedDocumentDTO Model {get;set;} = new ();
+    private string ErrorMessage { get; set; }
+    private async Task onValidSubmit()
+    {
+        try
+        {
+            await ProvidedDocumentService.CreateProvidedDocument(Model);
+            Snackbar.Add("Document created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+private async Task UploadDocument(InputFileChangeEventArgs e)
+{
+    var file = e.File;
+    if (file != null)
+    {
+        // 1. Set a maximum allowed size (e.g., 5MB)
+        long maxFileSize = 1024 * 1024 * 5;
+
+        // 2. Read the file stream
+        using var stream = file.OpenReadStream(maxFileSize);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        // 3. Assign the byte array to your model
+        Model.DocumentFile = ms.ToArray();
+        
+        // Optional: Automatically fill the name field if it's empty
+        if (string.IsNullOrEmpty(Model.DocumentName))
+        {
+            Model.DocumentName = file.Name;
+        }
+    }
+}   
+
+}
+
+      
+    
+

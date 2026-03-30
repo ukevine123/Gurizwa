@@ -1,0 +1,169 @@
+@page "/ProvidedDocuments"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.ProvidedDocuments
+@using Domain.ValueObjects
+
+@inject IProvidedDocumentService ProvidedDocumentService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<PageTitle>Provided Document</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Provided Document</MudText>
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+
+        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"  />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+     
+        </MudItem>
+    </MudGrid>
+
+    @* 3. THE DATAGRID *@
+    <MudDataGrid T="ProvidedDocument" Items="@_providedDocument" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Provided Document</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add Document"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    Import
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
+            <MudSpacer />
+            <MudMenu Label="Upload" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Upload" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+  <Columns>
+    <SelectColumn T="ProvidedDocument" />
+    <HierarchyColumn T="ProvidedDocument" />
+    <PropertyColumn Property="x => x.Id" Title="ID" />
+    
+  
+    <PropertyColumn Property="x => x.DocumentName" Title="Document Name" />
+
+   
+
+   
+            <TemplateColumn Title="Action">
+    <CellTemplate>
+        @if (context.Item.DocumentFile != null && context.Item.DocumentFile.Length > 0)
+        {
+          
+            string base64 = Convert.ToBase64String(context.Item.DocumentFile);
+            string fileName = context.Item.DocumentName ?? "document";
+            
+          <MudLink Href="@($"data:application/octet-stream;base64,{base64}")" 
+                     Download="@context.Item.DocumentName"
+                     Underline="Underline.Hover">
+                <MudIcon Icon="@Icons.Material.Filled.Download" Size="Size.Small" />
+                Download @context.Item.DocumentName
+            </MudLink>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">No File Data</MudText>
+        }
+    </CellTemplate>
+</TemplateColumn>
+
+
+</Columns>
+        
+        <PagerContent>
+            <MudDataGridPager T="ProvidedDocument" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+    private IEnumerable<ProvidedDocument> FilteredBorrowers => _providedDocument
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    
+            x.DocumentName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+     //s
+       List<ProvidedDocument> _providedDocument = new();
+    private HashSet<ProvidedDocument> _selectedItems = new();
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadDocument();
+         
+    }
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var dialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Application", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+             await LoadDocument();
+        }
+    }
+     private async Task LoadDocument()
+    {
+        _providedDocument = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
+        StateHasChanged();
+    }
+    private string GetIcon(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName)) return Icons.Custom.FileFormats.FileDocument;
+        
+        var ext = Path.GetExtension(fileName).ToLower();
+        return ext switch
+        {
+            ".pdf" => Icons.Custom.FileFormats.FilePdf,
+            ".xlsx" or ".xls" => Icons.Custom.FileFormats.FileExcel,
+            ".docx" or ".doc" => Icons.Custom.FileFormats.FileWord,
+            ".png" or ".jpg" or ".jpeg" => Icons.Custom.FileFormats.FileImage,
+            _ => Icons.Material.Filled.AttachFile
+        };
+    }
+        
+     }  
+
+   
+
+     
+
+

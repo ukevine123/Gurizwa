@@ -18,6 +18,13 @@ namespace Infrastructure.Data
         public DbSet<PaymentModality> PaymentModalities { get; set; }
         public DbSet<ProvidedDocument> ProvidedDocuments { get; set; }
         public DbSet<BorrowerType> BorrowerTypes { get; set; }
+         public DbSet<Account> Accounts { get; set; }
+          public DbSet<LoanProduct> LoanProducts { get; set; }
+          public DbSet<RequiredDocument> RequiredDocuments { get; set; }
+          public DbSet<Requirement> Requirements { get; set; }
+          public DbSet<AccountType> AccountTypes { get; set; }
+           public DbSet<Disbursement> Disbursements{get;set;}
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
