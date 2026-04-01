@@ -9,6 +9,7 @@ namespace Domain.Entities
         public string LastName {get;set;}
         public string Identification {get;set;}
         public int LoanApplicationId {get;set;}
+        public LoanApplication LoanApplication {get;set;}
         public DateTime DateOfBirth {get;set;}
         public string Email {get;set;}
         public string PhoneNumber {get;set;}

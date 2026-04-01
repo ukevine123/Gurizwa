@@ -1,0 +1,193 @@
+@page "/Users"
+@using Application.DTO
+@using Application.Services.Users
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@inject IIdentityService IdentityService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Users</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudCard>
+        <MudCardHeader>
+            <div class="d-flex justify-space-between align-center w-100">
+                <div>
+                    <MudText Typo="Typo.h5">Users Management</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">View and manage all users</MudText>
+                </div>
+                <div>
+                    <MudButton Href="/RegisterUser" 
+                               Variant="Variant.Filled" 
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.PersonAdd">
+                        Add New User
+                    </MudButton>
+                </div>
+            </div>
+        </MudCardHeader>
+
+        <MudCardContent>
+            @if (isLoading)
+            {
+                <div class="d-flex flex-column align-center justify-center pa-8">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+                    <MudText Typo="Typo.body1" Class="mt-4">Loading users...</MudText>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Icon="@Icons.Material.Filled.Error">
+                    @errorMessage
+                </MudAlert>
+            }
+            else if (users == null || users.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Info">
+                    No users found. Click "Add New User" to create one.
+                </MudAlert>
+            }
+            else
+            {
+                <MudTable Items="@users" 
+                          Hover="true" 
+                          Striped="true" 
+                          Dense="true"
+                          Breakpoint="Breakpoint.Sm"
+                          Filter="new Func<UserDetailDTO, bool>(FilterFunc)">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Users</MudText>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="searchString" 
+                                      Placeholder="Search users..." 
+                                      Adornment="Adornment.Start" 
+                                      AdornmentIcon="@Icons.Material.Filled.Search" 
+                                      IconSize="Size.Medium" 
+                                      Class="mt-0"
+                                      Immediate="true" />
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>ID</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Email</MudTh>
+                        <MudTh>Phone</MudTh>
+                        <MudTh>Email Confirmed</MudTh>
+                        <MudTh>Created At</MudTh>
+                        <MudTh Style="text-align: right;">Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="ID">
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info">@context.Id</MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Name">
+                            <div class="d-flex align-center">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-2">
+                                    @((string.IsNullOrEmpty(context.FirstName) ? "?" : context.FirstName[0].ToString()) + (string.IsNullOrEmpty(context.LastName) ? "?" : context.LastName[0].ToString()))
+                                </MudAvatar>
+                                <div>
+                                    <MudText Typo="Typo.body2"><strong>@context.FirstName @context.LastName</strong></MudText>
+                                </div>
+                            </div>
+                        </MudTd>
+                        <MudTd DataLabel="Email">
+                            <MudText Typo="Typo.body2">@context.Email</MudText>
+                        </MudTd>
+                        <MudTd DataLabel="Phone">
+                            <MudText Typo="Typo.body2">@(string.IsNullOrEmpty(context.PhoneNumber) ? "-" : context.PhoneNumber)</MudText>
+                        </MudTd>
+                        <MudTd DataLabel="Email Confirmed">
+                            <MudChip T="string" Size="Size.Small" 
+                                     Variant="Variant.Outlined"
+                                     Color="@(context.EmailConfirmed ? Color.Success : Color.Warning)"
+                                     Icon="@(context.EmailConfirmed ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Warning)">
+                                @(context.EmailConfirmed ? "Verified" : "Pending")
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Created At">
+                            <MudText Typo="Typo.body2">@context.CreatedAt.ToString("MMM dd, yyyy")</MudText>
+                        </MudTd>
+                        <MudTd DataLabel="Actions" Style="text-align: right;">
+                            <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                               Color="Color.Info" 
+                                               Size="Size.Small"
+                                               Href="@($"/Users/{context.Id}")"
+                                               Title="View Details" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                               Color="Color.Primary" 
+                                               Size="Size.Small"
+                                               Href="@($"/Users/Edit/{context.Id}")"
+                                               Title="Edit User" />
+                            </MudButtonGroup>
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+                    </PagerContent>
+                </MudTable>
+
+                <div class="mt-4">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Total Users: @users.Count
+                    </MudText>
+                </div>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private List<UserDetailDTO>? users;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private string searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            Console.WriteLine("[Users] Loading users list...");
+
+            users = await IdentityService.GetAllUsers();
+
+            Console.WriteLine($"[Users] Loaded {users?.Count ?? 0} users");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading users: {ex.Message}";
+            Console.WriteLine($"[Users] Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool FilterFunc(UserDetailDTO user)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        var search = searchString.ToLower();
+
+        if (!string.IsNullOrEmpty(user.FirstName) && user.FirstName.ToLower().Contains(search))
+            return true;
+        if (!string.IsNullOrEmpty(user.LastName) && user.LastName.ToLower().Contains(search))
+            return true;
+        if (!string.IsNullOrEmpty(user.Email) && user.Email.ToLower().Contains(search))
+            return true;
+        if (user.PhoneNumber?.ToLower().Contains(search) == true)
+            return true;
+
+        return false;
+    }
+}

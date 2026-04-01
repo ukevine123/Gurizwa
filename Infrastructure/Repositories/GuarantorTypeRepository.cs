@@ -3,6 +3,7 @@ using Domain.Entities;
 using Infrastructure.Data;
 using Application.DTO;
 using Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Repositories
 {
     public class GuarantorTypeRepository : IGuarantorType
@@ -12,11 +13,17 @@ namespace Infrastructure.Repositories
         {
            dbContext=context; 
         }
-        public  async Task<List<GuarantorType>> GetAllGuarantorTypesAsync()
-        {
-          List<GuarantorType> _guarantorType = dbContext.GuarantorTypes.ToList();
-          return _guarantorType;
-        }
+        // public  async Task<List<GuarantorType>> GetAllGuarantorTypesAsync()
+        // {
+        //   List<GuarantorType> _guarantorType = dbContext.GuarantorTypes.ToList();
+        //   return _guarantorType;
+        // }
+
+        public async Task<List<GuarantorType>> GetAllGuarantorTypesAsync()
+{
+    // Use ToListAsync() and await it
+    return await dbContext.GuarantorTypes.ToListAsync();
+}
         public async Task <GuarantorType> GetGuarantorTypeById(int Id)
         {
             return  dbContext.GuarantorTypes.FirstOrDefault(t => t.Id == Id);

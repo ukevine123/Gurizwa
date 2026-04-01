@@ -1,0 +1,88 @@
+
+@using Application.DTO
+@using Application.Services.BorrowerTypes
+@using MudBlazor
+
+@inject IBorrowerTypeService BorrowerTypeService
+
+<MudDialog Style="border-radius:12px; max-width: 400px;">
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="pa-2">
+            @* Icons removed *@
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.h6" Style="font-weight:800; color: #1B2559;">Add New Borrower Type</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Enter classification details</MudText>
+            </MudStack>
+        </MudStack>
+    </TitleContent>
+
+    <DialogContent>
+        <MudDivider Class="mb-6" />
+        
+        <MudStack Spacing="3">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudDivider Vertical="true" FlexItem="true" Style="border-width: 3px; border-color: #1B2559; height: 16px; border-radius: 2px;" />
+                <MudText Typo="Typo.caption" Style="color:#1B2559; font-weight:900; letter-spacing:.1em;">Borrower Type</MudText>
+            </MudStack>
+
+            <MudTextField T="string" 
+                          Label="Borrower Type" 
+                          Variant="Variant.Outlined" 
+                          Margin="Margin.Dense" 
+                          Lines="3"
+                          @bind-Value="Model.Type"
+                          Placeholder="e.g. Cash, Cheque, Online Transfer, etc..."
+                          For="@(() => Model.Type)"
+                          AutoFocuss="true" />
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Class="px-6 pb-6" Style="width: 100%;" Spacing="3">
+            <MudButton ButtonType="ButtonType.Submit"
+                       OnClick="HandleValidSubmit"
+                       FullWidth="true"
+                       Disabled="@_isProcessing"
+                       Style="background-color: #1B2559; color: white; border-radius: 8px; padding: 10px 0; font-weight: 700; text-transform: none;">
+                @if (_isProcessing)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">SAVING...</MudText>
+                }
+                else
+                {
+                    <MudText>SAVE Type</MudText>
+                }
+            </MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private CreateBorrowTypeDTO Model { get; set; } = new();
+    private bool _isProcessing { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(Model.Type)) return;
+        _isProcessing = true;
+        
+        try
+        {
+            await BorrowerTypeService.CreateBorrowerType(Model);
+            MudDialog.Close(DialogResult.Ok(true));  
+        }
+        catch
+        {
+            // Silently handle or log error without UI alert
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel(); 
+}

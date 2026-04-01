@@ -53,63 +53,60 @@ namespace Infrastructure.Repositories
                 DateofApplication = loanApplicationDTO.DateofApplication, 
                 Status = loanApplicationDTO.Status,
                 PreferredDate = loanApplicationDTO.PreferredDate,
-                ApprovedBy = loanApplicationDTO.ApprovedBy,
+                ApprovedBy = "Admin",
                 CreatedBy="Admin"
               
             };
             dbContext.LoanApplications.Add(_loanApplication);
             dbContext.SaveChanges();
         }
-    public async Task UpdateLoanApplication(int Id, UpdateApplicationDTO loanApplicationDTO)
+        public async Task UpdateLoanApplication(int Id, UpdateApplicationDTO loanApplicationDTO)
+            {
+                using var dbContext = await _contextFactory.CreateDbContextAsync();
+                
+                // Include LoanProduct so we can access its InterestRate for the Disbursement
+                var _loanApplication = await dbContext.LoanApplications
+                    .Include(a => a.LoanProduct)
+                    .FirstOrDefaultAsync(t => t.Id == Id);
+
+                if (_loanApplication != null)
+                {
+                    // Update fields
+                    _loanApplication.PaymentModalityId = loanApplicationDTO.PaymentModalityId;
+                    _loanApplication.AmountRequested = loanApplicationDTO.AmountRequested;
+                    _loanApplication.ApprovedBy = loanApplicationDTO.ApprovedBy;
+                    _loanApplication.Status = loanApplicationDTO.Status; // Assuming DTO uses LoanStatus enum
+                    _loanApplication.PreferredDate = loanApplicationDTO.PreferredDate;
+                    _loanApplication.DateofApplication = loanApplicationDTO.DateofApplication;
+
+                
+               }
+           }
+
+public async Task<List<LoanApplication>> GetFilteredLoansAsync(string role, int? currentUserId = null)
 {
     using var dbContext = await _contextFactory.CreateDbContextAsync();
-    
-    // Include LoanProduct so we can access its InterestRate for the Disbursement
-    var _loanApplication = await dbContext.LoanApplications
+
+    var query = dbContext.LoanApplications
         .Include(a => a.LoanProduct)
-        .FirstOrDefaultAsync(t => t.Id == Id);
+        .Include(a => a.Borrower)
+        .AsQueryable();
 
-    if (_loanApplication != null)
+    if (role == "LoanManager")
     {
-        // Update fields
-        _loanApplication.PaymentModalityId = loanApplicationDTO.PaymentModalityId;
-        _loanApplication.AmountRequested = loanApplicationDTO.AmountRequested;
-        _loanApplication.ApprovedBy = loanApplicationDTO.ApprovedBy;
-        _loanApplication.Status = loanApplicationDTO.Status; // Assuming DTO uses LoanStatus enum
-        _loanApplication.PreferredDate = loanApplicationDTO.PreferredDate;
-        _loanApplication.DateofApplication = loanApplicationDTO.DateofApplication;
+        // Use the Enum directly here
+        query = query.Where(l => l.Status == LoanStatus.Applied);
+    }
+    else if (role != "Admin" && currentUserId.HasValue)
+    {
+        query = query.Where(l => l.BorrowerId == currentUserId.Value);
+    }
 
-        // FIX: Compare Enum to Enum, not Enum to String
-        if (loanApplicationDTO.Status == LoanStatus.Confirmed)
-        {
-            // Check if disbursement already exists to avoid duplicates
-            var exists = await dbContext.Disbursements.AnyAsync(d => d.LoanApplicationId == Id);
-            
-            if (!exists)
-            {
-                var disbursement = new Disbursement
-                {
-                    LoanApplicationId = _loanApplication.Id,
-                    PaymentModalityId = _loanApplication.PaymentModalityId,
-                    PrincipalOffered = _loanApplication.AmountRequested,
-                    InterestRate = _loanApplication.LoanProduct?.InterestRate ?? 0,
-                    Amount = _loanApplication.AmountRequested,
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddMonths(12), // Adjust logic as needed
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = 1 // Use actual User ID
-                };
-
-                dbContext.Disbursements.Add(disbursement);
-            }
-        }
-
-        await dbContext.SaveChangesAsync();
+    return await query.ToListAsync();
+}
     }
     }
-    }
-    }   
+    
     
     
         

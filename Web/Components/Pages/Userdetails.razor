@@ -1,0 +1,216 @@
+@page "/Users/{Id:int}"
+@using Application.DTO
+@using Application.Services.Users
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@inject IIdentityService IdentityService
+@inject NavigationManager NavigationManager
+
+<PageTitle>User Details</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        <MudText Typo="Typo.body1" Class="mt-2">Loading user details...</MudText>
+    }
+    else if (errorMessage != null)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">
+            @errorMessage
+        </MudAlert>
+        <MudButton Href="/Users" Variant="Variant.Filled" Color="Color.Primary">
+            Back to Users List
+        </MudButton>
+    }
+    else if (user != null)
+    {
+        <MudCard>
+            <MudCardHeader>
+                    <div class="d-flex justify-space-between align-center">
+                        <MudText Typo="Typo.h5">User Details</MudText>
+                        <MudButtonGroup Variant="Variant.Outlined">
+                            <MudButton Href="/Users" 
+                                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                                       Color="Color.Secondary">
+                                Back to List
+                            </MudButton>
+                            <MudButton Href="@($"/Users/Edit/{Id}")" 
+                                       StartIcon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary">
+                                Edit User
+                            </MudButton>
+                        </MudButtonGroup>
+                    </div>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="pa-4" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="mb-4">Personal Information</MudText>
+                            
+                            <MudList T="string" Dense="true">
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.Badge">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">User ID</MudText>
+                                        <MudText Typo="Typo.body1"><strong>@user.Id</strong></MudText>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider/>
+
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Full Name</MudText>
+                                        <MudText Typo="Typo.body1"><strong>@user.FirstName @user.LastName</strong></MudText>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider />
+
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.Email">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
+                                        <MudText Typo="Typo.body1">@user.Email</MudText>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider />
+
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.Phone">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Phone Number</MudText>
+                                        <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not provided" : user.PhoneNumber)</MudText>
+                                    </div>
+                                </MudListItem>
+                            </MudList>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12" md="6">
+                        <MudPaper Class="pa-4" Elevation="0">
+                            <MudText Typo="Typo.h6" Class="mb-4">Account Information</MudText>
+                            
+                            <MudList T="string" Dense="true">
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.VerifiedUser">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email Confirmed</MudText>
+                                        <MudChip Size="Size.Small" 
+                                                 Color="@(user.EmailConfirmed ? Color.Success : Color.Warning)"
+                                                 Icon="@(user.EmailConfirmed ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Warning)">
+                                            @(user.EmailConfirmed ? "Verified" : "Not Verified")
+                                        </MudChip>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider />
+
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.CalendarToday">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Created At</MudText>
+                                        <MudText Typo="Typo.body1">@user.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</MudText>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider />
+
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.Update">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Last Updated</MudText>
+                                        <MudText Typo="Typo.body1">@user.UpdatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</MudText>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider />
+
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.AccessTime">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Account Age</MudText>
+                                        <MudText Typo="Typo.body1">@GetAccountAge(user.CreatedAt)</MudText>
+                                    </div>
+                                </MudListItem>
+                            </MudList>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+
+            <MudCardActions Class="d-flex justify-end pa-4">
+                <MudButton Href="/Users" 
+                           Variant="Variant.Text" 
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to List
+                </MudButton>
+                <MudButton Href="@($"/Users/Edit/{Id}")" 
+                           Variant="Variant.Filled" 
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Edit">
+                    Edit User
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UserDetailDTO? user;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDetails();
+    }
+
+    private async Task LoadUserDetails()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            Console.WriteLine($"[UserDetails] Loading user with ID: {Id}");
+
+            user = await IdentityService.GetUserById(Id);
+
+            if (user == null)
+            {
+                errorMessage = $"User with ID {Id} not found.";
+                Console.WriteLine($"[UserDetails] User not found: {Id}");
+            }
+            else
+            {
+                Console.WriteLine($"[UserDetails] User loaded successfully: {user.Email}");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading user details: {ex.Message}";
+            Console.WriteLine($"[UserDetails] Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetAccountAge(DateTime createdAt)
+    {
+        var age = DateTime.UtcNow - createdAt;
+        
+        if (age.TotalDays < 1)
+            return "Less than a day";
+        else if (age.TotalDays < 30)
+            return $"{(int)age.TotalDays} day{((int)age.TotalDays != 1 ? "s" : "")}";
+        else if (age.TotalDays < 365)
+            return $"{(int)(age.TotalDays / 30)} month{((int)(age.TotalDays / 30) != 1 ? "s" : "")}";
+        else
+            return $"{(int)(age.TotalDays / 365)} year{((int)(age.TotalDays / 365) != 1 ? "s" : "")}";
+    }
+}

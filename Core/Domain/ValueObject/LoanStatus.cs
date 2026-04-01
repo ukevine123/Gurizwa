@@ -4,6 +4,7 @@ namespace Domain.ValueObjects
     {
         Applied,
         Confirmed,
-        Rejected
+        Rejected,
+        Disbursed
     }
 }

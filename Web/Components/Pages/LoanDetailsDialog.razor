@@ -1,0 +1,150 @@
+@using Domain.Entities
+@using MudBlazor
+
+<MudDialog Style="border-radius:12px; overflow:hidden;">
+    <DialogContent>
+        @* --- CALCULATE DATA --- *@
+        @{
+            var schedule = CalculateSchedule();
+            var paidCount = schedule.Count(x => x.Status == "Paid");
+            var totalInstallments = Disbursement.TotalInstallments > 0 ? Disbursement.TotalInstallments : 1;
+        }
+
+        <MudPaper Elevation="0" Class="pa-4 mb-4" Style="background-color: #f4f7fe; border-radius: 12px; border: 1px solid #e0e6ed;">
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <div>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Principal Offered</MudText>
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">@Disbursement.PrincipalOffered.ToString("C")</MudText>
+                </div>
+                <MudDivider Vertical="true" FlexItem="true" Style="height:40px;" />
+                <div>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Payment Progress</MudText>
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight:700;">
+                        @paidCount / @totalInstallments Paid
+                    </MudText>
+                </div>
+                <MudDivider Vertical="true" FlexItem="true" Style="height:40px;" />
+                <div class="text-right">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Current Total Balance</MudText>
+                    @* This reflects the Principal + Interest + any Penalties added *@
+                    <MudText Typo="Typo.h6" Style="color: #1B2559; font-weight: 800;">@Disbursement.Amount.ToString("C")</MudText>
+                </div>
+            </MudStack>
+        </MudPaper>
+
+        <MudTable Items="@schedule" Hover="true" Dense="true" Height="400px" FixedHeader="true" Elevation="0" Class="rounded-lg border">
+            <HeaderContent>
+                <MudTh Style="font-weight:700;">No.</MudTh>
+                <MudTh Style="font-weight:700;">Due Date</MudTh>
+                <MudTh Style="font-weight:700;">Installment</MudTh>
+                <MudTh Style="font-weight:700;">Remaining</MudTh>
+                <MudTh Style="font-weight:700;">Status</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="No.">@context.No</MudTd>
+                <MudTd DataLabel="Due Date">@context.DueDate.ToShortDateString()</MudTd>
+                <MudTd DataLabel="Installment"><b>@context.TotalAmount.ToString("C")</b></MudTd>
+                <MudTd DataLabel="Remaining">
+                    <MudText Color="@(context.RemainingAmount > 0 ? Color.Error : Color.Default)" Typo="Typo.body2">
+                        @context.RemainingAmount.ToString("C")
+                    </MudText>
+                </MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" 
+                             Size="Size.Small" 
+                             Variant="Variant.Filled" 
+                             Color="@GetStatusColor(context.Status)"
+                             Style="min-width: 90px; font-weight: 700;">
+                        @context.Status.ToUpper()
+                    </MudChip>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Text">Close Schedule</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Disbursement Disbursement { get; set; } = new();
+    
+    private List<ScheduleRow> CalculateSchedule()
+    {
+        var rows = new List<ScheduleRow>();
+        if (Disbursement.TotalInstallments <= 0) return rows;
+
+        // The 'Amount' includes Principal + Interest + Penalties
+        decimal totalDuePerInstallment = Disbursement.Amount / Disbursement.TotalInstallments;
+
+        string mode = (Disbursement.PaymentModality?.Mode ?? "monthly").ToLower();
+        DateTime startDate = Disbursement.StartDate;
+
+        decimal totalCollected = Disbursement.Payments?
+            .Where(p => p.IsActive)
+            .Sum(p => (decimal?)p.Amount ?? 0) ?? 0;
+
+        decimal runningPaidAmount = totalCollected;
+
+        for (int i = 1; i <= Disbursement.TotalInstallments; i++)
+        {
+            DateTime dueDate = mode switch
+            {
+                "daily" => startDate.AddDays(i),
+                "weekly" => startDate.AddDays(i * 7),
+                "monthly" => startDate.AddMonths(i),
+                "yearly" => startDate.AddYears(i),
+                _ => startDate.AddMonths(i)
+            };
+
+            string currentStatus = "Pending";
+            decimal remainingForThis = totalDuePerInstallment;
+
+            if (runningPaidAmount >= (totalDuePerInstallment - 0.01m))
+            {
+                currentStatus = "Paid";
+                remainingForThis = 0;
+                runningPaidAmount -= totalDuePerInstallment;
+            }
+            else if (runningPaidAmount > 0)
+            {
+                currentStatus = "Partial";
+                remainingForThis = totalDuePerInstallment - runningPaidAmount;
+                runningPaidAmount = 0; 
+            }
+            else if (DateTime.Today > dueDate)
+            {
+                currentStatus = "Overdue";
+            }
+
+            rows.Add(new ScheduleRow { 
+                No = i, 
+                DueDate = dueDate, 
+                TotalAmount = totalDuePerInstallment,
+                RemainingAmount = remainingForThis,
+                Status = currentStatus 
+            });
+        }
+        return rows;
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Paid" => Color.Success,
+        "Partial" => Color.Warning,
+        "Overdue" => Color.Error,
+        _ => Color.Default
+    };
+
+    private void Close() => MudDialog.Close();
+
+    public class ScheduleRow 
+    { 
+        public int No { get; set; } 
+        public DateTime DueDate { get; set; } 
+        public decimal TotalAmount { get; set; } 
+        public decimal RemainingAmount { get; set; }
+        public string Status { get; set; } = "Pending";
+    }
+}

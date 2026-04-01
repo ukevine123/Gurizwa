@@ -1,0 +1,101 @@
+@page "/collateral"
+@using Domain.Entities
+@using Application.Interfaces
+@* Use alias to prevent namespace confusion *@
+@using Entity = Domain.Entities 
+
+@inject ICollateral CollateralService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Collateral Assets</MudText>
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Warning" 
+                   StartIcon="@Icons.Material.Filled.Add" 
+                   OnClick="OpenCreateDialog">
+            Add Collateral
+        </MudButton>
+    </div>
+
+    @* Explicitly define the Type T as the Domain Entity *@
+    <MudDataGrid T="Entity.Collateral" Items="@_collateralList" Hover="true" Elevation="0" Class="rounded-xl">
+        <Columns>
+            <PropertyColumn Property="x => x.AssetName" Title="Asset Name" />
+            <PropertyColumn Property="x => x.AssetType" Title="Type" />
+            <PropertyColumn Property="x => x.IdentificationNumber" Title="Ref/Plate No" />
+            
+            <TemplateColumn Title="Value">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2" Color="Color.Success" Style="font-weight: bold">
+                        @context.Item.EstimatedValue.ToString("N0") RWF
+                    </MudText>
+                </CellTemplate>
+            </TemplateColumn>
+
+            <PropertyColumn Property="x => x.ValuerName" Title="Valuer" />
+            
+            <TemplateColumn Title="Location">
+                <CellTemplate>
+                    @($"{context.Item.Province}, {context.Item.District}")
+                </CellTemplate>
+            </TemplateColumn>
+
+            <TemplateColumn CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                   Size="Size.Small" 
+                                   OnClick="@(() => OpenEditDialog(context.Item.Id))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                   Color="Color.Error" 
+                                   Size="Size.Small" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="Entity.Collateral" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+    // Using full namespace to avoid 'Web.Components.Pages.Collateral' conflict
+    private List<Entity.Collateral> _collateralList = new();
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        // This calls your Repository.GetAllCollateralsAsync()
+        _collateralList = await CollateralService.GetAllCollateralsAsync();
+        StateHasChanged();
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<CollateralCreateDialog>("Register New Collateral", options);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled) 
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task OpenEditDialog(int id)
+    {
+        var parameters = new DialogParameters { ["Id"] = id };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        
+        // You would create an EditCollateralDialog similar to your Create dialog
+        var dialog = await DialogService.ShowAsync<EditCollateralDialog>("Update Collateral", parameters, options);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled) 
+        {
+            await LoadData();
+        }
+    }
+}

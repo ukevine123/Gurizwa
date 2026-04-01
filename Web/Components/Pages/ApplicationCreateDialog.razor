@@ -6,6 +6,7 @@
 @using Application.Services.LoanProducts
 @using Application.Services.PaymentModalities
 @using Application.Services.ProvidedDocuments
+@using Application.Services.Requirements
 @using Domain.ValueObjects
 
 @using Domain.Entities
@@ -21,6 +22,7 @@
 @inject IBorrowerService BorrowerService
 @inject IPaymentModalityService PaymentModalityService
 @inject ILoanProductService LoanProductService
+@inject IRequirementService RequirementService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -41,11 +43,11 @@
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle1"
                              Style="color:white; font-weight:700; line-height:1.2;">
-                        Create Account
+                        Create Loan Application
                     </MudText>
 
                     <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
-                        Fill the form below to create a new account
+                        Fill the form below to create a new Application
                     </MudText>
                 </MudStack>
 
@@ -64,57 +66,58 @@
 
                     <MudItem xs="6">
 
-                        <MudSelect T="int"
-                                   Label="Borrower"
-                                   Placeholder="--Select Borrower--"
-                                    @bind-Value="Model.BorrowerId"                                  
-                                   Variant="Variant.Outlined"
-                                   Dense="true"
-                                   Margin="Margin.Dense"
-                                   AdornmentIcon="@Icons.Material.Filled.Category"
-                                   AdornmentColor="Color.Primary">
+                        <MudItem xs="12">
+    <MudTextField T="string"
+                  Label="Identification Number"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Immediate="true"
+                  ValueChanged="@OnIdentificationChange"
+                  Placeholder="Type ID Number to search..."
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  AdornmentColor="Color.Primary" />
+</MudItem>
 
-                            <MudSelectItem Value="0">--Select Borrower Type--</MudSelectItem>
+        @if (SelectedBorrower != null)
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-n2">
+                    <MudText Typo="Typo.body2"><b>Borrower:</b> @SelectedBorrower.FirstName @SelectedBorrower.LastName</MudText>
+                    <MudText Typo="Typo.caption"><b>Contact:</b> @SelectedBorrower.PhoneNumber | @SelectedBorrower.Email</MudText>
+                    <MudText Typo="Typo.caption" Class="d-block"><b>Location:</b> @SelectedBorrower.District, @SelectedBorrower.Sector</MudText>
+                </MudAlert>
+            </MudItem>
+        }
+        else if (!string.IsNullOrEmpty(SearchID))
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.caption" Color="Color.Error">No borrower found with this ID.</MudText>
+            </MudItem>
+        }
+    </MudItem>
 
-                            @if (_borrowers != null)
-                            {
-                                foreach (var borrowerData in _borrowers)
-                                {
-                                    <MudSelectItem T="int" Value="@borrowerData.Id">@borrowerData.FirstName</MudSelectItem>
-                                }
-                            }
+<MudSelect T="int"
+           Label="Product"
+           Value="Model.LoanProductId"
+           ValueChanged="@(i => { Model.LoanProductId = i; StateHasChanged(); })"
+           Variant="Variant.Outlined"
+           Dense="true"
+           Placeholder="--Select Product--">
+    
+    <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
 
-                        </MudSelect>
-                    </MudItem>
+    @if (_loanProducts != null)
+    {
+        foreach (var product in _loanProducts)
+        {
+            @* Ensure Value matches the T type (int) *@
+            <MudSelectItem T="int" Value="@product.Id">@product.ProductName</MudSelectItem>
+        }
+    }
+</MudSelect>
 
-
- <MudItem xs="6">
-
-                        <MudSelect T="int"
-                                   Label="Product"
-                                   Placeholder="--Select Product--"
-                                    @bind-Value="Model.LoanProductId"                                  
-                                   Variant="Variant.Outlined"
-                                   Dense="true"
-                                   Margin="Margin.Dense"
-                                   AdornmentIcon="@Icons.Material.Filled.Category"
-                                   AdornmentColor="Color.Primary">
-
-                            <MudSelectItem Value="0">--Select Product --</MudSelectItem>
-
-                            @if (_loanProducts != null)
-                            {
-                                foreach (var productData in _loanProducts)
-                                {
-                                    <MudSelectItem T="int" Value="@productData.Id">@productData.ProductName</MudSelectItem>
-                                }
-                            }
-
-                        </MudSelect>
-                    </MudItem>
-
-        <MudItem xs="6">
-                        <MudSelect T="int"
+     <MudItem xs="6">
+                    <MudSelect T="int"
             Label="PaymentModality"
             Placeholder="--Select PaymentModality--"
             @bind-Value="Model.PaymentModalityId"
@@ -201,14 +204,14 @@
     </MudSelect>
 </MudItem>
                 
-                <MudItem  xs="6"> 
+                @* <MudItem  xs="6"> 
                 <MudTextField Label="ApprovedBy"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.ApprovedBy"
                               For="@(() => Model.ApprovedBy)"
                                />
-                </MudItem>
+                </MudItem> *@
                 <MudItem  xs="6">
                    
                 </MudItem>
@@ -219,7 +222,7 @@
                         FullWidth="true"
                         ButtonType="ButtonType.Submit"
                         Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
-                    Add Account
+                    Add Application
                 </MudButton>
                 </MudItem>
 
@@ -239,9 +242,7 @@
     private CreateApplicationDTO Model {get;set;} = new ();
     private string ErrorMessage{get;set;}
 
-    @* [Parameter] *@
-    @* public EventCallback OnAccountCreated { get; set; } *@
-    private async Task onValidSubmit()
+        private async Task onValidSubmit()
     {
         try
         {
@@ -254,19 +255,19 @@
             ErrorMessage = ex.Message;
         }
         if (Model.LoanProductId <= 0)
-{
-    Snackbar.Add("Please select a valid Loan Product", Severity.Warning);
-    return;
-}
+        {
+            Snackbar.Add("Please select a valid Loan Product", Severity.Warning);
+            return;
+        }
     }
-   
 
-private List<PaymentModality> _paymentModalities = new List<PaymentModality>();
-private List<Borrower> _borrowers = new List<Borrower>();
-private List<LoanProduct> _loanProducts = new List<LoanProduct>();
+
+    private List<PaymentModality> _paymentModalities = new List<PaymentModality>();
+    private List<Borrower> _borrowers = new List<Borrower>();
+    private List<LoanProduct> _loanProducts = new List<LoanProduct>();
     private List<ProvidedDocument> _documents = new List<ProvidedDocument>();
 
- protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         // 1. Load Borrowers
         try 
@@ -281,6 +282,24 @@ private List<LoanProduct> _loanProducts = new List<LoanProduct>();
         {
             Snackbar.Add($"Error loading Borrowers: {ex.Message}", Severity.Error);
         }
+// load requirement
+
+
+try 
+    {
+        // Use the injected service instance here
+        var reqData = await RequirementService.GetAllRequirementsAsync();
+        if (reqData != null)
+        {
+            _allRequirements = reqData.ToList();
+        }
+    }
+    catch (Exception ex)
+    {
+        Snackbar.Add($"Error loading Requirements: {ex.Message}", Severity.Error);
+    }
+
+    StateHasChanged(); // Refresh UI once all data is loaded
 
         // 2. Load Payment Modalities
         try 
@@ -295,11 +314,11 @@ private List<LoanProduct> _loanProducts = new List<LoanProduct>();
         {
             Snackbar.Add("Error loading Payment Modalities", Severity.Error);
         }
-        
+
         // 3. Load Loan Document (Optional based on your variables)
-         try 
+        try 
         {
-            
+
             var document = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
             if (document != null)
             {
@@ -314,19 +333,84 @@ private List<LoanProduct> _loanProducts = new List<LoanProduct>();
 
 
         try 
-{
-       var productData = await LoanProductService.GetAllLoanProductsAsync();
-      if (productData != null)
-      {
-        _loanProducts = productData.ToList();
-      }
-}
-catch (Exception ex)
-{
-    Snackbar.Add("Error loading Loan Products", Severity.Error);
-}
+        {
+            var productData = await LoanProductService.GetAllLoanProductsAsync();
+            if (productData != null)
+            {
+                _loanProducts = productData.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading Loan Products", Severity.Error);
+        }
     }
 
+    // ... existing variables ...
+    private Borrower SelectedBorrower { get; set; }
+    private string SearchID { get; set; }
+
+    private void OnIdentificationChange(string value)
+    {
+        SearchID = value;
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            SelectedBorrower = null;
+            Model.BorrowerId = 0;
+            return;
+        }
+
+        // Search in the pre-loaded list (Case-insensitive)
+      SelectedBorrower = _borrowers.FirstOrDefault(b => 
+    b.IdentificationNumber != null && 
+    b.IdentificationNumber.AsSpan().Trim().Equals(value.AsSpan().Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (SelectedBorrower != null)
+        {
+            // Auto-bind the ID to your Model so the form submission still works
+            Model.BorrowerId = SelectedBorrower.Id;
+            Snackbar.Add($"Found: {SelectedBorrower.FirstName}", Severity.Info);
+        }
+        else
+        {
+            Model.BorrowerId = 0;
+        }
+    }
+
+    //// apload document 
+
+
+
+    ///@code {
+    // List of all requirements fetched from your database
+    private List<Requirement> _allRequirements = new(); 
     
+    // Filtered list to show in the UI
+    private List<Requirement> _filteredRequirements => _allRequirements
+        .Where(r => r.LoanProductId == Model.LoanProductId)
+        .ToList();
+
+    private async Task UploadDocument(IBrowserFile file, Requirement req)
+    {
+        if (file == null) return;
+
+        // Convert the file to byte array for ProvidedDocument
+        using var memoryStream = new MemoryStream();
+        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
+
+        var providedDoc = new ProvidedDocument
+        {
+            DocumentName = req.RequiredDocument?.DocumentName ?? "Unknown",
+            DocumentFile = memoryStream.ToArray(),
+            CreatedAt = DateTime.Now,
+            CreatedBy = "CurrentUser" // Replace with actual user logic
+        };
+
+        // TODO: Call your service to save 'providedDoc' to the database
+        Snackbar.Add($"{providedDoc.DocumentName} uploaded successfully!", Severity.Success);
+    }
+}
+
     
 }

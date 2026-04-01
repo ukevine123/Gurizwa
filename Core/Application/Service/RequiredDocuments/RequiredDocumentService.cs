@@ -30,9 +30,6 @@ namespace Application.Services.RequiredDocuments
             await _requiredDocument.CreateRequiredDocumentAsync(requiredDocumentDTO);
         }
 
-        // public async Task UpdateAccountAsync(int id, AccountUpdateDTO accountDTO)
-        // {
-        //     await _account.UpdateAccountAsync(id, accountDTO);
-        // }
+        
     }
 }

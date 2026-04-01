@@ -1,0 +1,158 @@
+@page "/Disbursements"
+@using Application.Services.Disbursements
+@using Domain.Entities
+@using MudBlazor
+@inject IDisbursementService DisbursementService
+@inject IDialogService DialogService
+
+<PageTitle>Disbursements</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* --- ACTION BAR --- *@
+    <MudGrid Class="mb-4" Spacing="2">
+        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenAmortizationDetails(_selectedItems.First()))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @* --- DATA GRID --- *@
+    <MudDataGrid T="Disbursement" 
+                 Items="@_disbursements" 
+                 Hover="true" 
+                 Elevation="0" 
+                 MultiSelection="true"
+                 @bind-SelectedItems="_selectedItems"
+                 Class="rounded-xl border-none shadow-sm">
+        
+        <ToolBarContent>
+            <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Confirmed borrower</MudText>
+            <MudSpacer />
+            <MudMenu Label="Add Disbursement" 
+                     Variant="Variant.Filled" 
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
+                     Color="Color.Primary"
+                     Class="rounded-lg">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreateDisbursement())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="Disbursement" />
+            
+            <TemplateColumn Title="Borrower">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2">
+                        <b>@context.Item.LoanApplication?.Borrower?.FirstName</b> 
+                        @context.Item.LoanApplication?.Borrower?.LastName
+                    </MudText>
+                </CellTemplate>
+            </TemplateColumn>
+
+            <PropertyColumn Property="x => x.PrincipalOffered" Title="Principal" Format="C" />
+            
+            @* DYNAMIC REMAINING BALANCE *@
+            <TemplateColumn Title="Remaining Balance">
+                <CellTemplate>
+                    @{
+                        var totalPaid = context.Item.Payments?.Where(p => p.IsActive).Sum(p => p.Amount) ?? 0;
+                        var balance = context.Item.Amount - totalPaid;
+                    }
+                    <MudText Typo="Typo.body2" Color="@(balance <= 0.1m ? Color.Success : Color.Default)">
+                        <b>@balance.ToString("C")</b>
+                    </MudText>
+                </CellTemplate>
+            </TemplateColumn>
+            
+            <PropertyColumn Property="x => x.StartDate" Title="Start" Format="d" />       
+            <PropertyColumn Property="x => x.EndDate" Title="End" Format="d" />
+          
+            @* STATUS LOGIC: PAID VS PENDING *@
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    @{
+                        var totalPaid = context.Item.Payments?.Where(p => p.IsActive).Sum(p => p.Amount) ?? 0;
+                        bool isPaid = totalPaid >= (context.Item.Amount - 0.1m);
+                    }
+                    <MudChip T="string" 
+                             Color="@(isPaid ? Color.Success : Color.Warning)" 
+                             Size="Size.Small" 
+                             Variant="@(isPaid ? Variant.Filled : Variant.Text)"
+                             Style="font-weight: 700; min-width: 90px;">
+                        @(isPaid ? "PAID" : "PENDING")
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+
+            @* <TemplateColumn Title="Details" CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.ReceiptLong" 
+                                   Color="Color.Info" 
+                                   Size="Size.Small" 
+                                   OnClick="@(() => OpenAmortizationDetails(context.Item))" />
+                </CellTemplate>
+            </TemplateColumn> *@
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="Disbursement" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+    private List<Disbursement> _disbursements = new();
+    private HashSet<Disbursement> _selectedItems = new(); 
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDisbursements();
+    }
+
+    private async Task LoadDisbursements()
+    {
+        // IMPORTANT: We use GetAllDisbursementsAsync so finished loans remain in the history grid.
+        _disbursements = await DisbursementService.GetAllDisbursementsAsync();
+        StateHasChanged();
+    }
+
+    private async Task GoToCreateDisbursement()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateDisbursement>("Add Disbursement", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadDisbursements();
+        }
+    }
+
+    private async Task OpenAmortizationDetails(Disbursement item)
+    {
+        // Fetch full object to include payment history
+        var fullItem = await DisbursementService.GetDisbursementByIdAsync(item.Id);
+        
+        var parameters = new DialogParameters<LoanDetailsDialog> 
+        { 
+            { x => x.Disbursement, fullItem } 
+        };
+
+        var options = new DialogOptions 
+        { 
+            CloseButton = true, 
+            MaxWidth = MaxWidth.Medium, 
+            FullWidth = true 
+        };
+
+        await DialogService.ShowAsync<LoanDetailsDialog>("Amortization Schedule", parameters, options);
+    }
+}

@@ -1,0 +1,37 @@
+@page "/account/logout"
+@layout Layout.AuthLayout
+
+@using MudBlazor
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Logging out...</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudCard Elevation="3">
+        <MudCardContent Class="text-center">
+
+            <MudText Typo="Typo.h6" Class="mb-4">
+                Signing you out...
+            </MudText>
+
+            <MudProgressLinear Indeterminate="true" />
+
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        @* Navigation.NavigateTo("/api/account/logout", true); *@
+
+        // 2️⃣ Small delay (optional for UX)
+        await Task.Delay(1200);
+
+        // 3️⃣ Redirect to Login page
+        Navigation.NavigateTo("/account/login", true);
+    }
+
+}

@@ -24,6 +24,7 @@ namespace Infrastructure.Repositories
         using var dbContext = await _contextFactory.CreateDbContextAsync();
         return await dbContext.Guarantors
             .Include(a => a.GuarantorType)
+            .Include(a => a.LoanApplication)
             .ToListAsync();
         }
         public async Task <Guarantor> GetGuarantorById(int Id)
@@ -35,13 +36,14 @@ namespace Infrastructure.Repositories
         {
               using var dbContext = await _contextFactory.CreateDbContextAsync();
         var guarantorType = await dbContext.GuarantorTypes.FindAsync(guarantorDTO.GuarantorTypeId);
+        var loanApplication = await dbContext.LoanApplications.FindAsync(guarantorDTO.LoanApplicationId);
             var _guarantor = new Guarantor
             {
                 GuarantorType = guarantorType,
                 FirstName = guarantorDTO.FirstName,
                 LastName = guarantorDTO.LastName,
                 Identification = guarantorDTO.Identification,
-                LoanApplicationId = guarantorDTO.LoanApplicationId,
+                LoanApplication = loanApplication,
                 Email = guarantorDTO.Email, 
                 DateOfBirth = DateTime.Now,
                 PhoneNumber = guarantorDTO.PhoneNumber,

@@ -1,17 +1,147 @@
-@page "/settings"
+@page "/Settings"
 
 @using Application.Interfaces
+@using Application.Services.BorrowerTypes
 @using Domain.Entities
+@using Application.Services.PaymentTypes
 @using Application.Services.AccountTypes
-
 @inject IDialogService DialogService
+@inject IPaymentTypeService PaymentTypeService
+@inject IReasonService ReasonService
+@inject IBorrowerTypeService BorrowerTypeService
+
 @inject IAccountTypeService AccountTypeService
 
+
+
+
+@using Application.Services.Reasons  
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 p-3">
     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
         
         @* --- TAB 1: ACCOUNT TYPES --- *@
-        <MudTabPanel Text="Account Types" Icon="@Icons.Material.Filled.Category">
+        <MudTabPanel Text="Payment Types" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T="PaymentType"
+                         Items="@PaymentTypes"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">Payment Types</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Payment Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreatePaymentType">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+
+                <Columns>
+                    <SelectColumn T="PaymentType" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.PaymentTypeName" Title="Payment Type" Sortable="true" />
+                     <PropertyColumn Property="x => x.CreatedAt" Title="Created At" Format="dd MMM yyyy" Sortable="true" HeaderStyle="white-space:nowrap" ItemStyle="white-space:nowrap" />
+
+            <TemplateColumn Title="Status" HeaderStyle="white-space:nowrap" ItemStyle="white-space:nowrap">
+                <CellTemplate>
+                    <MudChip T="string"
+                             Color="@(context.Item.IsActive ? Color.Success : Color.Error)"
+                             Size="Size.Small"
+                             Variant="Variant.Text">
+                        @(context.Item.IsActive ? "Active" : "Inactive")
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+
+                    @* <TemplateColumn Title="Actions">
+                        <CellTemplate>
+                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense="true" Size="Size.Small">
+                                <MudMenuItem Icon="@Icons.Material.Filled.Info">Details</MudMenuItem>
+                                <MudMenuItem Icon="@Icons.Material.Filled.Edit">Edit</MudMenuItem>
+                            </MudMenu>
+                        </CellTemplate>
+                    </TemplateColumn> *@
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="PaymentType" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
+        
+        @* --- TAB 2 --- *@
+        <MudTabPanel Text="Reasons">
+            
+@* --- ACTION BAR: Clean spacing and alignment --- *@
+<MudGrid Class="mb-4 px-4" Spacing="2">
+    <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+        @if (_selectedItems.Any())
+        {
+            <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+            <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+        }
+        <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+    </MudItem>
+</MudGrid>
+
+@* --- DATA GRID: Styled with rounded corners and no borders --- *@
+<MudDataGrid T="Reason" 
+             Items="@_reason" 
+             Hover="true" 
+             Bordered="false" 
+             Elevation="0" 
+             MultiSelection="true"
+             @bind-SelectedItems="_selectedItems"
+             Class="rounded-xl border-none shadow-sm mx-4">
+    
+    <ToolBarContent>
+        <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Reasons List</MudText>
+        <MudSpacer />
+        <MudMenu Label="Add Reason" 
+                 Variant="Variant.Filled" 
+                 EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
+                 Color="Color.Primary"
+                 Class="rounded-lg">
+            <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreateReason())">Single</MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+        </MudMenu>
+    </ToolBarContent>
+
+    <Columns>
+        <SelectColumn T="Reason" />
+
+        <PropertyColumn Property="x => x.Id" Title="ID" />
+        <PropertyColumn Property="x => x.Name" Title="Reason" />
+      
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                <MudChip T="string" 
+                         Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
+                         Size="Size.Small" 
+                         Variant="Variant.Text"
+                         Style="font-weight: 600;">
+                    @(context.Item.IsActive ? "Active" : "Inactive")
+                </MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="Reason" />
+    </PagerContent>
+</MudDataGrid>
+
+        </MudTabPanel>
+
+        @* --- TAB 3 --- *@
+        
+             <MudTabPanel Text="Account Types" Icon="@Icons.Material.Filled.Category">
             <MudDataGrid T="AccountType"
                          Items="@AccountTypes"
                          MultiSelection="true"
@@ -37,14 +167,7 @@
                     <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
                     <PropertyColumn Property="x => x.AccountTypeName" Title="Account Type" Sortable="true" />
 
-                    @* <TemplateColumn Title="Actions">
-                        <CellTemplate>
-                            <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense="true" Size="Size.Small">
-                                <MudMenuItem Icon="@Icons.Material.Filled.Info">Details</MudMenuItem>
-                                <MudMenuItem Icon="@Icons.Material.Filled.Edit">Edit</MudMenuItem>
-                            </MudMenu>
-                        </CellTemplate>
-                    </TemplateColumn> *@
+                    
                 </Columns>
                 <PagerContent>
                     <MudDataGridPager T="AccountType" />
@@ -52,26 +175,67 @@
             </MudDataGrid>
         </MudTabPanel>
         
-        @* --- TAB 2 --- *@
-        <MudTabPanel Text="Tab Two">
-            <MudText>Content Two</MudText>
-        </MudTabPanel>
-
-        @* --- TAB 3 --- *@
-        <MudTabPanel Text="Tab Three">
-            <MudText>Content Three</MudText>
-        </MudTabPanel>
 
         @* --- TAB 4 --- *@
-        <MudTabPanel Text="Tab Disabled" Disabled="true">
-            <MudText>Content Disabled</MudText>
+        <MudTabPanel Text="Borrower Types" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T=" BorrowerType"
+                         Items="@BorrowerTypes"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">Borrower Types</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Borrower Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateBorrowerType">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+
+                <Columns>
+                    <SelectColumn T="BorrowerType" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.Type" Title="Borrower Type" Sortable="true" />
+
+                    
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="BorrowerType" />
+                </PagerContent>
+            </MudDataGrid>
         </MudTabPanel>
     </MudTabs>
 </MudContainer>
 
+
 @code {
-    private List<AccountType> AccountTypes = new();
+    private List<PaymentType> PaymentTypes = new();
     private readonly DialogOptions _closeButton2 = new() { CloseButton = true };
+
+     private List<Reason> _reason = new();
+    private HashSet<Reason> _selectedItems = new(); // Added to support selection UI
+    private readonly DialogOptions _closeButton = new() { CloseButton = true };
+
+     private List<AccountType> AccountTypes = new();
+     private List<BorrowerType> BorrowerTypes = new();
+    private readonly DialogOptions _closeButton3 = new() { CloseButton = true };
+
+
+    private async Task LoadPaymentType()
+    {
+        PaymentTypes = await PaymentTypeService.GetAllPaymentTypesAsync();
+    }
+
+     private async Task LoadReason()
+    {
+        _reason = await ReasonService.GetAllReasonsAsync();
+    }
 
     private async Task LoadAccountType()
     {
@@ -79,13 +243,50 @@
         var result = await AccountTypeService.GetAllAccountTypesAsync();
         AccountTypes = result?.ToList() ?? new List<AccountType>();
     }
+    private async Task LoadBorrowerType()
+    {
+        // Added a check to ensure we get a fresh list
+        var result = await BorrowerTypeService.GetAllBorrowerTypeAsync();
+        BorrowerTypes = result?.ToList() ?? new List<BorrowerType>();
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadPaymentType();
+        await LoadReason();
         await LoadAccountType();
+        await LoadBorrowerType();
     }
 
-    private async Task GoToCreateAccountType()
+    private async Task GoToCreatePaymentType()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<CreatePaymentType>("Add Payment Type", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100); // Small delay to let DB catch up if needed
+            await LoadPaymentType();
+        }
+    }
+
+    private async Task GoToCreateReason()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateReason>("Add Reason", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100);
+            await LoadReason();
+        }
+    }
+
+     private async Task GoToCreateAccountType()
     {
         DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
@@ -96,6 +297,19 @@
         {
             await Task.Delay(100); // Small delay to let DB catch up if needed
             await LoadAccountType();
+        }
+    }
+     private async Task GoToCreateBorrowerType()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<BorrowerTypeDialog>("Add Borrower Type", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100); // Small delay to let DB catch up if needed
+            await LoadBorrowerType();
         }
     }
 }

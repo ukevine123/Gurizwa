@@ -65,18 +65,23 @@
                     <MudSelect T="int"
                                Label="LoanApplication"
                                Placeholder="--Select Loan Type--"
-                               @bind-Value="Model.GuarantorTypeId"
+                               @bind-Value="Model.LoanApplicationId"
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
                                AdornmentIcon="@Icons.Material.Filled.Category"
                                AdornmentColor="Color.Primary">
                         <MudSelectItem Value="0">--Select Loan --</MudSelectItem>
-                        @if (loanApplications != null)
+                       @if (loanApplications != null)
                         {
-                            foreach (var type in loanApplications)
+                            foreach (var app in loanApplications)
                             {
-                                <MudSelectItem T="int" Value="@type.Id">@type.BorrowerId</MudSelectItem>
+                                // Concatenate names; handle nulls with the null-conditional operator
+                                var fullName = $"{app.Borrower?.FirstName} {app.Borrower?.LastName}";
+
+                                <MudSelectItem T="int" Value="@app.Id">
+                                    @fullName
+                                </MudSelectItem>
                             }
                         }
                     </MudSelect>
@@ -104,13 +109,26 @@
                 </MudItem>
                                     
                 <MudItem xs="6">
-                    <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged" ReadOnly="IsReadOnly" Required="true">
-                        @foreach (var p in _provinces)
-                        {
-                            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+    <MudSelect T="string"
+               Value="Model.Province" 
+               Label="Province" 
+               ValueChanged="OnProvinceChanged"
+               ReadOnly="IsReadOnly" 
+               Required="true"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Public"
+               AdornmentColor="Color.Primary">
+        @foreach (var p in _provinces)
+        {
+            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+
+
                 <MudItem xs="6">
                     <MudSelect T="string"
                      Value="Model.District" Label="District" 
@@ -128,7 +146,7 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="6">
+                @* <MudItem xs="6">
                     <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))">
                         @foreach (var s in _sectors)
                         {
@@ -151,7 +169,71 @@
                             <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
                         }
                     </MudSelect>
-                </MudItem>
+                </MudItem> *@
+
+
+
+                @* --- SECTOR SELECT --- *@
+<MudItem xs="6">
+    <MudSelect T="string" 
+               Value="Model.Sector" 
+               Label="Sector" 
+               ValueChanged="OnSectorChanged" 
+               ReadOnly="IsReadOnly" 
+               Required="true" 
+               Disabled="@(string.IsNullOrEmpty(Model.District))"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Map"
+               AdornmentColor="Color.Primary">
+        @foreach (var s in _sectors)
+        {
+            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- CELL SELECT --- *@
+<MudItem xs="6">
+    <MudSelect T="string" 
+               Value="Model.Cell" 
+               Label="Cell" 
+               ValueChanged="OnCellChanged" 
+               ReadOnly="IsReadOnly" 
+               Required="true" 
+               Disabled="@(string.IsNullOrEmpty(Model.Sector))"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Layers"
+               AdornmentColor="Color.Primary">
+        @foreach (var c in _cells)
+        {
+            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- VILLAGE SELECT --- *@
+<MudItem xs="6">
+    <MudSelect T="string" 
+               @bind-Value="Model.Village" 
+               Label="Village" 
+               ReadOnly="IsReadOnly" 
+               Required="true" 
+               Disabled="@(string.IsNullOrEmpty(Model.Cell))"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.HomeWork"
+               AdornmentColor="Color.Primary">
+        @foreach (var v in _villages)
+        {
+            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
 
                 <MudItem xs="12">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" FullWidth="true" ButtonType="ButtonType.Submit" Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">

@@ -15,7 +15,9 @@ using Application.Services.PaymentModalities;
 using Application.Services.Accounts;
 using Application.Services.LoanProducts;
 using Application.Services.RequiredDocuments;
+using Infrastructure.Identity;
 using Application.Services.AccountTypes;
+using Application.Services.Collaterals;
 
 namespace Infrastructure.DependencyInjection
 {
@@ -39,12 +41,23 @@ namespace Infrastructure.DependencyInjection
              services.AddScoped<IGuarantorType, GuarantorTypeRepository>();
              services.AddScoped<IProvidedDocument, ProvidedDocumentRepository>();
              services.AddScoped<IPaymentModality, PaymentModalityRepository>();
-
+              services.AddScoped<IIdentity, IdentityRepository>();
               services.AddScoped<IAccount, AccountRepository>();
             services.AddScoped<ILoanProduct, LoanProductRepository>();
             services.AddScoped<IRequiredDocument, RequiredDocumentRepository>();
             services.AddScoped<IRequirement, RequirementRepository>();
             services.AddScoped<IAccountType, AccountTypeRepository>();
+             services.AddScoped<IPerson, PersonRepository>();
+             services.AddScoped<IRequirement, RequirementRepository>();
+
+              services.AddScoped<IDisbursement, DisbursementRepository>();
+            services.AddScoped<IReason, ReasonRepository>();
+            services.AddScoped<IPayment, PaymentRepository>();
+            services.AddScoped<IPenality, PenalityRepository>();
+            services.AddScoped<IPaymentType, PaymentTypeRepository>();
+            services.AddScoped<ICollateral, CollateralRepository>();
+
+
              return services;
         }
     }

@@ -105,7 +105,7 @@
         try
         {
             await AccountTypeService.CreateAccountTypeAsync(Model);
-            Snackbar.Add("AccountType created successfully!", Severity.Success);
+            Snackbar.Add("AccountType created successfully!", Severity.Info);
             MudDialog.Close(DialogResult.Ok(Model));
         }
         catch(Exception ex)

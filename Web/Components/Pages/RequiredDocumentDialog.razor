@@ -101,7 +101,7 @@
         try
         {
             await RequiredDocumentService.CreateRequiredDocumentAsync(Model);
-            Snackbar.Add("RequiredDocument created successfully!", Severity.Success);
+            Snackbar.Add("RequiredDocument created successfully!", Severity.Info);
             MudDialog.Close(DialogResult.Ok(Model));
         }
         catch(Exception ex)

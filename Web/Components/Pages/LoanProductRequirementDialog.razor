@@ -132,7 +132,7 @@
         try
         {
             await RequirementService.CreateRequirementAsync(newRequirement);
-            Snackbar.Add("Document linked to product successfully", Severity.Success);
+            Snackbar.Add("Document linked to product successfully", Severity.Info);
             await LoadData();
             newRequirement = new();
         }
@@ -144,7 +144,7 @@
         try
         {
             await RequiredDocumentService.CreateRequiredDocumentAsync(newDocument);
-            Snackbar.Add("New document type created", Severity.Success);
+            Snackbar.Add("New document type created", Severity.Info);
             await LoadData(); // This refreshes the dropdown in Tab 1
             newDocument = new();
             // Optional: Switch to Tab 1 automatically here if desired

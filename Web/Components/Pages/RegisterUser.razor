@@ -1,0 +1,165 @@
+@page "/RegisterUser"
+@layout Layout.AuthLayout
+@using Application.DTO
+@rendermode InteractiveServer
+@using Application.Interfaces
+@using Application.Services.Users
+@inject IIdentityService IdentityService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register | PAccountant</PageTitle>
+
+@* The Container centers everything on the screen with the same light background *@
+<MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center pa-0" Style="height: 100vh; background-color: #f5f5f5;">
+    
+    @* Main Small Card - Fixed size to match Login *@
+    <MudPaper Elevation="4" Class="d-flex" Style="width: 850px; height: 550px; border-radius: 24px;">
+        
+        <MudGrid Spacing="0">
+            @* Left Side: Dark Marketing (Matches Login exactly) *@
+            <MudItem md="5" Class="d-none d-md-flex flex-column align-center justify-center pa-10" Style="background-color: #1a1512; color: white;">
+                <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
+                    Manage <br /> your money
+                </MudText>
+                
+                <MudPaper Elevation="0" Style="width: 140px; height: 260px; background: #222; border: 4px solid #333; border-radius: 20px;" Class="pa-3">
+                    <MudPaper Style="height: 8px; width: 40px; background: #333; margin: 0 auto 15px auto;" Elevation="0" />
+                    <MudPaper Style="height: 30px; width: 100%; background: #023d28; border-radius: 4px;" Elevation="0" Class="mb-2" />
+                    <MudPaper Style="height: 90px; width: 100%; background: #444; border-radius: 4px;" Elevation="0" />
+                </MudPaper>
+                
+                <MudText Typo="Typo.caption" Class="mt-8" Style="opacity: 0.5;">© 2026 PAccountant</MudText>
+            </MudItem>
+
+            @* Right Side: Registration Form *@
+            <MudItem xs="12" md="7" Class="pa-10 d-flex flex-column" Style="background-color: white;">
+                
+                @* Top Branding Bar *@
+                <div class="d-flex align-center mb-6">
+                    <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color: #023d28;" Size="Size.Small" Class="mr-2" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 800;">PAccountant</MudText>
+                    <MudSpacer />
+                    <MudLink href="/account/login" Underline="Underline.None" Color="Color.Primary" Style="font-size: 0.85rem; font-weight: 600;">Sign In</MudLink>
+                </div>
+
+                <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Create Account</MudText>
+
+                <EditForm Model="@Model" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Variant="Variant.Outlined">@ErrorMessage</MudAlert>
+                    }
+
+                    @* Compact Name Row *@
+                    <MudGrid Spacing="2" Class="mb-4">
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.FirstName" Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.FirstName)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.LastName)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.Sex" Label="Sex" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Sex)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.DateOfBirth" Label="Date of Birth" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.DateOfBirth)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.Country" Label="Country" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Country)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.City" Label="City" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.City)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.Street" Label="Street" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Street)" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" For="@(() => Model.Email)" />
+
+                    <MudTextField @bind-Value="Model.PhoneNumber" 
+              Label="Phone Number" 
+              Variant="Variant.Outlined" 
+              Margin="Margin.Dense" 
+              Class="mb-4" 
+              Placeholder="+079 456 7890"
+              For="@(() => Model.PhoneNumber)" />
+
+                    <MudTextField @bind-Value="Model.Password" 
+                                  Label="Password" 
+                                  Variant="Variant.Outlined" 
+                                  Margin="Margin.Dense"
+                                  InputType="@_passwordInput"
+                                  Adornment="Adornment.End" 
+                                  AdornmentIcon="@_passwordInputIcon" 
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  For="@(() => Model.Password)" />
+
+                    @* Action Button - Same Gradient Style *@
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               FullWidth="true" 
+                               Disabled="@_isProcessing"
+                               Class="py-3 shadow-none mt-8"
+                               Style="background: #023d28; color: white; border-radius: 25px; text-transform: none; font-weight: 700;">
+                        @if (_isProcessing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        <span>Create Account</span>
+                    </MudButton>
+                </EditForm>
+
+                @* Footer Context *@
+                <MudSpacer />
+                <div class="d-flex justify-space-between align-center" style="opacity: 0.5;">
+                    <MudText Typo="Typo.caption">English</MudText>
+                    <MudText Typo="Typo.caption">Contact Us</MudText>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private RegisterUserDTO Model { get; set; } = new();
+    private string ErrorMessage { get; set; } = string.Empty;
+    private bool _isProcessing = false;
+    private bool _isPasswordVisible = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    public void TogglePasswordVisibility()
+    {
+        if (_isPasswordVisible)
+        {
+            _isPasswordVisible = false;
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInput = InputType.Password;
+        }
+        else
+        {
+            _isPasswordVisible = true;
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInput = InputType.Text;
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        if (_isProcessing) return;
+        _isProcessing = true;
+        try
+        {
+            await IdentityService.RegisterUser(Model);
+            NavigationManager.NavigateTo("/account/login");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally { _isProcessing = false; }
+    }
+}

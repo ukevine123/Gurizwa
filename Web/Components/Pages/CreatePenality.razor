@@ -1,0 +1,180 @@
+@using Application.DTO
+@using MudBlazor
+@using Domain.Entities
+@using System.ComponentModel.DataAnnotations
+@using Application.Services.Penalities
+@using Application.Services.LoanApplications
+@using Application.Services.Reasons
+
+@inject IPenalityService PenalityService
+@inject ILoanApplicationService LoanApplicationService
+@inject IReasonService ReasonService
+@inject ISnackbar Snackbar
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 600px;">
+    <DialogContent>
+        @* --- HEADER --- *@
+        <MudPaper Elevation="0"
+                  Class="pa-5 mb-6"
+                  Style="background: linear-gradient(90deg, #591b1b 0%, #b53f3f 100%);
+                         border-radius:12px; color:white; position:relative; overflow:hidden;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                <MudAvatar Style="height:60px; width:60px; background: rgba(255,255,255,0.2);">
+                    <MudIcon Icon="@Icons.Material.Filled.Gavel" Style="font-size:2.5rem; color: white;" />
+                </MudAvatar>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">Issue New Penalty</MudText>
+                    <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.8);">
+                        Record a fee for late payments or policy violations
+                    </MudText>
+                </MudStack>
+            </MudStack>
+            <MudIcon Icon="@Icons.Material.Filled.Warning"
+                     Style="position:absolute; right:-10px; bottom:-10px; font-size:6rem; color:rgba(255,255,255,0.1);" />
+        </MudPaper>
+
+        <EditForm Model="Model">
+            <DataAnnotationsValidator />
+
+            <MudGrid Spacing="3">
+                @* 1. LOAN SELECTION - Custom Handler for 5% Logic *@
+                <MudItem xs="12">
+                    <MudSelect T="int" Label="Target Loan Application" 
+                               Value="Model.LoanApplicationId"
+                               ValueChanged="OnLoanApplicationChanged"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.Description" 
+                               AdornmentColor="Color.Error">
+                        <MudSelectItem Value="0">Select Loan Application</MudSelectItem>
+                        @foreach (var loan in _loanApplications)
+                        {
+                            <MudSelectItem Value="@loan.Id">
+                                <div class="d-flex justify-space-between w-100">
+                                    <MudText Typo="Typo.body2"><b>#@loan.Id</b> - @(loan.Borrower?.FirstName) @(loan.Borrower?.LastName)</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Error" Class="ml-4">@loan.AmountRequested.ToString("C")</MudText>
+                                </div>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* 2. REASON SELECTION *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Penalty Reason" 
+                               @bind-Value="Model.ReasonId"
+                               Variant="Variant.Outlined" Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.QuestionAnswer"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem Value="0">Select Reason</MudSelectItem>
+                        @foreach (var reason in _reasons)
+                        {
+                            <MudSelectItem Value="@reason.Id">@reason.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* 3. PENALTY AMOUNT - Auto-filled by selection *@
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" Label="Penalty Amount (5%)" 
+                                     @bind-Value="Model.Amount"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     Format="N2" Adornment="Adornment.Start" 
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     AdornmentColor="Color.Error" />
+                </MudItem>
+
+                @* 4. DATE *@
+                <MudItem xs="12">
+                    <MudDatePicker Label="Issue Date" @bind-Date="_issueDate"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   Editable="true" AdornmentColor="Color.Primary" />
+                </MudItem>
+
+                @* 5. DESCRIPTION *@
+                <MudItem xs="12">
+                    <MudTextField Label="Additional Description" 
+                                  @bind-Value="Model.Description"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Lines="3" Placeholder="Explain why this penalty is being applied..." />
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Class="px-4 pb-4" Style="width: 100%;">
+            <MudButton Variant="Variant.Text" OnClick="Cancel" Class="px-8">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled"
+                       OnClick="Submit"
+                       Disabled="@(_isProcessing || Model.LoanApplicationId == 0 || Model.ReasonId == 0 || Model.Amount <= 0)"
+                       Color="Color.Error"
+                       FullWidth="true"
+                       Style="border-radius: 8px; padding: 12px 0; font-weight: 700;">
+                @(_isProcessing ? "PROCESSING..." : "APPLY PENALTY")
+            </MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private CreatePenalityDTO Model { get; set; } = new();
+    private List<LoanApplication> _loanApplications = new();
+    private List<Reason> _reasons = new();
+    private bool _isProcessing;
+    private DateTime? _issueDate = DateTime.Today;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var loansTask = LoanApplicationService.GetAllLoanApplicationsAsync();
+        var reasonsTask = ReasonService.GetAllReasonsAsync();
+
+        await Task.WhenAll(loansTask, reasonsTask);
+
+        _loanApplications = loansTask.Result?.ToList() ?? new();
+        _reasons = reasonsTask.Result?.ToList() ?? new();
+    }
+
+    private void OnLoanApplicationChanged(int loanId)
+    {
+        Model.LoanApplicationId = loanId;
+        
+        if (loanId > 0)
+        {
+            var selectedLoan = _loanApplications.FirstOrDefault(x => x.Id == loanId);
+            if (selectedLoan != null)
+            {
+                // Logic: 5% interest applied to the amount requested/remaining
+                Model.Amount = selectedLoan.AmountRequested * 0.05m;
+            }
+        }
+        else
+        {
+            Model.Amount = 0;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        _isProcessing = true;
+        try
+        {
+            Model.Date = _issueDate ?? DateTime.Today;
+            await PenalityService.CreatePenalityAsync(Model);
+            
+            Snackbar.Add("Penalty applied successfully", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isProcessing = false;
+        }
+    }
+}

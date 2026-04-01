@@ -119,7 +119,7 @@
         try
         {
             await LoanProductService.CreateLoanProductAsync(Model);
-            Snackbar.Add("LoanProduct created successfully!", Severity.Success);
+            Snackbar.Add("LoanProduct created successfully!", Severity.Info);
             MudDialog.Close(DialogResult.Ok(Model));
         }
         catch(Exception ex)
@@ -134,7 +134,7 @@
     {
         // 1. Create the Loan Product
         await LoanProductService.CreateLoanProductAsync(Model);
-        Snackbar.Add("LoanProduct created successfully!", Severity.Success);
+        Snackbar.Add("LoanProduct created successfully!", Severity.Info);
 
         // 2. Close this Create Dialog and return 'Ok'
         // Note: If you want to pass the new ID, ensure your service returns it.

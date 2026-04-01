@@ -1,4 +1,6 @@
 @page "/LoanApplication"
+@using Application.DTO
+@using Infrastructure.Repositories
 @using Microsoft.EntityFrameworkCore
 @using MudBlazor
 @using Domain.Entities
@@ -8,6 +10,7 @@
 @inject ILoanApplicationService LoanApplicationService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>LoanApplication</PageTitle>
 
@@ -88,7 +91,7 @@
             <PropertyColumn Property="x => x.PreferredDate" Title="PreferredDate" />
             @* <PropertyColumn Property="x => x.ApprovedBy" Title="ApprovedBy" /> *@
             
-            <TemplateColumn Title="Status">
+            @* <TemplateColumn Title="Status">
                 <CellTemplate>
                     <MudChip T="string" 
                             Color="@GetStatusColor(context.Item.Status)" 
@@ -97,7 +100,19 @@
                         @context.Item.Status
                     </MudChip>
                 </CellTemplate>
-            </TemplateColumn>
+            </TemplateColumn> *@
+
+            <TemplateColumn Title="Status">
+    <CellTemplate>
+                @* Read-only Chip for everyone else *@
+                <MudChip T="string" 
+                         Color="@GetStatusColor(context.Item.Status)" 
+                         Size="Size.Small" 
+                         Variant="Variant.Text">
+                    @context.Item.Status
+                </MudChip>
+    </CellTemplate>
+</TemplateColumn>
         </Columns>
         
         <PagerContent>
@@ -108,6 +123,8 @@
 
 @code {
      private string _searchString = "";
+
+     private bool _isLoading = true;
 
     private IEnumerable<LoanApplication> FilteredBorrowers => _loanApplication
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
@@ -152,8 +169,8 @@
 
     private async Task OpenDetailDialog(int id)
     {
-        var parameters = new DialogParameters<BorrowerDetailDialog> { { x => x.Id, id } };
-        await DialogService.ShowAsync<BorrowerDetailDialog>("View Details", parameters);
+        var parameters = new DialogParameters<LoanApplicationDetail> { { x => x.LoanId, id } };
+        await DialogService.ShowAsync<LoanApplicationDetail>("View Details", parameters);
     }
 
      private async Task OpenEditDialog(int id)
@@ -165,5 +182,39 @@
         var result = await dialog.Result;
     }
 
+ @code {
+    private async Task OnStatusChanged(LoanApplication item, LoanStatus newStatus)
+    {
+        // 1. Update the local UI immediately so the user sees the change
+        item.Status = newStatus;
+
+        // 2. Define the DTO (This fixes "does not exist in current context")
+        var updateApplicationDTO = new UpdateApplicationDTO
+        {
+            Status = newStatus,
+            AmountRequested = item.AmountRequested,
+            ApprovedBy = item.ApprovedBy,
+            PreferredDate = item.PreferredDate,
+            DateofApplication = item.DateofApplication,
+            PaymentModalityId = item.PaymentModalityId
+        };
+
+        try
+        {
+            // 3. Use the INJECTED service (This fixes CS0120)
+            // Note: Use 'LoanApplicationService' (the variable), NOT 'LoanApplicationRepository' (the class)
+            await LoanApplicationService.UpdateLoanApplication(item.Id, updateApplicationDTO);
+            
+           Snackbar.Add("Status updated successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            
+            // Optional: Refresh data if the update failed to reset the UI
+            await LoadLoanApplication(); 
+        }
+    }
+}
 
 }

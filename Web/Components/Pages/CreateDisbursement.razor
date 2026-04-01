@@ -1,0 +1,563 @@
+@using Application.DTO
+
+@using MudBlazor
+
+@using Domain.Entities
+
+@using System.ComponentModel.DataAnnotations
+
+@using Microsoft.EntityFrameworkCore
+
+@using Application.Services.Disbursements
+
+@using Application.Services.LoanApplications  
+
+@using Application.Services.PaymentModalities
+
+@using Domain.ValueObjects
+
+
+
+@inject IDialogService DialogService
+
+@inject IDisbursementService DisbursementService
+
+@inject ILoanApplicationService LoanApplicationService
+
+@inject IPaymentModalityService PaymentModalityService
+
+
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 750px;">
+
+    <DialogContent>
+
+        @* --- HEADER CARD --- *@
+
+        <MudPaper Elevation="0"
+
+                  Class="pa-5 mb-6"
+
+                  Style="background: linear-gradient(90deg, #1B2559 0%, #3F51B5 100%);
+
+                         border-radius:12px; color:white; position:relative; overflow:hidden;">
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+
+                <MudAvatar Style="height:60px; width:60px; background: rgba(255,255,255,0.2);">
+
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Style="font-size:2.5rem; color: white;" />
+
+                </MudAvatar>
+
+                <MudStack Spacing="0">
+
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">New Disbursement</MudText>
+
+                    <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.8);">
+
+                        Assign principal and calculate interest per installment
+
+                    </MudText>
+
+                </MudStack>
+
+            </MudStack>
+
+            <MudIcon Icon="@Icons.Material.Filled.Money"
+
+                     Style="position:absolute; right:-10px; bottom:-10px; font-size:6rem; color:rgba(255,255,255,0.1);" />
+
+        </MudPaper>
+
+
+
+        <EditForm Model="Model">
+
+            <DataAnnotationsValidator />
+
+
+
+            <MudGrid Spacing="3">
+
+                @* 1. LOAN SELECTION *@
+
+                <MudItem xs="12" sm="6">
+
+                    <MudSelect T="int" Label="Loan Application (Confirmed)"
+
+                               Value="Model.LoanApplicationId"
+
+                               ValueChanged="OnLoanSelected"
+
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+
+                               AdornmentIcon="@Icons.Material.Filled.Verified"
+
+                               AdornmentColor="Color.Success">
+
+                        <MudSelectItem Value="0">Select Confirmed Application</MudSelectItem>
+
+                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Confirmed))
+
+                        {
+
+                            <MudSelectItem Value="@loan.Id">
+
+                                <div class="d-flex justify-space-between w-100">
+
+                                    <MudText Typo="Typo.body2" Style="font-weight:600">
+
+                                        @(loan.Borrower != null ? $"{loan.Borrower.FirstName} {loan.Borrower.LastName}" : $"Loan #{loan.Id}")
+
+                                    </MudText>
+
+                                    <MudText Typo="Typo.body2" Color="Color.Primary" Class="ml-4">
+
+                                        <b>@loan.AmountRequested.ToString("C")</b>
+
+                                    </MudText>
+
+                                </div>
+
+                            </MudSelectItem>
+
+                        }
+
+                    </MudSelect>
+
+                </MudItem>
+
+
+
+                @* 2. MODALITY SELECTION *@
+
+                <MudItem xs="12" sm="6">
+
+                    <MudSelect T="int" Label="Payment Modality"
+
+                               Value="Model.PaymentModalityId"
+
+                               ValueChanged="OnModalitySelected"
+
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+
+                               AdornmentIcon="@Icons.Material.Filled.Category" Adornment="Adornment.Start"
+
+                               AdornmentColor="Color.Primary">
+
+                        <MudSelectItem Value="0">Select Frequency</MudSelectItem>
+
+                        @foreach (var modality in PaymentModalities)
+
+                        {
+
+                            <MudSelectItem Value="@modality.Id">@modality.Mode</MudSelectItem>
+
+                        }
+
+                    </MudSelect>
+
+                </MudItem>
+
+
+
+                @* 3. FINANCIAL PARAMETERS *@
+
+                <MudItem xs="12" sm="4">
+
+                    <MudNumericField T="decimal" Label="Principal" @bind-Value="PrincipalWrapper"
+
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+
+                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+
+                                     AdornmentColor="Color.Primary" Immediate="true" />
+
+                </MudItem>
+
+
+
+                <MudItem xs="12" sm="4">
+
+                    <MudNumericField T="decimal" Label="Rate (%) Per Date" @bind-Value="RateWrapper"
+
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+
+                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Percent"
+
+                                     AdornmentColor="Color.Primary" Immediate="true" />
+
+                </MudItem>
+
+
+
+                <MudItem xs="12" sm="4">
+
+                    <MudNumericField T="int" Label="No. of Installments" @bind-Value="InstallmentWrapper"
+
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="1"
+
+                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Repeat"
+
+                                     AdornmentColor="Color.Primary" Immediate="true" />
+
+                </MudItem>
+
+
+
+                @* 4. CALCULATION RESULT *@
+
+                <MudItem xs="12">
+
+                     <MudNumericField T="decimal" Label="Total Repayable (Principal + Total Interest)" @bind-Value="Model.Amount"
+
+                                      Variant="Variant.Filled" Margin="Margin.Dense" ReadOnly="true"
+
+                                      Format="N2" Style="background-color: #f8f9fa; font-weight: 700; color: #1B2559;"
+
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Calculate" />
+
+                </MudItem>
+
+
+
+                @* 5. PREVIEW TABLE *@
+
+                <MudItem xs="12">
+
+                    <MudText Typo="Typo.subtitle2" Class="mb-2" Style="font-weight:700; color:#3F51B5;">
+
+                        Schedule Preview (@Model.TotalInstallments Payments of @(Model.TotalInstallments > 0 ? (Model.Amount / Model.TotalInstallments).ToString("C") : "$0"))
+
+                    </MudText>
+
+                    <div style="max-height: 220px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+
+                        <MudTable Items="@GetPreviewRows()" Hover="true" Dense="true" Elevation="0" Context="row">
+
+                            <HeaderContent>
+
+                                <MudTh>No.</MudTh>
+
+                                <MudTh>Due Date</MudTh>
+
+                                <MudTh>Principal Part</MudTh>
+
+                                <MudTh>Interest Part</MudTh>
+
+                                <MudTh>Total</MudTh>
+
+                            </HeaderContent>
+
+                            <RowTemplate>
+
+                                <MudTd>@row.No</MudTd>
+
+                                <MudTd>@row.DueDate.ToShortDateString()</MudTd>
+
+                                <MudTd>@row.PrincipalPart.ToString("N2")</MudTd>
+
+                                <MudTd Style="color:gray; font-style:italic;">@row.InterestPart.ToString("N2")</MudTd>
+
+                                <MudTd><b>@row.TotalAmount.ToString("N2")</b></MudTd>
+
+                            </RowTemplate>
+
+                        </MudTable>
+
+                    </div>
+
+                </MudItem>
+
+
+
+                <MudItem xs="12">
+
+                    <MudDatePicker Label="Repayment Start Date" @bind-Date="StartDateWrapper"
+
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+
+                                   Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
+
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+
+    </DialogContent>
+
+
+
+    <DialogActions>
+
+        <MudStack Row="true" Class="px-4 pb-4" Style="width: 100%;">
+
+            <MudButton Variant="Variant.Filled"
+
+                       OnClick="OnValidSubmit"
+
+                       Disabled="@(_isProcessing || Model.LoanApplicationId == 0 || Model.PaymentModalityId == 0)"
+
+                       StartIcon="@Icons.Material.Filled.Save"
+
+                       FullWidth="true"
+
+                       Style="background-color: #1B2559; color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;">
+
+                @(_isProcessing ? "PROCESSING..." : "CONFIRM DISBURSEMENT")
+
+            </MudButton>
+
+        </MudStack>
+
+    </DialogActions>
+
+</MudDialog>
+
+
+
+@code {
+
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+
+
+    private CreateDisbursementDTO Model { get; set; } = new();
+
+    private List<PaymentModality> PaymentModalities = new();
+
+    private List<LoanApplication> LoanApplications = new();
+
+    private bool _isProcessing;
+
+
+
+    // --- RECTIVE WRAPPERS ---
+
+    private decimal PrincipalWrapper { get => Model.PrincipalOffered; set { Model.PrincipalOffered = value; Calculate(); } }
+
+    private decimal RateWrapper { get => Model.InterestRate; set { Model.InterestRate = value; Calculate(); } }
+
+    private int InstallmentWrapper { get => Model.TotalInstallments; set { Model.TotalInstallments = value; Calculate(); } }
+
+    private DateTime? StartDateWrapper { get => Model.StartDate; set { Model.StartDate = value; StateHasChanged(); } }
+
+
+
+    private void Calculate()
+
+    {
+
+        // BUSINESS RULE: Interest is added TO EACH installment.
+
+        // If n = 4, Rate = 10%, Principal = 200,000
+
+        // Interest per period = 20,000. Total Interest = 80,000. Total Owed = 280,000.
+
+        int n = Model.TotalInstallments > 0 ? Model.TotalInstallments : 1;
+
+        decimal interestPerPeriod = Model.PrincipalOffered * (Model.InterestRate / 100);
+
+        decimal totalInterest = interestPerPeriod * n;
+
+       
+
+        Model.Amount = Model.PrincipalOffered + totalInterest;
+
+        StateHasChanged();
+
+    }
+
+
+
+    private void OnLoanSelected(int id)
+
+    {
+
+        Model.LoanApplicationId = id;
+
+        var selectedLoan = LoanApplications.FirstOrDefault(l => l.Id == id);
+
+        if (selectedLoan != null)
+
+        {
+
+            Model.PrincipalOffered = selectedLoan.AmountRequested;
+
+            Calculate(); // Recalculate based on new principal
+
+        }
+
+    }
+
+
+
+    private void OnModalitySelected(int id)
+
+    {
+
+        Model.PaymentModalityId = id;
+
+        StateHasChanged();
+
+    }
+
+
+
+    // --- PREVIEW LOGIC ---
+
+    public class PreviewRow {
+
+        public int No { get; set; }
+
+        public DateTime DueDate { get; set; }
+
+        public decimal PrincipalPart { get; set; }
+
+        public decimal InterestPart { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+    }
+
+
+
+    private List<PreviewRow> GetPreviewRows()
+
+    {
+
+        var rows = new List<PreviewRow>();
+
+        if (Model.TotalInstallments <= 0 || Model.PrincipalOffered <= 0 || Model.StartDate == null) return rows;
+
+
+
+        decimal pPart = Model.PrincipalOffered / Model.TotalInstallments;
+
+        decimal iPart = Model.PrincipalOffered * (Model.InterestRate / 100);
+
+        decimal totalPart = pPart + iPart;
+
+       
+
+        var modalityObj = PaymentModalities.FirstOrDefault(m => m.Id == Model.PaymentModalityId);
+
+        string mode = modalityObj?.Mode?.ToLower() ?? "monthly";
+
+
+
+        for (int i = 1; i <= Model.TotalInstallments; i++)
+
+        {
+
+            DateTime dueDate = mode switch {
+
+                "daily" => Model.StartDate.Value.AddDays(i),
+
+                "weekly" => Model.StartDate.Value.AddDays(i * 7),
+
+                "monthly" => Model.StartDate.Value.AddMonths(i),
+
+                "yearly" => Model.StartDate.Value.AddYears(i),
+
+                _ => Model.StartDate.Value.AddMonths(i)
+
+            };
+
+           
+
+            rows.Add(new PreviewRow {
+
+                No = i,
+
+                DueDate = dueDate,
+
+                PrincipalPart = pPart,
+
+                InterestPart = iPart,
+
+                TotalAmount = totalPart
+
+            });
+
+        }
+
+        return rows;
+
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+
+    {
+
+        var modalitiesTask = PaymentModalityService.GetAllPaymentModalitysAsync();
+
+        var loansTask = LoanApplicationService.GetAllLoanApplicationsAsync();
+
+
+
+        await Task.WhenAll(modalitiesTask, loansTask);
+
+
+
+        PaymentModalities = modalitiesTask.Result?.ToList() ?? new();
+
+        LoanApplications = loansTask.Result?.ToList() ?? new();
+
+
+
+        // Defaults
+
+        Model.StartDate = DateTime.Today;
+
+        Model.TotalInstallments = 4;
+
+        Model.InterestRate = 10; // Default 10% for clear visibility
+
+       
+
+        Calculate();
+
+    }
+
+
+
+    private async Task OnValidSubmit()
+
+    {
+
+        if (Model.LoanApplicationId == 0 || Model.PaymentModalityId == 0) return;
+
+
+
+        _isProcessing = true;
+
+        try
+
+        {
+
+            await DisbursementService.CreateDisbursementAsync(Model);
+
+            MudDialog.Close(DialogResult.Ok(true));
+
+        }
+
+        catch (Exception ex)
+
+        {
+
+            // Add a Snackbar here if available
+
+            Console.WriteLine($"Error: {ex.Message}");
+
+        }
+
+        finally { _isProcessing = false; }
+
+    }
+
+}

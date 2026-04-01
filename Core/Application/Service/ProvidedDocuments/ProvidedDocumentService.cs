@@ -21,9 +21,9 @@ namespace  Application.Services.ProvidedDocuments
         {
             return await _providedDocument.GetProvidedDocumentById(Id);
         }
-       public async Task CreateProvidedDocument(CreateProvidedDocumentDTO providedDocumentDTO)
+       public async Task<ProvidedDocument> CreateProvidedDocument(CreateProvidedDocumentDTO providedDocumentDTO)
         {
-            await _providedDocument.CreateProvidedDocument( providedDocumentDTO);
+          return await _providedDocument.CreateProvidedDocument(providedDocumentDTO);
         }
       
     }

@@ -1,0 +1,173 @@
+@page "/"
+@page "/account/login"
+@layout Layout.AuthLayout
+
+@using MudBlazor
+@using Microsoft.AspNetCore.Components
+@inject NavigationManager Navigation
+
+<style>
+    .auth-background {
+        background: radial-gradient(circle at center, #1a1b3a 0%, #050505 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* The subtle glowing lines in the background of your image */
+    .auth-background::before {
+        content: "";
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(45deg, transparent, transparent 100px, rgba(78, 93, 235, 0.03) 100px, rgba(78, 93, 235, 0.03) 200px);
+        top: -50%;
+        left: -50%;
+    }
+
+    .glass-card {
+        background: #1a1b3a
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 40px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .login-btn {
+        background: linear-gradient(90deg, #2539e8 0%, #2536eb 100%) !important;
+        color: white !important;
+        text-transform: none !important;
+        font-weight: 600 !important;
+        height: 48px;
+    }
+
+    .google-btn {
+        background-color: #2539e8 !important;
+        border: 1px solid #2539e8 !important;
+        color: white !important;
+        text-transform: none !important;
+    }
+
+    .custom-label {
+        color: #b0b0b0;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .mud-input-control {
+        margin-bottom: 20px;
+    }
+
+    @* .mud-input.mud-input-outlined {
+        background-color: rgba(0,0,0,0.2);
+    } *@
+</style>
+
+<div class="auth-background">
+    <div class="glass-card">
+        <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; color: white; margin-bottom: 8px;">
+            Sign In to Your Account
+        </MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #888; margin-bottom: 32px;">
+            Welcome back! Please enter your details to manage your workflow and enhance collaboration.
+        </MudText>
+
+        @if (!string.IsNullOrEmpty(Error))
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4">@Error</MudAlert>
+        }
+
+        <MudButton Variant="Variant.Filled" 
+                   FullWidth="true" 
+                   Class="google-btn mb-6 py-2"
+                   StartIcon="@Icons.Custom.Brands.Google">
+            Sign in with Google
+        </MudButton>
+
+        <div class="d-flex align-center mb-6">
+            <hr style="flex-grow: 1; border: none; border-top: 1px solid #333;" />
+            <MudText Typo="Typo.caption" Class="mx-4" Style="color: #666;">Or</MudText>
+            <hr style="flex-grow: 1; border: none; border-top: 1px solid #333;" />
+        </div>
+
+        <form method="post" action="/api/account/login">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+            <span class="custom-label">Email</span>
+            <MudTextField @bind-Value="email"
+                          name="email"
+                          Placeholder="Enter your email"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          T="string"
+                          Style="color: rgb(235, 235, 244);"/>
+
+            <div class="d-flex justify-space-between align-center">
+                <span class="custom-label">Password</span>
+            </div>
+            <MudTextField @bind-Value="password"
+                          name="password"
+                          Placeholder="Enter your password"
+                          InputType="@_passwordInput"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@_passwordInputIcon"
+                          OnAdornmentClick="TogglePasswordVisibility"
+                          T="string"
+                          Style="color: rgb(235, 235, 244);"/>
+
+            <div class="d-flex justify-end mb-6">
+                <MudLink Href="/account/forgot-password" Underline="Underline.None" Style="color: #1707f0; font-size: 0.8rem;">
+                    Forgot your password?
+                </MudLink>
+            </div>
+
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       FullWidth="true"
+                       Class="login-btn rounded-lg mb-4">
+                Sign In
+            </MudButton>
+
+            <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #1707f0;">
+                Don't have an account? <MudLink href="/RegisterUser" Style="color: #4e5deb; font-weight: 600;">Register Now</MudLink>
+            </MudText>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter] [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+    [Parameter] [SupplyParameterFromQuery(Name = "error")] public string? Error { get; set; }
+
+    private string email = "";
+    private string password = "";
+    private bool _isPasswordVisible = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.Visibility;
+
+    public void TogglePasswordVisibility()
+    {
+        if (_isPasswordVisible)
+        {
+            _isPasswordVisible = false;
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInput = InputType.Password;
+        }
+        else
+        {
+            _isPasswordVisible = true;
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInput = InputType.Text;
+        }
+    }
+}

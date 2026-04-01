@@ -21,18 +21,21 @@ namespace Infrastructure.Repositories
         {
             return  dbContext.ProvidedDocuments.FirstOrDefault(t => t.Id == Id);
         }
-         public async Task CreateProvidedDocument(CreateProvidedDocumentDTO providedDocumentDTO)
-        {
-            var _providedDocument = new ProvidedDocument
-            {
-                DocumentName = providedDocumentDTO.DocumentName,
-                DocumentFile = providedDocumentDTO.DocumentFile, 
-                CreatedBy = "Admin" 
-            };
-            dbContext.ProvidedDocuments.Add(_providedDocument);
-            dbContext.SaveChanges();
-        }
-       
+        public async Task<ProvidedDocument> CreateProvidedDocument(CreateProvidedDocumentDTO dto)
+{
+    var newDoc = new ProvidedDocument
+    {
+        DocumentName = dto.DocumentName,
+        DocumentFile = dto.DocumentFile, 
+        CreatedAt = DateTime.Now,
+        CreatedBy = "Admin" 
+    };
+
+    dbContext.ProvidedDocuments.Add(newDoc);
+    await dbContext.SaveChangesAsync(); // The ID is generated here
+
+    return newDoc; // Hand the object (with its new ID) back to the Service
+}
     }
     }   
     
