@@ -2,6 +2,8 @@
 
 @using Application.Interfaces
 @using Application.Services.BorrowerTypes
+@using Application.Services.GuarantorTypes
+@using Application.Services.PaymentModalities
 @using Domain.Entities
 @using Application.Services.PaymentTypes
 @using Application.Services.AccountTypes
@@ -9,7 +11,8 @@
 @inject IPaymentTypeService PaymentTypeService
 @inject IReasonService ReasonService
 @inject IBorrowerTypeService BorrowerTypeService
-
+@inject IPaymentModalityService PaymentModalityService
+@inject IGuarantorTypeService GuarantorTypeService
 @inject IAccountTypeService AccountTypeService
 
 
@@ -210,10 +213,79 @@
                 </PagerContent>
             </MudDataGrid>
         </MudTabPanel>
+
+            @* // --- TAB 5 --- // *@
+        <MudTabPanel Text="Guarantor Types" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T=" GuarantorType"
+                         Items="@GuarantorTypes"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">Guarantor Types</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Guarantor Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateGuarantorType">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+
+                <Columns>
+                    <SelectColumn T="GuarantorType" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.Name" Title="Guarantor Type" Sortable="true" />
+
+                    
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="GuarantorType" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
+
+
+        @* // --- TAB 6 --- // *@
+        <MudTabPanel Text="Payment Modality" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T=" PaymentModality"
+                         Items="@PaymentModalities"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">Payment Modalities</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Payment Modality" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreatePaymentModality">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+
+                <Columns>
+                    <SelectColumn T="PaymentModality" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.Mode" Title="Payment Modality" Sortable="true" />
+
+                    
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="PaymentModality" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
     </MudTabs>
 </MudContainer>
-
-
 @code {
     private List<PaymentType> PaymentTypes = new();
     private readonly DialogOptions _closeButton2 = new() { CloseButton = true };
@@ -224,6 +296,8 @@
 
      private List<AccountType> AccountTypes = new();
      private List<BorrowerType> BorrowerTypes = new();
+     private List<GuarantorType> GuarantorTypes = new();
+     private List<PaymentModality> PaymentModalities = new();
     private readonly DialogOptions _closeButton3 = new() { CloseButton = true };
 
 
@@ -249,6 +323,18 @@
         var result = await BorrowerTypeService.GetAllBorrowerTypeAsync();
         BorrowerTypes = result?.ToList() ?? new List<BorrowerType>();
     }
+    private async Task LoadGuarantorType()
+    {
+        // Added a check to ensure we get a fresh list
+        var result = await GuarantorTypeService.GetAllGuarantorTypesAsync();
+        GuarantorTypes = result?.ToList() ?? new List<GuarantorType>();
+    }
+    private async Task LoadPaymentModality()
+    {
+        // Added a check to ensure we get a fresh list
+        var result = await PaymentModalityService.GetAllPaymentModalitysAsync();
+        PaymentModalities = result?.ToList() ?? new List<PaymentModality>();
+    }
 
 
     protected override async Task OnInitializedAsync()
@@ -257,8 +343,9 @@
         await LoadReason();
         await LoadAccountType();
         await LoadBorrowerType();
+        await LoadGuarantorType();
+        await LoadPaymentModality();
     }
-
     private async Task GoToCreatePaymentType()
     {
         DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
@@ -310,6 +397,32 @@
         {
             await Task.Delay(100); // Small delay to let DB catch up if needed
             await LoadBorrowerType();
+        }
+    }
+     private async Task GoToCreateGuarantorType()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<GuarantorTypeDialog>("Add Guarantor Type", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100); // Small delay to let DB catch up if needed
+            await LoadGuarantorType();
+        }
+    }
+     private async Task GoToCreatePaymentModality()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<PaymentModalityDialog>("Add Payment Modality", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100); // Small delay to let DB catch up if needed
+            await LoadPaymentModality();
         }
     }
 }

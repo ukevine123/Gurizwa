@@ -98,7 +98,7 @@
 
                         <MudSelectItem Value="0">Select Confirmed Application</MudSelectItem>
 
-                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Confirmed))
+                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Applied))
 
                         {
 

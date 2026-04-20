@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Domain.Entities; 
 using Application.DTO;
+using Domain.ValueObjects;
 
 
 namespace  Application.Services.LoanApplications
@@ -28,6 +29,10 @@ namespace  Application.Services.LoanApplications
       public async Task UpdateLoanApplication(int Id, UpdateApplicationDTO loanApplicationDTO)
         {
             await _loanApplication.UpdateLoanApplication(Id, loanApplicationDTO);
+        }
+        public async Task UpdateStatusAsync(int Id, LoanStatus newStatus)
+        {
+            await _loanApplication.UpdateStatusAsync(Id, newStatus);
         }
     }
 }

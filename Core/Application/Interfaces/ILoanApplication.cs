@@ -1,5 +1,6 @@
 using Domain.Entities;
 using Application.DTO;
+using Domain.ValueObjects;
 
 namespace Application.Interfaces
 {
@@ -9,5 +10,6 @@ namespace Application.Interfaces
         Task<LoanApplication> GetLoanApplicationById(int id);   
         Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO);
         Task UpdateLoanApplication(int id, UpdateApplicationDTO loanApplicationDTO);
+        Task UpdateStatusAsync(int id, LoanStatus newStatus);
     }
 }

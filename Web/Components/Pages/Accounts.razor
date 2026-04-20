@@ -31,7 +31,7 @@
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
@@ -136,16 +136,11 @@
         _accounts = await AccountService.GetAllAccountsAsync();
         StateHasChanged();
     }
-        @* private Color GetStatusColor(LoanStatus status)
+       private async Task OpenDetailDialog(int id)
     {
-        return status.ToString() switch
-        {
-            "Dormant" => Color. Warning,
-            "Active" => Color.Success,
-            "Closed" => Color.Error,
-            _ => Color.Default
-        };
-    } *@
+        var parameters = new DialogParameters<AccountDetailDialog> { { x => x.Id, id } };
+        await DialogService.ShowAsync<AccountDetailDialog>("View Details", parameters);
+    }
 
 
 

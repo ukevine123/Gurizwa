@@ -4,7 +4,7 @@ namespace Application.DTO
 {
     public class CollateralCreateDTO
     {
-       public string LoanApplicationId { get; set; }
+       public int LoanApplicationId { get; set; }
         public string AssetName { get; set; }
         public string AssetType { get; set; }
         public string Province {get;set;}

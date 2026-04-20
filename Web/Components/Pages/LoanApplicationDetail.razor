@@ -8,6 +8,7 @@
 @using Domain.ValueObjects
 @inject IBorrower BorrowerRepo
 @inject IGuarantor GuarantorRepo
+@inject ICollateral CollateralRepo
 @inject ILoanProduct ProductRepo
 @inject IProvidedDocument DocumentRepo
 @inject ILoanApplicationService LoanService
@@ -130,6 +131,28 @@
             </MudTable>
         </MudItem>
 
+<MudItem xs="12" md="6">
+    <MudTable Items="@collaterals" Dense="true" Hover="true" Elevation="2" Class="rounded-lg" Style="height: 100%;">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Collateral Assets</MudText>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Asset Name</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Estimated Value</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Asset Name">@context.AssetName</MudTd>
+            <MudTd DataLabel="Type">@context.AssetType</MudTd>
+            <MudTd DataLabel="Value">@context.EstimatedValue.ToString("N0") RWF</MudTd>
+            <MudTd DataLabel="ID Number">@context.IdentificationNumber</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2" Class="pa-4">No collateral registered for this application.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudItem>
+
         @* 4. UPLOADED DOCUMENTS *@
         <MudItem xs="12">
             <MudCard Elevation="2" Class="rounded-lg">
@@ -153,11 +176,15 @@
 </MudContainer>
 
 @code {
-    [Parameter] public int LoanId { get; set; }
+    [Parameter] 
+    public int LoanId { get; set; }
+    public int collateralId { get; set; }
     
     private LoanApplication application;
     private Borrower borrower;
     private List<Guarantor> guarantors = new();
+    @* private List<Collateral> collaterals = new(); *@
+    private List<Domain.Entities.Collateral> collaterals = new();
     private LoanProduct loanProduct;
     private List<ProvidedDocument> documents = new();
 
@@ -168,7 +195,7 @@
 
     private async Task LoadData()
     {
-        var application = await LoanService.GetLoanApplicationById(LoanId);
+        application = await LoanService.GetLoanApplicationById(LoanId);
 
         if (application != null)
         {
@@ -185,7 +212,11 @@
 
             // Depending on how your Documents are stored, you might need a similar filter:
             documents = await DocumentRepo.GetAllProvidedDocumentAsync(); 
-            // documents = documents.Where(d => d.LoanApplicationId == LoanId).ToList();
+
+            var allCollaterals = await CollateralRepo.GetAllCollateralsAsync();
+            collaterals = allCollaterals
+                .Where(c => c.LoanApplicationId == LoanId) 
+                .ToList();
         }
     }
 
@@ -225,11 +256,36 @@
         _ => Color.Default
     };
 
-    private async Task ViewDocument(ProvidedDocument doc)
+    @* private async Task ViewDocument(ProvidedDocument doc)
     {
         if (doc.DocumentFile == null || doc.DocumentFile.Length == 0) return;
         var base64 = Convert.ToBase64String(doc.DocumentFile);
         var url = $"data:application/pdf;base64,{base64}"; 
         await JS.InvokeVoidAsync("open", url, "_blank");
+    } *@
+   private async Task ViewDocument(ProvidedDocument doc)
+{
+    if (doc.DocumentFile == null || doc.DocumentFile.Length == 0)
+    {
+        Snackbar.Add("File is empty.", Severity.Error);
+        return;
     }
+
+    byte[] fileData = doc.DocumentFile;
+
+    // Check if the file is accidentally saved as a Base64 string inside the byte array
+    // (Common if you used a JS uploader previously)
+    string possibleBase64 = System.Text.Encoding.UTF8.GetString(fileData);
+    if (possibleBase64.Contains("base64,"))
+    {
+        // Strip the header (e.g., "data:application/pdf;base64,") and convert
+        var base64Data = possibleBase64.Split(',')[1];
+        fileData = Convert.FromBase64String(base64Data);
+    }
+
+    using var stream = new MemoryStream(fileData);
+    using var streamRef = new DotNetStreamReference(stream);
+
+    await JS.InvokeVoidAsync("downloadFileFromStream", doc.DocumentName, streamRef);
+}
 }

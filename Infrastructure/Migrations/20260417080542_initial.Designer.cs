@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260331205623_initighaDdfffl")]
-    partial class initighaDdfffl
+    [Migration("20260417080542_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -737,6 +737,54 @@ namespace Infrastructure.Migrations
                     b.ToTable("Persons");
                 });
 
+            modelBuilder.Entity("Domain.Entities.ProcessFeeDeposit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("BorrowerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DepositDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LoanApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaymentTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("BorrowerId");
+
+                    b.HasIndex("LoanApplicationId");
+
+                    b.HasIndex("PaymentTypeId");
+
+                    b.ToTable("ProcessFeeDeposits");
+                });
+
             modelBuilder.Entity("Domain.Entities.ProvidedDocument", b =>
                 {
                     b.Property<int>("Id")
@@ -1213,6 +1261,41 @@ namespace Infrastructure.Migrations
                     b.Navigation("LoanApplication");
 
                     b.Navigation("Reason");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ProcessFeeDeposit", b =>
+                {
+                    b.HasOne("Domain.Entities.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Borrower", "Borrower")
+                        .WithMany()
+                        .HasForeignKey("BorrowerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.LoanApplication", "LoanApplication")
+                        .WithMany()
+                        .HasForeignKey("LoanApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.PaymentType", "PaymentType")
+                        .WithMany()
+                        .HasForeignKey("PaymentTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Borrower");
+
+                    b.Navigation("LoanApplication");
+
+                    b.Navigation("PaymentType");
                 });
 
             modelBuilder.Entity("Domain.Entities.Requirement", b =>

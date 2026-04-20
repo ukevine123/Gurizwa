@@ -1,50 +1,54 @@
-
 using Domain.Entities;
 using Infrastructure.Data;
 using Application.DTO;
 using Application.Interfaces;
-using Application.Services.BorrowerTypes;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
-public class BorrowerTypeRepository : IBorrowerType
-  {
-      private readonly ApplicationDbContext dbContext;
+    public class BorrowerTypeRepository : IBorrowerType
+    {
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-        public BorrowerTypeRepository(ApplicationDbContext context)
+        public BorrowerTypeRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-           dbContext= context; 
+            _contextFactory = contextFactory;
         }
-        // Repository for retrieving accounts data
+
         public async Task<List<BorrowerType>> GetAllBorrowerTypeAsync()
         {
-          return await dbContext.BorrowerTypes.ToListAsync();
+            // Create a fresh context for this specific operation
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            return await dbContext.BorrowerTypes.ToListAsync();
         }
-        public async Task <BorrowerType> GetBorrowerTypeById(int Id)
+
+        public async Task<BorrowerType?> GetBorrowerTypeById(int Id)
         {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
             return await dbContext.BorrowerTypes.FirstOrDefaultAsync(c => c.Id == Id);
         }
-       public async Task CreateBorrowerType(CreateBorrowTypeDTO borrowerTypeDTO)
+
+        public async Task CreateBorrowerType(CreateBorrowTypeDTO borrowerTypeDTO)
         {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
             var borrowerType = new BorrowerType
             {
                 Type = borrowerTypeDTO.Type,
-                 Status = "Active",   
-  
+                Status = "Active",
             };
             await dbContext.BorrowerTypes.AddAsync(borrowerType);
             await dbContext.SaveChangesAsync();
-            
         }
-         public async Task UpdateBorrowerType(int Id,UpdateBorrowTypeDTO borrowerTypeDTO)
+
+        public async Task UpdateBorrowerType(int Id, UpdateBorrowTypeDTO borrowerTypeDTO)
         {
-            var borrowerType = dbContext.BorrowerTypes.Find(Id);
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var borrowerType = await dbContext.BorrowerTypes.FindAsync(Id);
             if (borrowerType != null)
             {
                 borrowerType.Type = borrowerTypeDTO.Type;
-                
+                await dbContext.SaveChangesAsync();
             }
         }
-       
-}}
+    }
+}

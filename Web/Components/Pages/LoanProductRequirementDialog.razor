@@ -1,6 +1,7 @@
 @using MudBlazor
 @using Application.DTO
 @using Application.Interfaces
+
 @using Domain.Entities
 
 @inject IRequirement RequirementService
@@ -113,30 +114,42 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Initialize the DTO with the passed Product ID
+        newRequirement.LoanProductId = LoanProductId;
         await LoadData();
     }
 
     private async Task LoadData()
     {
+        ErrorMessage = "";
         _allAvailableDocuments = await RequiredDocumentService.GetAllRequiredDocumentsAsync();
         
-        // Filter requirements specifically for this Loan Product
+        // Fetch and filter requirements for THIS product only
         var allReqs = await RequirementService.GetAllRequirementsAsync();
-        _currentProductRequirements = allReqs.ToList(); // Note: You might need to add a filter by LoanProductId in your Repository
+        _currentProductRequirements = allReqs
+            .Where(x => x.LoanProductId == LoanProductId)
+            .ToList();
     }
 
     private async Task HandleSaveRequirement()
     {
-        if (newRequirement.RequiredDocumentId == 0) return;
+        if (newRequirement.RequiredDocumentId == 0) 
+        {
+            ErrorMessage = "Please select a document to link.";
+            return;
+        }
 
         try
         {
             await RequirementService.CreateRequirementAsync(newRequirement);
-            Snackbar.Add("Document linked to product successfully", Severity.Info);
+            Snackbar.Add("Document linked successfully", Severity.Success);
+            
             await LoadData();
-            newRequirement = new();
+            
+            // Reset DTO but keep the LoanProductId for the next addition
+            newRequirement = new RequirementCreateDTO { LoanProductId = LoanProductId };
         }
-        catch (Exception ex) { ErrorMessage = ex.Message; }
+        catch (Exception ex) { ErrorMessage = "Error linking document: " + ex.Message; }
     }
 
     private async Task HandleSaveNewDocument()
@@ -144,20 +157,14 @@
         try
         {
             await RequiredDocumentService.CreateRequiredDocumentAsync(newDocument);
-            Snackbar.Add("New document type created", Severity.Info);
-            await LoadData(); // This refreshes the dropdown in Tab 1
-            newDocument = new();
-            // Optional: Switch to Tab 1 automatically here if desired
+            Snackbar.Add("New document type created and available in list", Severity.Info);
+            
+            await LoadData(); // Refreshes the dropdown in Tab 1
+            newDocument = new RequiredDocumentCreateDTO();
         }
-        catch (Exception ex) { ErrorMessage = ex.Message; }
+        catch (Exception ex) { ErrorMessage = "Error creating document type: " + ex.Message; }
     }
 
     void Close() => MudDialog.Close();
-
-    private void GoBack()
-{
-    MudDialog.Close(DialogResult.Cancel());
-    // You can then trigger the first dialog to open again 
-    // with the 'Model' data still populated.
-}
+    void GoBack() => MudDialog.Cancel();
 }

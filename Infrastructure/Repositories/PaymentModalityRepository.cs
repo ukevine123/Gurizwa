@@ -2,45 +2,44 @@ using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Data;
 using Application.DTO;
-using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+
 namespace Infrastructure.Repositories
 {
-    public class PaymentModalityRepository: IPaymentModality
+    public class PaymentModalityRepository : IPaymentModality
     {
-        private readonly ApplicationDbContext dbContext;
-        public PaymentModalityRepository(ApplicationDbContext context)
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+
+        public PaymentModalityRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-           dbContext=context; 
+            _contextFactory = contextFactory;
         }
-        // public  async Task<List<PaymentModality>> GetAllPaymentModalitysAsync()
-        // {
-        //   List<PaymentModality> _paymentModality = dbContext.PaymentModalities.ToList();
-        //   return _paymentModality;
-        // }
 
         public async Task<List<PaymentModality>> GetAllPaymentModalitysAsync()
-{
-    // Use ToListAsync() and await it
-    return await dbContext.PaymentModalities.ToListAsync();
-}
-        public async Task <PaymentModality> GetPaymentModalityById(int Id)
         {
-            return  dbContext.PaymentModalities.FirstOrDefault(t => t.Id == Id);
+            // Use a fresh context for each call to avoid concurrency issues
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            return await dbContext.PaymentModalities.ToListAsync();
         }
-         public async Task CreatePaymentModality(CreatePaymentModalityDTO paymentModalityDTO)
+
+        public async Task<PaymentModality?> GetPaymentModalityById(int Id)
         {
-            var _paymentModality = new PaymentModality
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            // Changed to FirstOrDefaultAsync to maintain a fully async flow
+            return await dbContext.PaymentModalities.FirstOrDefaultAsync(t => t.Id == Id);
+        }
+
+        public async Task CreatePaymentModality(CreatePaymentModalityDTO paymentModalityDTO)
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var paymentModality = new PaymentModality
             {
                 Mode = paymentModalityDTO.Mode,
-                // CreatedBy = "Admin" 
+                CreatedBy = "System Manager" // Uncomment if you have a status field here too
             };
-            dbContext.PaymentModalities.Add(_paymentModality);
-            dbContext.SaveChanges();
+
+            await dbContext.PaymentModalities.AddAsync(paymentModality);
+            await dbContext.SaveChangesAsync();
         }
-       
     }
-    }   
-    
-    
-        
+}

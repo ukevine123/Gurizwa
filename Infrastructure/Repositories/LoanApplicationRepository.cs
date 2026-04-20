@@ -79,7 +79,8 @@ namespace Infrastructure.Repositories
                     _loanApplication.PreferredDate = loanApplicationDTO.PreferredDate;
                     _loanApplication.DateofApplication = loanApplicationDTO.DateofApplication;
 
-                
+                    dbContext.LoanApplications.Update(_loanApplication);
+                    await dbContext.SaveChangesAsync();
                }
            }
 
@@ -103,6 +104,20 @@ public async Task<List<LoanApplication>> GetFilteredLoansAsync(string role, int?
     }
 
     return await query.ToListAsync();
+}
+
+public async Task UpdateStatusAsync(int id, LoanStatus newStatus)
+{
+    using var dbContext = await _contextFactory.CreateDbContextAsync();
+    
+    // Use ExecuteUpdateAsync for a high-performance direct SQL update (EF Core 7+)
+    // Or the standard approach below:
+    var loan = await dbContext.LoanApplications.FindAsync(id);
+    if (loan != null)
+    {
+        loan.Status = newStatus;
+        await dbContext.SaveChangesAsync();
+    }
 }
     }
     }

@@ -12,12 +12,13 @@
 @inject ILoanApplicationService LoanApplicationService
 @inject ILocationService LocationService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog Style="overflow:hidden;">
     <DialogContent>
         @* HEADER SECTION WITH ORANGE GRADIENT FOR COLLATERAL *@
         <MudPaper Elevation="0"
-                  Style="background: linear-gradient(135deg, #f57c00 0%, #ffb74d 100%); padding:14px 18px; margin-bottom:16px;">
+                  Style="background: linear-gradient(135deg, #2b44e9 0%, #2b44e9 100%); padding:14px 18px; margin-bottom:16px;">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                 <MudIcon Icon="@Icons.Material.Filled.Security" Style="color:white; font-size:1.6rem;" />
                 <MudStack Spacing="0">
@@ -39,7 +40,7 @@
               @* 1. LOAN SELECTION *@
 <MudItem xs="12">
     @* Change T to string to match your DTO *@
-    <MudSelect T="string"
+    <MudSelect T="int"
                Label="Linked Loan Application"
                @bind-Value="Model.LoanApplicationId"
                Variant="Variant.Outlined"
@@ -48,15 +49,14 @@
                AdornmentIcon="@Icons.Material.Filled.Link"
                AdornmentColor="Color.Warning">
         
-        @* Use a string "0" or an empty string for the default value *@
-        <MudSelectItem T="string" Value="@("0")">-- Select Loan --</MudSelectItem>
+       <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
         
         @foreach (var app in loanApplications)
         {
             var displayName = $"{app.Borrower?.FirstName} {app.Borrower?.LastName} ({app.AmountRequested:N0} RWF)";
             
             @* Convert app.Id to string using .ToString() *@
-            <MudSelectItem T="string" Value="@app.Id.ToString()">@displayName</MudSelectItem>
+            <MudSelectItem T="int" Value="@app.Id">@displayName</MudSelectItem>
         }
     </MudSelect>
 </MudItem>
@@ -165,7 +165,7 @@
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-2">
-                    <MudButton Variant="Variant.Filled" Color="Color.Warning" FullWidth="true" 
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" 
                                ButtonType="ButtonType.Submit" Style="font-weight: bold; height:40px;">
                         Save Collateral
                     </MudButton>
@@ -290,13 +290,13 @@
     private async Task OnValidSubmit()
     {
         try
-        {
-            // 1. Validation Check
-            if (string.IsNullOrEmpty(Model.LoanApplicationId) || Model.LoanApplicationId == "0")
-            {
-                Snackbar.Add("Please select a valid Loan Application.", Severity.Warning);
-                return;
-            }
+     {
+    // 1. Validation Check (Now using int comparison)
+    if (Model.LoanApplicationId <= 0)
+    {
+        Snackbar.Add("Please select a valid Loan Application.", Severity.Warning);
+        return;
+    }
 
             // 2. Call your Repository/Service
             // This matches the CreateCollateralAsync method in your CollateralRepository
@@ -313,7 +313,12 @@
             // 5. Error Handling
             Snackbar.Add($"Error saving collateral: {ex.Message}", Severity.Error);
         }
-    }
+       
 
-    
+        // Open the CreateGuarantorDialog with parameters
+          var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+          var parameters = new DialogParameters<CreateGuarantorDialog>(); 
+            
+            await DialogService.ShowAsync<CreateGuarantorDialog>("Create Guarantor Information", parameters, options);
+    }  
 }

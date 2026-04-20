@@ -1,10 +1,11 @@
 @page "/loanProducts"
 @using Application.Interfaces
+@using Application.Services.Requirements
 @using MudBlazor
 @using Domain.Entities
 @using Application.Services.LoanProducts
 
-
+@inject IRequirementService RequirementService
 @inject ILoanProductService LoanProductService
 @inject NavigationManager Navigation
 
@@ -32,7 +33,7 @@
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"  />
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"Disabled="@(!_selectedItems.Any())"OnClick="@(() => OpenDetailDialog(_selectedItems.First()))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
@@ -135,16 +136,35 @@
         _loanProducts = await LoanProductService.GetAllLoanProductsAsync();
         StateHasChanged();
     }
-        @* private Color GetStatusColor(LoanStatus status)
+      @* private async Task OpenDetailDialog(int id)
     {
-        return status.ToString() switch
-        {
-            "Dormant" => Color. Warning,
-            "Active" => Color.Success,
-            "Closed" => Color.Error,
-            _ => Color.Default
-        };
+        var parameters = new DialogParameters<LoanProductDetailDialog> { { x => x.Product.Id, id } };
+        await DialogService.ShowAsync<LoanProductDetailDialog>("View Details", parameters);
     } *@
+    private async Task OpenDetailDialog(LoanProduct product)
+{
+    // 1. Fetch requirements
+    var allRequirements = await RequirementService.GetAllRequirementsAsync();
+    
+    // 2. Filter for this product
+    var productRequirements = allRequirements
+        .Where(r => r.LoanProductId == product.Id)
+        .ToList();
+
+    // 3. Set Parameters
+    // We pass the actual 'product' object we received as an argument
+    var parameters = new DialogParameters<LoanProductDetailDialog> 
+    { 
+        { x => x.Product, product }, 
+        { x => x.Requirements, productRequirements },
+        { x => x.Id, product.Id }
+    };
+
+    var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    // 4. Show the Dialog
+    await DialogService.ShowAsync<LoanProductDetailDialog>("Loan Product Details", parameters, options);
+}
 
      private async Task OpenEditDialog(int id)
     {

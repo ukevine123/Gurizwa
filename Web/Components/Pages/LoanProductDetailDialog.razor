@@ -1,0 +1,92 @@
+@using Application.Interfaces
+@using Domain.Entities
+@using MudBlazor
+@inject IRequirementService RequirementService
+@inject IDialogService DialogService
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-3 mb-n1" />
+            Loan Product Details
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Style="max-height: 600px; overflow-y: auto" Class="pa-0">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Product Name</MudText>
+                    <MudText Typo="Typo.body1" Style="font-weight: 700;">@Product.ProductName</MudText>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Interest Rate</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: 700;">
+                        @Product.InterestRate.ToString("0.00") %
+                    </MudText>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Product ID</MudText>
+                    <MudText Typo="Typo.body1"># @Product.Id</MudText>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudDivider Class="my-2" />
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Description</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-4">
+                        @(string.IsNullOrEmpty(Product.Description) ? "No description provided." : Product.Description)
+                    </MudText>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudCard Elevation="0" Style="background-color: var(--mud-palette-background-grey); border-radius: 12px;">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.subtitle2" Style="font-weight: 800;">REQUIRED DOCUMENTS</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                       <MudList T="string" Clickable="true" Dense="true">
+               @foreach (var req in Requirements)
+            {
+            <MudListItem>
+                <MudButton Variant="Variant.Text" 
+                        Color="Color.Primary" 
+                        StartIcon="@Icons.Material.Filled.Description"
+                        OnClick="@(() => HandleDocumentClick(req.RequiredDocument?.DocumentName))"
+                        Style="text-transform:none; justify-content: flex-start;"
+                        FullWidth="true">
+                    @(req.RequiredDocument?.DocumentName ?? "Unnamed Document")
+                </MudButton>
+            </MudListItem>
+        }
+          </MudList>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Close" Class="px-8">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    // FIX: Added the Id parameter to match the incoming property from the Dialog call
+    [Parameter] public int Id { get; set; }
+
+    [Parameter] public LoanProduct Product { get; set; } = new();
+    [Parameter] public List<Requirement> Requirements { get; set; } = new();
+
+private void HandleDocumentClick(string? documentName)
+{
+    if (!string.IsNullOrEmpty(documentName))
+    {
+        // Example action: You could navigate to a URL or show a snackbar
+        Console.WriteLine($"Selected document: {documentName}");
+    }
+}
+    private void Close() => MudDialog.Close();
+}

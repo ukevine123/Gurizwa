@@ -34,6 +34,7 @@ namespace Infrastructure.Data
         public DbSet<PaymentType> PaymentTypes { get; set; }
         public DbSet<Penality> Penalties { get; set; }
         public DbSet<Collateral> Collaterals { get; set; }
+        public DbSet<ProcessFeeDeposit> ProcessFeeDeposits { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -46,6 +47,14 @@ namespace Infrastructure.Data
                 .WithMany() 
                 .HasForeignKey(d => d.PaymentModalityId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+      
+    // Disable cascade delete between Borrower and ProcessFeeDeposits
+        builder.Entity<ProcessFeeDeposit>()
+        .HasOne(p => p.Borrower)
+        .WithMany() 
+        .HasForeignKey(p => p.BorrowerId)
+        .OnDelete(DeleteBehavior.NoAction);
 
             // 3. Set Decimal Precision globally
             foreach (var property in builder.Model.GetEntityTypes()

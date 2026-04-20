@@ -29,6 +29,7 @@ using Application.Services.Payments;
 using Application.Services.Penalities;
 using Application.Services.PaymentTypes;
 using Application.Services.Collaterals;
+using Application.Services.ProcessFeeDeposits;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -83,6 +84,7 @@ builder.Services.AddScoped<IPenalityService, PenalityService>();
 builder.Services.AddScoped<ICollateralService, CollateralService>();
 
 builder.Services.AddScoped<IPaymentTypeService, PaymentTypeService>();
+builder.Services.AddScoped<IProcessFeeDepositService, ProcessFeeDepositService>();
 // File/Location Services
 builder.Services.AddSingleton<IFileProvider>(builder.Environment.WebRootFileProvider);
 builder.Services.AddSingleton<ILocationService, JsonLocationService>();

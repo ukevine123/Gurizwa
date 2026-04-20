@@ -30,6 +30,7 @@ namespace Infrastructure.Repositories
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
             return  dbContext.Collaterals.FirstOrDefault(t => t.Id == Id);
+            
         }
          public async Task CreateCollateralAsync(CollateralCreateDTO collateralDTO)
         {

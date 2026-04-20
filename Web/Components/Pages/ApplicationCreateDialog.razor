@@ -99,10 +99,15 @@
 <MudSelect T="int"
            Label="Product"
            Value="Model.LoanProductId"
-           ValueChanged="@(i => { Model.LoanProductId = i; StateHasChanged(); })"
+           ValueChanged="@((int i) => OnProductChanged(i))"
            Variant="Variant.Outlined"
            Dense="true"
-           Placeholder="--Select Product--">
+           AdornmentIcon="@Icons.Material.Filled.Info"
+           Placeholder="--Select Product--"
+           Adornment="Adornment.End"
+           AdornmentColor="Color.Info"
+         OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductId))">
+           
     
     <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
 
@@ -115,6 +120,7 @@
         }
     }
 </MudSelect>
+
 
      <MudItem xs="6">
                     <MudSelect T="int"
@@ -241,6 +247,7 @@
     [SupplyParameterFromForm(Name = "CreateLoanApplicationForm")]
     private CreateApplicationDTO Model {get;set;} = new ();
     private string ErrorMessage{get;set;}
+    private LoanProduct? _selectedProduct;
 
         private async Task onValidSubmit()
     {
@@ -259,6 +266,14 @@
             Snackbar.Add("Please select a valid Loan Product", Severity.Warning);
             return;
         }
+
+
+        //// Open the BorrowerCreateDialog with parameters
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+          var parameters = new DialogParameters<DocumentCreateDialog>(); 
+            
+            await DialogService.ShowAsync<DocumentCreateDialog>("Create Borrower Information", parameters, options);
+        
     }
 
 
@@ -345,6 +360,41 @@ try
             Snackbar.Add("Error loading Loan Products", Severity.Error);
         }
     }
+   private async Task OpenDetailDialog(int id)
+{
+    // 1. Validation: Ensure a product is actually selected
+    if (id <= 0)
+    {
+        Snackbar.Add("Please select a product first to view details.", Severity.Warning);
+        return;
+    }
+
+    // 2. Find the full product object from your pre-loaded list
+    var productToView = _loanProducts.FirstOrDefault(p => p.Id == id);
+
+    if (productToView == null)
+    {
+        Snackbar.Add("Product details not found.", Severity.Error);
+        return;
+    }
+
+    // 3. Setup parameters (Matching the [Parameter] names in LoanProductDetail.razor)
+    var parameters = new DialogParameters<LoanProductDetail>
+    {
+        { x => x.Product, productToView },
+        { x => x.Requirements, _allRequirements.Where(r => r.LoanProductId == id).ToList() }
+    };
+
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    // 4. Show the dialog
+    await DialogService.ShowAsync<LoanProductDetail>("Product Details", parameters, options);
+}
+    private void OnProductChanged(int id)
+   {
+    Model.LoanProductId = id;
+    StateHasChanged();
+   }
 
     // ... existing variables ...
     private Borrower SelectedBorrower { get; set; }
@@ -360,6 +410,8 @@ try
             Model.BorrowerId = 0;
             return;
         }
+
+        
 
         // Search in the pre-loaded list (Case-insensitive)
       SelectedBorrower = _borrowers.FirstOrDefault(b => 

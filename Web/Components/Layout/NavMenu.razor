@@ -70,24 +70,41 @@
         @(!IsMini ? "Borrowers" : "")
     </MudNavLink>
 
-    <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
+    @* <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
         @(!IsMini ? "Documents" : "")
-</MudNavLink>
+</MudNavLink> *@
+    @* <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
+        @(!IsMini ? "Application" : "")
+    </MudNavLink> *@
+
+<MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
     <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
         @(!IsMini ? "Application" : "")
     </MudNavLink>
-    <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
+     <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
         @(!IsMini ? "Guarantors" : "")
     </MudNavLink>
+    <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Collateral" : "")
+    </MudNavLink>
+    <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
+        @(!IsMini ? "Documents" : "")
+</MudNavLink>
+
+</MudNavGroup>
+
+    @* <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
+        @(!IsMini ? "Guarantors" : "")
+    </MudNavLink> *@
      
 
      <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
         @(!IsMini ? "Disbursement" : "")
     </MudNavLink>
 
-     <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
+     @* <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
         @(!IsMini ? "Collateral" : "")
-    </MudNavLink>  
+    </MudNavLink>   *@
 
      <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
         @(!IsMini ? "Payments" : "")
@@ -104,6 +121,9 @@
 <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
     <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">
         @(!IsMini ? "Settings" : "")
+    </MudNavLink>
+    <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
+        @(!IsMini ? "Users" : "")
     </MudNavLink>
 </MudNavGroup>
 </MudNavMenu>

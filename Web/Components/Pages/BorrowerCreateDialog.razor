@@ -143,7 +143,10 @@
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.IdentificationNumber"
-                              For="@(() => Model.IdentificationNumber)" />
+                              For="@(() => Model.IdentificationNumber)" 
+                              Immediate="true"
+                               MaxLength="16"
+                               Counter="16"/>
                 </MudItem>
                   <MudItem  xs="6">
                 <MudTextField Label="Email"

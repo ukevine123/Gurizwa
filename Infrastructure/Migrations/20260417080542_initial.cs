@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initighaDdfl : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -491,6 +491,37 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Collaterals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AssetName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AssetType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Province = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    District = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Sector = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Cell = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Village = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EstimatedValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IdentificationNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LoanApplicationId = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ValuerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ValuationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Collaterals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Collaterals_LoanApplications_LoanApplicationId",
+                        column: x => x.LoanApplicationId,
+                        principalTable: "LoanApplications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Disbursements",
                 columns: table => new
                 {
@@ -601,6 +632,50 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProcessFeeDeposits",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    LoanApplicationId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaymentTypeId = table.Column<int>(type: "int", nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: false),
+                    DepositDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BorrowerId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedBy = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProcessFeeDeposits", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProcessFeeDeposits_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProcessFeeDeposits_Borrowers_BorrowerId",
+                        column: x => x.BorrowerId,
+                        principalTable: "Borrowers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProcessFeeDeposits_LoanApplications_LoanApplicationId",
+                        column: x => x.LoanApplicationId,
+                        principalTable: "LoanApplications",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProcessFeeDeposits_PaymentTypes_PaymentTypeId",
+                        column: x => x.PaymentTypeId,
+                        principalTable: "PaymentTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Payments",
                 columns: table => new
                 {
@@ -649,6 +724,11 @@ namespace Infrastructure.Migrations
                 name: "IX_Borrowers_BorrowerTypeId",
                 table: "Borrowers",
                 column: "BorrowerTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Collaterals_LoanApplicationId",
+                table: "Collaterals",
+                column: "LoanApplicationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Disbursements_LoanApplicationId",
@@ -721,6 +801,26 @@ namespace Infrastructure.Migrations
                 column: "ReasonId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProcessFeeDeposits_AccountId",
+                table: "ProcessFeeDeposits",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProcessFeeDeposits_BorrowerId",
+                table: "ProcessFeeDeposits",
+                column: "BorrowerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProcessFeeDeposits_LoanApplicationId",
+                table: "ProcessFeeDeposits",
+                column: "LoanApplicationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProcessFeeDeposits_PaymentTypeId",
+                table: "ProcessFeeDeposits",
+                column: "PaymentTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Requirements_LoanProductId",
                 table: "Requirements",
                 column: "LoanProductId");
@@ -782,6 +882,9 @@ namespace Infrastructure.Migrations
                 name: "Addresses");
 
             migrationBuilder.DropTable(
+                name: "Collaterals");
+
+            migrationBuilder.DropTable(
                 name: "Guarantors");
 
             migrationBuilder.DropTable(
@@ -789,6 +892,9 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Penalties");
+
+            migrationBuilder.DropTable(
+                name: "ProcessFeeDeposits");
 
             migrationBuilder.DropTable(
                 name: "Requirements");
@@ -812,16 +918,16 @@ namespace Infrastructure.Migrations
                 name: "GuarantorTypes");
 
             migrationBuilder.DropTable(
-                name: "Accounts");
-
-            migrationBuilder.DropTable(
                 name: "Disbursements");
 
             migrationBuilder.DropTable(
-                name: "PaymentTypes");
+                name: "Reasons");
 
             migrationBuilder.DropTable(
-                name: "Reasons");
+                name: "Accounts");
+
+            migrationBuilder.DropTable(
+                name: "PaymentTypes");
 
             migrationBuilder.DropTable(
                 name: "RequiredDocuments");
@@ -833,10 +939,10 @@ namespace Infrastructure.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "AccountTypes");
+                name: "LoanApplications");
 
             migrationBuilder.DropTable(
-                name: "LoanApplications");
+                name: "AccountTypes");
 
             migrationBuilder.DropTable(
                 name: "Borrowers");

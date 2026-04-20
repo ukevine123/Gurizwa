@@ -23,3 +23,16 @@
         anchorElement.remove();
     }
 </script>
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+        const arrayBuffer = await contentStreamReference.arrayBuffer();
+        const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        
+        // Open in new tab
+        window.open(url, '_blank');
+
+        // Cleanup memory after a short delay
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+</script>

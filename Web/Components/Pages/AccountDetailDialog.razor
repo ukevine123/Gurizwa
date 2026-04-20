@@ -1,0 +1,78 @@
+
+@using Application.Interfaces
+@using Domain.Entities
+
+@using Domain.ValueObjects
+@using Application.Services.Accounts
+@using System.Globalization
+
+@inject NavigationManager NavigationManager
+
+ <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="BackToAccounts" StartIcon="@Icons.Material.Filled.ArrowBack">
+                    Back to List
+                </MudButton>
+<MudDialog>
+    
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2"/> Account Details
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_accounts == null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudGrid Spacing="2">
+                <MudItem xs="6">
+                    <MudTextField Label="Account ID" Value="@_accounts.Id" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Name" Value="@_accounts.Name" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Provider" Value="@_accounts.Provider" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="AccountNumber" Value="@_accounts.AccountNumber" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+               
+                <MudItem xs="6">
+                    <MudTextField Label="Balance" Value="@_accounts.Balance" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Currency" Value="@_accounts.Currency" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>
+              
+                    @* <MudItem xs="6">
+                        <MudTextField Label="AccountType" Value="@_accounts.AccountType" ReadOnly Variant="Variant.Outlined" />
+                </MudItem>  *@
+              
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int Id { get; set; } 
+    
+    [Inject] IAccountService AccountService { get; set; }
+
+    private Account _accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _accounts = await AccountService.GetAccountByIdAsync(Id);
+    }
+    private void Close() => MudDialog.Close();
+     private void BackToAccounts()
+    {
+        NavigationManager.NavigateTo("/Accounts");
+    }
+}

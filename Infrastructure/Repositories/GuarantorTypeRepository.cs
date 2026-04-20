@@ -2,45 +2,44 @@ using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Data;
 using Application.DTO;
-using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+
 namespace Infrastructure.Repositories
 {
     public class GuarantorTypeRepository : IGuarantorType
     {
-        private readonly ApplicationDbContext dbContext;
-        public GuarantorTypeRepository(ApplicationDbContext context)
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+
+        public GuarantorTypeRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
         {
-           dbContext=context; 
+            _contextFactory = contextFactory;
         }
-        // public  async Task<List<GuarantorType>> GetAllGuarantorTypesAsync()
-        // {
-        //   List<GuarantorType> _guarantorType = dbContext.GuarantorTypes.ToList();
-        //   return _guarantorType;
-        // }
 
         public async Task<List<GuarantorType>> GetAllGuarantorTypesAsync()
-{
-    // Use ToListAsync() and await it
-    return await dbContext.GuarantorTypes.ToListAsync();
-}
-        public async Task <GuarantorType> GetGuarantorTypeById(int Id)
         {
-            return  dbContext.GuarantorTypes.FirstOrDefault(t => t.Id == Id);
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.GuarantorTypes.ToListAsync();
         }
-         public async Task CreateGuarantorType(CreateGuarantorTypeDTO guarantorTypeDTO)
+
+        public async Task<GuarantorType?> GetGuarantorTypeById(int id)
         {
-            var _guarantorType = new GuarantorType
+            using var context = await _contextFactory.CreateDbContextAsync();
+            // Changed to FirstOrDefaultAsync to remain truly async
+            return await context.GuarantorTypes.FirstOrDefaultAsync(t => t.Id == id);
+        }
+
+        public async Task CreateGuarantorType(CreateGuarantorTypeDTO guarantorTypeDTO)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var guarantorType = new GuarantorType
             {
                 Name = guarantorTypeDTO.Name,
-                Status = guarantorTypeDTO.Status,             
+                Status = "Active",
+                UpdatedBy = "System",             
             };
-            dbContext.GuarantorTypes.Add(_guarantorType);
-            dbContext.SaveChanges();
+
+            context.GuarantorTypes.Add(guarantorType);
+            await context.SaveChangesAsync(); // Use SaveChangesAsync here
         }
-     
     }
-    }   
-    
-    
-        
+}
