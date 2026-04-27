@@ -3,6 +3,7 @@
 @using Application.Interfaces
 @using Application.Services.LoanApplications
 @using Application.Services.Borrowers
+@using Application.Services.LoanProductSettings
 @using Application.Services.LoanProducts
 @using Application.Services.PaymentModalities
 @using Application.Services.ProvidedDocuments
@@ -18,6 +19,8 @@
 @* @attribute [Authorize] *@
 @inject NavigationManager Navigation
 @inject ILoanApplicationService LoanApplicationService
+@inject NavigationManager Navigation
+@inject ILoanProductSettingService LoanProductSettingService
 @inject IProvidedDocumentService ProvidedDocumentService
 @inject IBorrowerService BorrowerService
 @inject IPaymentModalityService PaymentModalityService
@@ -98,7 +101,7 @@
 
 <MudSelect T="int"
            Label="Product"
-           Value="Model.LoanProductId"
+           Value="Model.LoanProductSettingId"
            ValueChanged="@((int i) => OnProductChanged(i))"
            Variant="Variant.Outlined"
            Dense="true"
@@ -106,17 +109,17 @@
            Placeholder="--Select Product--"
            Adornment="Adornment.End"
            AdornmentColor="Color.Info"
-         OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductId))">
+         OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
            
     
     <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
 
-    @if (_loanProducts != null)
+    @if (_loanProductSettings != null)
     {
-        foreach (var product in _loanProducts)
+        foreach (var product in _loanProductSettings)
         {
             @* Ensure Value matches the T type (int) *@
-            <MudSelectItem T="int" Value="@product.Id">@product.ProductName</MudSelectItem>
+            <MudSelectItem T="int" Value="@product.Id">@product.LoanProduct.ProductName</MudSelectItem>
         }
     }
 </MudSelect>
@@ -209,15 +212,6 @@
         }
     </MudSelect>
 </MudItem>
-                
-                @* <MudItem  xs="6"> 
-                <MudTextField Label="ApprovedBy"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              @bind-Value="Model.ApprovedBy"
-                              For="@(() => Model.ApprovedBy)"
-                               />
-                </MudItem> *@
                 <MudItem  xs="6">
                    
                 </MudItem>
@@ -261,7 +255,7 @@
         {
             ErrorMessage = ex.Message;
         }
-        if (Model.LoanProductId <= 0)
+        if (Model.LoanProductSettingId <= 0)
         {
             Snackbar.Add("Please select a valid Loan Product", Severity.Warning);
             return;
@@ -280,6 +274,7 @@
     private List<PaymentModality> _paymentModalities = new List<PaymentModality>();
     private List<Borrower> _borrowers = new List<Borrower>();
     private List<LoanProduct> _loanProducts = new List<LoanProduct>();
+    private List<LoanProductSetting> _loanProductSettings = new List<LoanProductSetting>();
     private List<ProvidedDocument> _documents = new List<ProvidedDocument>();
 
     protected override async Task OnInitializedAsync()
@@ -297,8 +292,18 @@
         {
             Snackbar.Add($"Error loading Borrowers: {ex.Message}", Severity.Error);
         }
-// load requirement
-
+        try 
+        {
+            var productData = await LoanProductSettingService.GetAllLoanProductSettingsAsync();
+            if (productData != null)
+            {
+                _loanProductSettings = productData.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading Loan Product Settings: {ex.Message}", Severity.Error);
+        }
 
 try 
     {
@@ -392,7 +397,7 @@ try
 }
     private void OnProductChanged(int id)
    {
-    Model.LoanProductId = id;
+    Model.LoanProductSettingId = id;
     StateHasChanged();
    }
 
@@ -430,17 +435,11 @@ try
         }
     }
 
-    //// apload document 
-
-
-
-    ///@code {
-    // List of all requirements fetched from your database
     private List<Requirement> _allRequirements = new(); 
     
     // Filtered list to show in the UI
     private List<Requirement> _filteredRequirements => _allRequirements
-        .Where(r => r.LoanProductId == Model.LoanProductId)
+        .Where(r => r.LoanProductId == Model.LoanProductSettingId)
         .ToList();
 
     private async Task UploadDocument(IBrowserFile file, Requirement req)

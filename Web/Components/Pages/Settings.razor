@@ -7,6 +7,7 @@
 @using Domain.Entities
 @using Application.Services.PaymentTypes
 @using Application.Services.AccountTypes
+@using Application.Services.LoanProductSettings
 @inject IDialogService DialogService
 @inject IPaymentTypeService PaymentTypeService
 @inject IReasonService ReasonService
@@ -14,6 +15,7 @@
 @inject IPaymentModalityService PaymentModalityService
 @inject IGuarantorTypeService GuarantorTypeService
 @inject IAccountTypeService AccountTypeService
+@inject ILoanProductSettingService LoanProductSettingService
 
 
 
@@ -284,6 +286,44 @@
                 </PagerContent>
             </MudDataGrid>
         </MudTabPanel>
+
+         @* // --- TAB 7 --- // *@
+        <MudTabPanel Text="LoanProduct Setting" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T=" LoanProductSetting"
+                         Items="@LoanProductSettings"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
+
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">LoanProduct Setting</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add LoanProduct Setting" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateLoanProductSetting">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+
+                <Columns>
+                    <SelectColumn T="LoanProductSetting" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.LoanProduct.ProductName" Title="LoanProduct Setting" Sortable="true" />
+                    <PropertyColumn Property="x => x.InterestRate" Title="Interest Rate" Sortable="true" />
+                    <PropertyColumn Property="x => x.ProcessingFee" Title="Processing Fee" Sortable="true" />
+                    <PropertyColumn Property="x => x.GracePeriodDays" Title="GracePeriodDays" Sortable="true" />
+
+                    
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="LoanProductSetting" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
     </MudTabs>
 </MudContainer>
 @code {
@@ -298,6 +338,7 @@
      private List<BorrowerType> BorrowerTypes = new();
      private List<GuarantorType> GuarantorTypes = new();
      private List<PaymentModality> PaymentModalities = new();
+     private List<LoanProductSetting> LoanProductSettings = new();
     private readonly DialogOptions _closeButton3 = new() { CloseButton = true };
 
 
@@ -335,6 +376,12 @@
         var result = await PaymentModalityService.GetAllPaymentModalitysAsync();
         PaymentModalities = result?.ToList() ?? new List<PaymentModality>();
     }
+     private async Task LoadLoanProductSetting()
+    {
+        // Added a check to ensure we get a fresh list
+        var result = await LoanProductSettingService.GetAllLoanProductSettingsAsync();
+        LoanProductSettings = result?.ToList() ?? new List<LoanProductSetting>();
+    }
 
 
     protected override async Task OnInitializedAsync()
@@ -345,6 +392,7 @@
         await LoadBorrowerType();
         await LoadGuarantorType();
         await LoadPaymentModality();
+        await LoadLoanProductSetting();
     }
     private async Task GoToCreatePaymentType()
     {
@@ -423,6 +471,20 @@
         {
             await Task.Delay(100); // Small delay to let DB catch up if needed
             await LoadPaymentModality();
+        }
+    }
+
+    private async Task GoToCreateLoanProductSetting()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<LoanProductSettingDialog>("Add LoanProduct Setting", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100); // Small delay to let DB catch up if needed
+            await LoadLoanProductSetting();
         }
     }
 }

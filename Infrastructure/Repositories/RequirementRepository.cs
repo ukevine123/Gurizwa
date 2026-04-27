@@ -37,14 +37,29 @@ namespace Infrastructure.Repositories
 
         public async Task CreateRequirementAsync(RequirementCreateDTO RequirementDTO)
         {
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-            Requirement Requirement = new()
-            {
-                RequiredDocumentId = RequirementDTO.RequiredDocumentId,
-                LoanProductId = RequirementDTO.LoanProductId,
-                
-            };
-            dbContext.Requirements.Add(Requirement);
+           await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+    // 1. Verify the RequiredDocument exists first
+    var docExists = await dbContext.RequiredDocuments.AnyAsync(d => d.Id == RequirementDTO.RequiredDocumentId);
+    if (!docExists) throw new Exception("Required Document not found.");
+
+    // 2. Only check LoanProduct if it's actually provided in the DTO
+    if (RequirementDTO.LoanProductId.HasValue)
+    {
+        var lpExists = await dbContext.LoanProducts.AnyAsync(lp => lp.Id == RequirementDTO.LoanProductId.Value);
+        if (!lpExists)
+        {
+            // Stop execution here so you don't save a NULL by mistake
+            throw new Exception($"Loan Product with ID {RequirementDTO.LoanProductId} does not exist.");
+        }
+    }
+
+    Requirement requirement = new()
+    {
+        RequiredDocumentId = RequirementDTO.RequiredDocumentId,
+        LoanProductId = RequirementDTO.LoanProductId // Pass the value directly
+    };
+            dbContext.Requirements.Add(requirement);
             await dbContext.SaveChangesAsync();
         }
     

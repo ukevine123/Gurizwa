@@ -35,6 +35,7 @@ namespace Infrastructure.Data
         public DbSet<Penality> Penalties { get; set; }
         public DbSet<Collateral> Collaterals { get; set; }
         public DbSet<ProcessFeeDeposit> ProcessFeeDeposits { get; set; }
+        public DbSet<LoanProductSetting> LoanProductSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -47,15 +48,12 @@ namespace Infrastructure.Data
                 .WithMany() 
                 .HasForeignKey(d => d.PaymentModalityId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-      
     // Disable cascade delete between Borrower and ProcessFeeDeposits
         builder.Entity<ProcessFeeDeposit>()
         .HasOne(p => p.Borrower)
         .WithMany() 
         .HasForeignKey(p => p.BorrowerId)
         .OnDelete(DeleteBehavior.NoAction);
-
             // 3. Set Decimal Precision globally
             foreach (var property in builder.Model.GetEntityTypes()
                 .SelectMany(t => t.GetProperties())
@@ -77,6 +75,7 @@ namespace Infrastructure.Data
             builder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
             builder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
             builder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
+            
 
             // Note: base.OnModelCreating already handles the composite key for UserRoles. 
             // Re-declaring it is usually unnecessary unless you've changed the Identity behavior significantly.

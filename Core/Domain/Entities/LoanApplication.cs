@@ -4,8 +4,10 @@ namespace Domain.Entities
      public class LoanApplication
     {
         public int Id  {get;set;}
-        public int LoanProductId {get;set;}
-        public LoanProduct LoanProduct {get;set;}
+        public int LoanProductSettingId {get;set;}
+        public LoanProductSetting LoanProductSetting {get;set;}
+        // public Person Person {get;set;}
+        // public int PersonId {get;set;}
         public int BorrowerId {get;set;}
         public Borrower Borrower {get;set;}
         public int PaymentModalityId{get;set;}

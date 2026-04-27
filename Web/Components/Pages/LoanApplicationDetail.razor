@@ -11,6 +11,7 @@
 @inject ICollateral CollateralRepo
 @inject ILoanProduct ProductRepo
 @inject IProvidedDocument DocumentRepo
+@inject ILoanProductSetting ProductSettingRepo
 @inject ILoanApplicationService LoanService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
@@ -53,20 +54,20 @@
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
-                    @if (loanProduct != null)
+                    @if (loanProductSetting != null)
                     {
                         <MudGrid>
                             <MudItem xs="12" sm="6">
                                 <MudText Typo="Typo.body2" Color="Color.Secondary">Product Name</MudText>
-                                <MudText Typo="Typo.body1"><b>@loanProduct.ProductName</b></MudText>
+                                <MudText Typo="Typo.body1"><b>@loanProductSetting.LoanProduct.ProductName</b></MudText>
                             </MudItem>
                             <MudItem xs="12" sm="6">
                                 <MudText Typo="Typo.body2" Color="Color.Secondary">Interest Rate</MudText>
-                                <MudText Typo="Typo.body1" Color="Color.Success"><b>@loanProduct.InterestRate%</b></MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Success"><b>@loanProductSetting.InterestRate%</b></MudText>
                             </MudItem>
                             <MudItem xs="12">
                                 <MudText Typo="Typo.body2" Color="Color.Secondary">Description</MudText>
-                                <MudText Typo="Typo.body1">@loanProduct.Description</MudText>
+                                <MudText Typo="Typo.body1">@loanProductSetting.LoanProduct.Description</MudText>
                             </MudItem>
                         </MudGrid>
                     }
@@ -186,6 +187,7 @@
     @* private List<Collateral> collaterals = new(); *@
     private List<Domain.Entities.Collateral> collaterals = new();
     private LoanProduct loanProduct;
+    private LoanProductSetting loanProductSetting;
     private List<ProvidedDocument> documents = new();
 
     protected override async Task OnInitializedAsync()
@@ -203,7 +205,7 @@
             borrower = await BorrowerRepo.GetBorrowerById(application.BorrowerId);
 
             // 3. Fetch Product linked to this application
-            loanProduct = await ProductRepo.GetLoanProductByIdAsync(application.LoanProductId);
+            loanProductSetting = await ProductSettingRepo.GetLoanProductSettingById(application.LoanProductSettingId);
 
             // 4. Fetch Guarantors and Documents (filter by LoanApplicationId)
             // Note: Ensure your repositories have methods to filter by LoanApplicationId

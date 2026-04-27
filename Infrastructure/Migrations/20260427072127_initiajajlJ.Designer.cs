@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427072127_initiajajlJ")]
+    partial class initiajajlJ
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -478,7 +481,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("DateofApplication")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("LoanProductSettingId")
+                    b.Property<int>("LoanProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("PaymentModalityId")
@@ -498,7 +501,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BorrowerId");
 
-                    b.HasIndex("LoanProductSettingId");
+                    b.HasIndex("LoanProductId");
 
                     b.HasIndex("PaymentModalityId");
 
@@ -1219,9 +1222,9 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.LoanProductSetting", "LoanProductSetting")
+                    b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
                         .WithMany()
-                        .HasForeignKey("LoanProductSettingId")
+                        .HasForeignKey("LoanProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1239,7 +1242,7 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Borrower");
 
-                    b.Navigation("LoanProductSetting");
+                    b.Navigation("LoanProduct");
 
                     b.Navigation("PaymentModality");
 

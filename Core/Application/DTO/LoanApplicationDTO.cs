@@ -3,7 +3,7 @@ namespace Application.DTO
 {
     public class CreateApplicationDTO
     {
-         public int LoanProductId {get;set;}
+         public int LoanProductSettingId {get;set;}
         public int BorrowerId {get;set;}
         public int PaymentModalityId{get;set;}
         public  int ProvidedDocumentId {get;set;}

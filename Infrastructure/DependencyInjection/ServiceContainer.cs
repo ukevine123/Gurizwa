@@ -57,6 +57,7 @@ namespace Infrastructure.DependencyInjection
             services.AddScoped<IPaymentType, PaymentTypeRepository>();
             services.AddScoped<ICollateral, CollateralRepository>();
             services.AddScoped<IProcessFeeDeposit, ProcessFeeDepositRepository>();
+            services.AddScoped<ILoanProductSetting, LoanProductSettingRepository>();
 
 
 

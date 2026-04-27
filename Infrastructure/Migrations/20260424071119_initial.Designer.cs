@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260424071119_initial")]
+    partial class initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -478,7 +481,7 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("DateofApplication")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("LoanProductSettingId")
+                    b.Property<int>("LoanProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("PaymentModalityId")
@@ -498,7 +501,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BorrowerId");
 
-                    b.HasIndex("LoanProductSettingId");
+                    b.HasIndex("LoanProductId");
 
                     b.HasIndex("PaymentModalityId");
 
@@ -519,39 +522,15 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("InterestRate")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("ProductName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("LoanProducts");
-                });
-
-            modelBuilder.Entity("Domain.Entities.LoanProductSetting", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("GracePeriodDays")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("InterestRate")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("LoanProductId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("ProcessingFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LoanProductId");
-
-                    b.ToTable("LoanProductSettings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -1219,9 +1198,9 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.LoanProductSetting", "LoanProductSetting")
+                    b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
                         .WithMany()
-                        .HasForeignKey("LoanProductSettingId")
+                        .HasForeignKey("LoanProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1239,22 +1218,11 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Borrower");
 
-                    b.Navigation("LoanProductSetting");
+                    b.Navigation("LoanProduct");
 
                     b.Navigation("PaymentModality");
 
                     b.Navigation("ProvidedDocument");
-                });
-
-            modelBuilder.Entity("Domain.Entities.LoanProductSetting", b =>
-                {
-                    b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
-                        .WithMany()
-                        .HasForeignKey("LoanProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("LoanProduct");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>

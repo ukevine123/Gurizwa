@@ -24,7 +24,7 @@ namespace Infrastructure.Repositories
             return await dbContext.LoanProducts.ToListAsync();
         }
 
-        public async Task<LoanProduct?> GetLoanProductByIdAsync(int id)
+        public async Task<LoanProduct> GetLoanProductByIdAsync(int id)
         {
             // FIX 2: Create the dbContext instance first
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -33,17 +33,18 @@ namespace Infrastructure.Repositories
             return await dbContext.LoanProducts.FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task CreateLoanProductAsync(LoanProductCreateDTO LoanProductDTO)
+        public async Task<LoanProduct> CreateLoanProductAsync(LoanProductCreateDTO LoanProductDTO)
         {
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
             LoanProduct LoanProduct = new()
             {
                 ProductName = LoanProductDTO.ProductName,
-                InterestRate = LoanProductDTO.InterestRate,
+                // InterestRate = LoanProductDTO.InterestRate,
                 Description = LoanProductDTO.Description,
             };
             dbContext.LoanProducts.Add(LoanProduct);
             await dbContext.SaveChangesAsync();
+            return LoanProduct;
         }
 
         public async Task UpdateLoanProductAsync(int id, LoanProductUpdateDTO loanProductUpdateDTO)
@@ -54,7 +55,7 @@ namespace Infrastructure.Repositories
             if (LoanProduct != null)
             {
                 LoanProduct.ProductName = loanProductUpdateDTO.ProductName;
-                LoanProduct.InterestRate = loanProductUpdateDTO.InterestRate;
+                // LoanProduct.InterestRate = loanProductUpdateDTO.InterestRate;
                 LoanProduct.Description = loanProductUpdateDTO.Description;
 
                 dbContext.LoanProducts.Update(LoanProduct);

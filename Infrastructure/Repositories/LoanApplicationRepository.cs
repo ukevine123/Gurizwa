@@ -23,7 +23,7 @@ namespace Infrastructure.Repositories
         //   return _loanApplication;
         using var dbContext = await _contextFactory.CreateDbContextAsync();
         return await dbContext.LoanApplications
-            .Include(a => a.LoanProduct)
+            .Include(a => a.LoanProductSetting)
             .Include(a => a.Borrower)
             .Include(a => a.PaymentModality)
             .Include(a => a.ProvidedDocument)
@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
         {
        using var dbContext = await _contextFactory.CreateDbContextAsync();
         var borrower = await dbContext.Borrowers.FindAsync(loanApplicationDTO.BorrowerId);
-        var loanProduct = await dbContext.LoanProducts.FindAsync(loanApplicationDTO.LoanProductId);
+        var loanProductSetting = await dbContext.LoanProductSettings.FindAsync(loanApplicationDTO.LoanProductSettingId);
         var providedDocument = await dbContext.ProvidedDocuments.FindAsync(loanApplicationDTO.ProvidedDocumentId);
         var paymentModality = await dbContext.PaymentModalities.FindAsync(loanApplicationDTO.PaymentModalityId);
 
@@ -46,7 +46,7 @@ namespace Infrastructure.Repositories
             var _loanApplication = new LoanApplication
             {
                 Borrower = borrower,
-                LoanProduct = loanProduct,
+                LoanProductSetting = loanProductSetting,
                 PaymentModality = paymentModality,
                 ProvidedDocument = providedDocument,
                 AmountRequested = loanApplicationDTO.AmountRequested,
@@ -66,7 +66,7 @@ namespace Infrastructure.Repositories
                 
                 // Include LoanProduct so we can access its InterestRate for the Disbursement
                 var _loanApplication = await dbContext.LoanApplications
-                    .Include(a => a.LoanProduct)
+                    .Include(a => a.LoanProductSetting)
                     .FirstOrDefaultAsync(t => t.Id == Id);
 
                 if (_loanApplication != null)
@@ -89,7 +89,7 @@ public async Task<List<LoanApplication>> GetFilteredLoansAsync(string role, int?
     using var dbContext = await _contextFactory.CreateDbContextAsync();
 
     var query = dbContext.LoanApplications
-        .Include(a => a.LoanProduct)
+        .Include(a => a.LoanProductSetting)
         .Include(a => a.Borrower)
         .AsQueryable();
 

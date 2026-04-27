@@ -4,11 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Infrastructure.Identity
 {
-    /// <summary>
-    /// Provides access to the current authenticated user's information.
-    /// All data is read directly from claims - no database calls needed.
-    /// Inject this anywhere to access user data: UserContext.Email, UserContext.Id, etc.
-    /// </summary>
+   
     public class UserContext : IUserContext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;

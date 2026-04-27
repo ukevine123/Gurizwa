@@ -1,5 +1,6 @@
 using Domain.Entities;
 using Domain.ValueObjects;
+using System.ComponentModel.DataAnnotations;
 namespace Application.DTO
 {
     public class CreateBorrowerDTO
@@ -10,6 +11,9 @@ namespace Application.DTO
           public BorrowerType BorrowerType {get;set;}
         public Sex sex{get;set;}
         public DateTime DateOfBirth {get;set;}
+        [Required]
+        [RegularExpression(@"^\d+$", ErrorMessage = "IdentificationNumber must contain only digits.")]
+        [StringLength(16, ErrorMessage = "IdentificationNumber must not be more than 16 digits.")]
         public string IdentificationNumber{get;set;}
         public string Email {get;set;}
         public string PhoneNumber {get;set;}

@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Application.DTO;
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 namespace Infrastructure.Repositories
 
 {
@@ -33,6 +34,19 @@ namespace Infrastructure.Repositories
         }
          public async Task CreateBorrower(CreateBorrowerDTO borrowerDTO)
         {
+            // Validate IdentificationNumber
+            if (string.IsNullOrEmpty(borrowerDTO.IdentificationNumber))
+            {
+                throw new ArgumentException("IdentificationNumber is required.");
+            }
+            if (!Regex.IsMatch(borrowerDTO.IdentificationNumber, @"^\d+$"))
+            {
+                throw new ArgumentException("IdentificationNumber must contain only digits.");
+            }
+            if (borrowerDTO.IdentificationNumber.Length > 16)
+            {
+                throw new ArgumentException("IdentificationNumber must not be more than 16 digits.");
+            }
 
             using var dbContext = await _contextFactory.CreateDbContextAsync();
         var borrowerType = await dbContext.BorrowerTypes.FindAsync(borrowerDTO.BorrowerTypeId);

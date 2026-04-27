@@ -15,7 +15,7 @@
             <MudItem xs="12">
                 <MudPaper Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-background-grey);">
                     <MudText Typo="Typo.subtitle2" Color="Color.Primary">INTEREST RATE</MudText>
-                    <MudText Typo="Typo.h4">@Product.InterestRate%</MudText>
+                    @* <MudText Typo="Typo.h4">@Product.InterestRate%</MudText> *@
                     <MudDivider Class="my-2"/>
                     <MudText Typo="Typo.subtitle2" Color="Color.Primary">DESCRIPTION</MudText>
                     <MudText Typo="Typo.body1">@Product.Description</MudText>
@@ -24,19 +24,19 @@
 
             <MudItem xs="12">
                 <MudText Typo="Typo.h6" Class="mt-2">Required Documents</MudText>
-                @if (Requirements == null || !Requirements.Any())
+                @if (LinkedDocuments == null || !LinkedDocuments.Any())
                 {
                     <MudAlert Severity="Severity.Info" Dense="true">No specific documents required.</MudAlert>
                 }
                 else
                 {
                     <MudList T="string">
-                        @foreach (var req in Requirements)
+                        @foreach (var doc in LinkedDocuments)
                         {
                             <MudListItem Icon="@Icons.Material.Filled.CheckCircle" IconColor="Color.Success">
                                 <MudText Typo="Typo.body2">
-                                    <b>@req.RequiredDocument?.DocumentName</b> 
-                                    <span class="ml-2 mud-text-secondary">(@req.RequiredDocument?.DocumentType)</span>
+                                    <b>@doc.DocumentName</b> 
+                                    <span class="ml-2 mud-text-secondary">(@doc.DocumentType)</span>
                                 </MudText>
                             </MudListItem>
                         }
@@ -46,7 +46,8 @@
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Close" FullWidth="true">Close</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="OpenRequirementDialog">Link Documents</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Close">Close</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -68,8 +69,29 @@
     [Parameter] 
     public List<RequiredDocument> RequiredDocuments { get; set; } = [];
 
+    // Filtered list of documents linked to this product
+    private List<RequiredDocument> LinkedDocuments => 
+        RequiredDocuments?.Where(d => Requirements.Any(r => r.RequiredDocumentId == d.Id)).ToList() ?? [];
+
     // 3. Simple close method
     private void Close() => MudDialog.Close();
+
+    private async Task OpenRequirementDialog()
+    {
+        var options = new DialogOptions
+        {
+            FullWidth = true,
+            BackdropClick = false
+        };
+
+        var parameters = new DialogParameters 
+        { 
+            { "LoanProductId", productId },
+            { "ProductName", Product.ProductName }
+        };
+
+        await DialogService.ShowAsync<LoanProductRequirementDialog>("Configure Requirements", parameters, options);
+    }
 }
 
   

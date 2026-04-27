@@ -145,6 +145,7 @@
             Snackbar.Add("Document linked successfully", Severity.Success);
             
             await LoadData();
+            StateHasChanged();
             
             // Reset DTO but keep the LoanProductId for the next addition
             newRequirement = new RequirementCreateDTO { LoanProductId = LoanProductId };
@@ -160,6 +161,7 @@
             Snackbar.Add("New document type created and available in list", Severity.Info);
             
             await LoadData(); // Refreshes the dropdown in Tab 1
+            StateHasChanged();
             newDocument = new RequiredDocumentCreateDTO();
         }
         catch (Exception ex) { ErrorMessage = "Error creating document type: " + ex.Message; }

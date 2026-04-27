@@ -22,14 +22,14 @@ namespace Application.Services.LoanProducts
             return await _loanProduct.GetAllLoanProductsAsync();
         }
 
-        public async Task<LoanProduct?> GetLoanProductByIdAsync(int id)
+        public async Task<LoanProduct> GetLoanProductByIdAsync(int id)
         {
             return await _loanProduct.GetLoanProductByIdAsync(id);
         }   
 
-        public async Task CreateLoanProductAsync(LoanProductCreateDTO loanProductDTO)
+        public async Task<LoanProduct> CreateLoanProductAsync(LoanProductCreateDTO loanProductDTO)
         {  
-            await _loanProduct.CreateLoanProductAsync(loanProductDTO);
+            return await _loanProduct.CreateLoanProductAsync(loanProductDTO);
         }
 
         public async Task UpdateLoanProductAsync(int id, LoanProductUpdateDTO loanProductDTO)

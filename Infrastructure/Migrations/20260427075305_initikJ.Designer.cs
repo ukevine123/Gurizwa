@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260417080542_initial")]
-    partial class initial
+    [Migration("20260427075305_initikJ")]
+    partial class initikJ
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,27 +33,36 @@ namespace Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float?>("AccountNumber")
-                        .HasColumnType("real");
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("AccountTypeId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("Balance")
+                    b.Property<decimal>("Balance")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Currency")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Provider")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AccountTypeId");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("Accounts");
                 });
@@ -472,13 +481,10 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("DateofApplication")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("LoanProductId")
+                    b.Property<int>("LoanProductSettingId")
                         .HasColumnType("int");
 
                     b.Property<int>("PaymentModalityId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PersonId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("PreferredDate")
@@ -495,11 +501,9 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("BorrowerId");
 
-                    b.HasIndex("LoanProductId");
+                    b.HasIndex("LoanProductSettingId");
 
                     b.HasIndex("PaymentModalityId");
-
-                    b.HasIndex("PersonId");
 
                     b.HasIndex("providedDocumentId");
 
@@ -518,15 +522,39 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("InterestRate")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("ProductName")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("LoanProducts");
+                });
+
+            modelBuilder.Entity("Domain.Entities.LoanProductSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("GracePeriodDays")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("InterestRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("LoanProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ProcessingFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoanProductId");
+
+                    b.ToTable("LoanProductSettings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -1115,7 +1143,15 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany("Accounts")
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AccountType");
+
+                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("Domain.Entities.Borrower", b =>
@@ -1186,9 +1222,9 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
+                    b.HasOne("Domain.Entities.LoanProductSetting", "LoanProductSetting")
                         .WithMany()
-                        .HasForeignKey("LoanProductId")
+                        .HasForeignKey("LoanProductSettingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1198,10 +1234,6 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Person", null)
-                        .WithMany("Accounts")
-                        .HasForeignKey("PersonId");
-
                     b.HasOne("Domain.Entities.ProvidedDocument", "ProvidedDocument")
                         .WithMany()
                         .HasForeignKey("providedDocumentId")
@@ -1210,11 +1242,22 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Borrower");
 
-                    b.Navigation("LoanProduct");
+                    b.Navigation("LoanProductSetting");
 
                     b.Navigation("PaymentModality");
 
                     b.Navigation("ProvidedDocument");
+                });
+
+            modelBuilder.Entity("Domain.Entities.LoanProductSetting", b =>
+                {
+                    b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
+                        .WithMany()
+                        .HasForeignKey("LoanProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LoanProduct");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
