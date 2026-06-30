@@ -11,6 +11,7 @@ namespace Application.DTO
         public decimal InterestRate {get;set;}
         public decimal ProcessingFee {get;set;}
         public decimal GracePeriodDays {get;set;}
+         public decimal PenalityRate {get;set;}
 
     }
 
@@ -19,6 +20,7 @@ namespace Application.DTO
         public decimal InterestRate {get;set;}
         public decimal ProcessingFee {get;set;}
         public decimal GracePeriodDays {get;set;}
+         public decimal PenalityRate {get;set;}
 
     }
 

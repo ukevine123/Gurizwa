@@ -22,12 +22,8 @@
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
-        @* <MudItem xs="12" sm="4">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search" Variant="Variant.Outlined" 
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
-                          Margin="Margin.Dense" Class="bg-white rounded-lg" />
-        </MudItem> *@
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        
+        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
@@ -44,7 +40,28 @@
         </MudItem>
     </MudGrid>
 
-    @* 3. THE DATAGRID *@
+    @* 3. BALANCE SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="6">
+        @if (_accountTypeTotals != null && _accountTypeTotals.Any())
+        {
+            @foreach (var total in _accountTypeTotals)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="1" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@total.AccountTypeName</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@total.TotalBalance.ToString("C")</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Total Balance</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
     <MudDataGrid T="Account" Items="@_accounts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
@@ -112,6 +129,14 @@
 
            private HashSet<Account> _selectedItems = new();
 
+           private List<AccountTypeTotal> _accountTypeTotals = new();
+
+           private class AccountTypeTotal
+           {
+               public string? AccountTypeName { get; set; }
+               public decimal TotalBalance { get; set; }
+           }
+
       protected override async Task OnInitializedAsync()
     {
          await LoadAccount();
@@ -134,6 +159,18 @@
      private async Task LoadAccount()
     {
         _accounts = await AccountService.GetAllAccountsAsync();
+        
+        // Calculate totals by account type
+        _accountTypeTotals = _accounts
+            .Where(a => a.AccountType != null)
+            .GroupBy(a => a.AccountType.AccountTypeName)
+            .Select(g => new AccountTypeTotal
+            {
+                AccountTypeName = g.Key,
+                TotalBalance = g.Sum(a => a.Balance)
+            })
+            .ToList();
+        
         StateHasChanged();
     }
        private async Task OpenDetailDialog(int id)

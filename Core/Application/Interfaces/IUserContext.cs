@@ -7,11 +7,9 @@ namespace Application.Interfaces
     /// </summary>
     public interface IUserContext
     {
-        
         int? Id { get; }
         bool IsAuthenticated { get; }
         string Email { get; }
-
         string FirstName { get; }
 
         /// <summary>
@@ -25,5 +23,15 @@ namespace Application.Interfaces
         /// Gets the avatar initials (first letter of first name + first letter of last name)
         /// </summary>
         string Initials { get; }
+
+        /// <summary>
+        /// If this user is an Agent, returns the Manager's User ID. Null for top-level Managers.
+        /// </summary>
+        int? ParentUserId { get; }
+
+        /// <summary>
+        /// Returns true if this user is a sub-user (Agent) created by a Manager.
+        /// </summary>
+        bool IsSubUser { get; }
     }
 }

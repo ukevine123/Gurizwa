@@ -16,7 +16,7 @@ namespace Application.DTO
         public string IdentificationNumber { get; set; }
         public string Description { get; set; }
         public string ValuerName { get; set; }
-        public DateTime ValuationDate { get; set; }
+        public DateTime? ValuationDate { get; set; }
     }
 
       public class CollateralUpdateDTO{
@@ -31,7 +31,7 @@ namespace Application.DTO
         public string IdentificationNumber { get; set; }
         public string Description { get; set; }
         public string ValuerName { get; set; }
-        public DateTime ValuationDate { get; set; }
+        public DateTime? ValuationDate { get; set; }
 }
     
 }

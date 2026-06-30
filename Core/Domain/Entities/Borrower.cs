@@ -6,6 +6,8 @@ namespace Domain.Entities
         public int Id{get;set;}
         public string FirstName {get;set;}
         public string LastName {get;set;}
+        public int PersonId {get;set;}
+        public Person Person {get;set;}
         public int BorrowerTypeId {get;set;}
         public BorrowerType BorrowerType {get;set;}
         public Sex sex{get;set;}

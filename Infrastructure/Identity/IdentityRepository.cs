@@ -74,9 +74,9 @@ namespace Infrastructure.Identity
                     {
                         FirstName = dto.FirstName,
                         LastName = dto.LastName,
-                        Sex = dto.Sex,
+                        Sex = dto.Sex.ToString(),
                         Status = "Active",
-                        DateOfBirth = DateTime.Now,
+                        DateOfBirth = dto.DateOfBirth ?? DateTime.Now,
                         phoneNumber = dto.PhoneNumber,
                         Email = dto.Email,
                         Country = dto.Country,
@@ -249,6 +249,147 @@ namespace Infrastructure.Identity
             catch (Exception ex)
             {
                 Console.WriteLine($"[Logout] Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        // ═══════════════════════════════════════════════
+        //  SUB-USER (AGENT) MANAGEMENT
+        // ═══════════════════════════════════════════════
+
+        public async Task CreateSubUserAsync(CreateSubUserDTO dto, int parentUserId)
+        {
+            try
+            {
+                Console.WriteLine($"[CreateSubUser] Creating agent {dto.Email} for manager {parentUserId}");
+
+                var existing = await _userManager.FindByEmailAsync(dto.Email);
+                if (existing != null)
+                    throw new InvalidOperationException($"Email '{dto.Email}' is already registered.");
+
+                // Create Person record (same pattern as RegisterUser)
+                var person = new Person
+                {
+                    FirstName   = dto.FirstName,
+                    LastName    = dto.LastName,
+                    Email       = dto.Email,
+                    phoneNumber = dto.PhoneNumber,
+                    Status      = "Active",
+                    Sex         = "Unknown",
+                    DateOfBirth = DateTime.Now,
+                    Country     = string.Empty,
+                    CreatedBy   = dto.Email,
+                    UpdateBy    = dto.Email,
+                };
+                _dbContext.Persons.Add(person);
+                await _dbContext.SaveChangesAsync();
+
+                // Create Identity user linked to the parent Manager
+                var user = new User
+                {
+                    FirstName      = dto.FirstName,
+                    LastName       = dto.LastName,
+                    Email          = dto.Email,
+                    UserName       = dto.Email,
+                    PhoneNumber    = dto.PhoneNumber,
+                    PersonId       = person.Id,
+                    ParentUserId   = parentUserId,
+                    EmailConfirmed = true,
+                    CreatedAt      = DateTime.UtcNow,
+                    UpdatedAt      = DateTime.UtcNow,
+                };
+
+                var result = await _userManager.CreateAsync(user, dto.Password);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to create agent: {errors}");
+                }
+
+                // Assign Agent role (create if it doesn't exist)
+                if (!await _roleManager.RoleExistsAsync("Agent"))
+                    await _roleManager.CreateAsync(new IdentityRole<int>("Agent"));
+
+                await _userManager.AddToRoleAsync(user, "Agent");
+                Console.WriteLine($"[CreateSubUser] Agent created: {user.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CreateSubUser] Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<UserDetailDTO>> GetSubUsersAsync(int parentUserId)
+        {
+            try
+            {
+                var subUsers = await _userManager.Users
+                    .Where(u => u.ParentUserId == parentUserId)
+                    .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName)
+                    .ToListAsync();
+
+                return subUsers.Select(u => new UserDetailDTO
+                {
+                    Id             = u.Id,
+                    FirstName      = u.FirstName  ?? "",
+                    LastName       = u.LastName   ?? "",
+                    Email          = u.Email      ?? "",
+                    PhoneNumber    = u.PhoneNumber,
+                    EmailConfirmed = u.EmailConfirmed,
+                    ParentUserId   = u.ParentUserId,
+                    IsActive       = u.EmailConfirmed,
+                    CreatedAt      = u.CreatedAt,
+                    UpdatedAt      = u.UpdatedAt,
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetSubUsers] Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task SetSubUserStatusAsync(int subUserId, bool isActive, int parentUserId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(subUserId.ToString());
+                if (user == null || user.ParentUserId != parentUserId)
+                    throw new InvalidOperationException("Agent not found or access denied.");
+
+                user.EmailConfirmed = isActive;
+                user.UpdatedAt      = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+                Console.WriteLine($"[SetSubUserStatus] Agent {subUserId} set to active={isActive}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SetSubUserStatus] Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task DeleteSubUserAsync(int subUserId, int parentUserId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(subUserId.ToString());
+                if (user == null || user.ParentUserId != parentUserId)
+                    throw new InvalidOperationException("Agent not found or access denied.");
+
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to delete agent: {errors}");
+                }
+                Console.WriteLine($"[DeleteSubUser] Agent {subUserId} deleted.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DeleteSubUser] Error: {ex.Message}");
                 throw;
             }
         }

@@ -34,8 +34,7 @@ namespace Infrastructure.Repositories
             var reason = new Reason
             {
                 Name = reasonDTO.Name,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                IsActive = true
             };
 
             context.Reasons.Add(reason);

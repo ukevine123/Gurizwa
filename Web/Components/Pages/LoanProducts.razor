@@ -3,173 +3,175 @@
 @using Application.Services.Requirements
 @using MudBlazor
 @using Domain.Entities
-@using Application.Services.LoanProducts
-
+@using Application.Services.LoanProductSettings
+@inject ILoanProductSettingService LoanProductSettingService
 @inject IRequirementService RequirementService
 @inject ILoanProductService LoanProductService
 @inject NavigationManager Navigation
-
 @inject IDialogService DialogService
 
-<PageTitle>LoanProducts</PageTitle>
+<PageTitle>Loan Products</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
-        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">LoanProducts</MudText>
-        @* <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="text-transform:none;">
-            Add LoanProduct
-        </MudButton> *@
-    </div>
-
-    @* 2. SEARCH AND FILTER ROW *@
-    <MudGrid Class="mb-4" Spacing="2">
-        @* <MudItem xs="12" sm="4">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search" Variant="Variant.Outlined" 
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
-                          Margin="Margin.Dense" Class="bg-white rounded-lg" />
-        </MudItem> *@
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
-            @if (_selectedItems.Any())
-            {
-                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"Disabled="@(!_selectedItems.Any())"OnClick="@(() => OpenDetailDialog(_selectedItems.First()))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
-                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-            }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-            @* <MudSelect T="string" Label="FirstName" Dense="true" Margin="Margin.Dense" Outlined="true" Style="width: 150px; background: white;">
-                <MudSelectItem Value="@("All")" />
-            </MudSelect> *@
-        </MudItem>
-    </MudGrid>
-
-    @* 3. THE DATAGRID *@
-    <MudDataGrid T="LoanProduct" Items="@_loanProducts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
-                 Hover="true" Elevation="0" Class="rounded-xl border-none">
-
-                  <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">LoanProduct</MudText>
-            <MudSpacer />
-
-            <MudMenu Label="Add LoanProduct"
-                     Variant="Variant.Filled"
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
-                     Color="Color.Primary">
-
-                <MudMenuItem Icon="@Icons.Material.Filled.Add"
-                             OnClick="OpenDialog">
-                    Single
-                </MudMenuItem>
-
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    print
-                </MudMenuItem>
-
-            </MudMenu>
-        </ToolBarContent>
-
-          <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">LoanProduct</MudText>
-            <MudSpacer />
-            <MudMenu Label="Add LoanProduct" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">print</MudMenuItem>
-            </MudMenu>
-        </ToolBarContent>
-
-        <Columns>
-            <SelectColumn T="LoanProduct" />
-            <HierarchyColumn T="LoanProduct" />
-            <PropertyColumn Property="x => x.Id" Title="ID" />
-            <TemplateColumn>
-                <CellTemplate>
-                    @* <MudStack Row="true" AlignItems="AlignItems.Center">
-                        <MudAvatar Size="Size.Small"><MudImage Src="@context.Item.AvatarUrl" /></MudAvatar>
-                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.FirstName</MudText>
-                    </MudStack> *@
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.ProductName" Title="ProductName" />
-            @* <PropertyColumn Property="x => x.InterestRate" Title="InterestRate" Format="0.00' %'" /> *@
-            <PropertyColumn Property="x => x.Description" Title="Description" />
-
-          </Columns>
-           
-                
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6 p-3">
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
         
-        <PagerContent>
-            <MudDataGridPager T="LoanProduct" />
-        </PagerContent>
-    </MudDataGrid>
+        @* --- TAB 1: LOAN PRODUCTS --- *@
+        <MudTabPanel Text="Loan Products" Icon="@Icons.Material.Filled.Category">
+            <MudGrid Class="mb-4" Spacing="2">
+                <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+                    @if (_selectedItems.Any())
+                    {
+                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                        <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" Disabled="@(!_selectedItems.Any())" OnClick="@(() => OpenDetailDialog(_selectedItems.First()))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                    }
+                    <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+                </MudItem>
+            </MudGrid>
+
+            <MudDataGrid T="LoanProduct" Items="@_loanProducts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                         Hover="true" Elevation="0" Class="rounded-xl border-none shadow-sm">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Loan Products List</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Loan Product" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary" Class="rounded-lg">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="LoanProduct" />
+                    <HierarchyColumn T="LoanProduct" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" />
+                    <PropertyColumn Property="x => x.ProductName" Title="Product Name" />
+                    <PropertyColumn Property="x => x.Description" Title="Description" />
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="LoanProduct" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
+
+        @* --- TAB 2: LOAN PRODUCT SETTINGS --- *@
+        <MudTabPanel Text="Loan Product Settings" Icon="@Icons.Material.Filled.Settings">
+            <MudGrid Class="mb-4 px-4" Spacing="2">
+                <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+                    @if (_selectedSettingItems.Any())
+                    {
+                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedSettingItems.Count Selected</MudText>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                    }
+                    <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+                    <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+                </MudItem>
+            </MudGrid>
+
+            <MudDataGrid T="LoanProductSetting"
+                         Items="@LoanProductSettings"
+                         MultiSelection="true"
+                         @bind-SelectedItems="_selectedSettingItems"
+                         Hover="true"
+                         Elevation="0"
+                         Class="rounded-xl border-none shadow-sm mx-4">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Loan Product Settings</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add LoanProduct Setting" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary" Class="rounded-lg">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateLoanProductSetting">Single</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="LoanProductSetting" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.LoanProduct.ProductName" Title="Loan Product" Sortable="true" />
+                    <PropertyColumn Property="x => x.InterestRate" Title="Interest Rate (%)" Sortable="true" />
+                    <PropertyColumn Property="x => x.GracePeriodDays" Title="Grace Period (Days)" Sortable="true" />
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="LoanProductSetting" />
+                </PagerContent>
+            </MudDataGrid>
+        </MudTabPanel>
+    </MudTabs>
 </MudContainer>
 
 @code {
-     private string _searchString = "";
-       List<LoanProduct> _loanProducts = new();
-
-           private HashSet<LoanProduct> _selectedItems = new();
-
-      protected override async Task OnInitializedAsync()
-    {
-         await LoadLoanProduct();
-         
-    }
+    private string _searchString = "";
+    private List<LoanProduct> _loanProducts = new();
+    private HashSet<LoanProduct> _selectedItems = new();
     
+    private List<LoanProductSetting> LoanProductSettings = new();
+    private HashSet<LoanProductSetting> _selectedSettingItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLoanProduct();
+        await LoadLoanProductSetting();
+    }
+
+    private async Task LoadLoanProduct()
+    {
+        _loanProducts = await LoanProductService.GetAllLoanProductsAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadLoanProductSetting()
+    {
+        var result = await LoanProductSettingService.GetAllLoanProductSettingsAsync();
+        LoanProductSettings = result?.ToList() ?? new List<LoanProductSetting>();
+        StateHasChanged();
+    }
+
     private async Task OpenDialog()
     {
         DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small };
-
         var dialog = await DialogService.ShowAsync<LoanProductDialog>("Add LoanProduct", options);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)
         {
-          
-             await LoadLoanProduct();
+            await LoadLoanProduct();
         }
     }
-     private async Task LoadLoanProduct()
+
+    private async Task GoToCreateLoanProductSetting()
     {
-        _loanProducts = await LoanProductService.GetAllLoanProductsAsync();
-        StateHasChanged();
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await DialogService.ShowAsync<LoanProductSettingDialog>("Add LoanProduct Setting", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100);
+            await LoadLoanProductSetting();
+        }
     }
-      @* private async Task OpenDetailDialog(int id)
-    {
-        var parameters = new DialogParameters<LoanProductDetailDialog> { { x => x.Product.Id, id } };
-        await DialogService.ShowAsync<LoanProductDetailDialog>("View Details", parameters);
-    } *@
+
     private async Task OpenDetailDialog(LoanProduct product)
-{
-    // 1. Fetch requirements
-    var allRequirements = await RequirementService.GetAllRequirementsAsync();
-    
-    // 2. Filter for this product
-    var productRequirements = allRequirements
-        .Where(r => r.LoanProductId == product.Id)
-        .ToList();
+    {
+        var allRequirements = await RequirementService.GetAllRequirementsAsync();
+        var productRequirements = allRequirements
+            .Where(r => r.LoanProductId == product.Id)
+            .ToList();
 
-    // 3. Set Parameters
-    // We pass the actual 'product' object we received as an argument
-    var parameters = new DialogParameters<LoanProductDetailDialog> 
-    { 
-        { x => x.Product, product }, 
-        { x => x.Requirements, productRequirements },
-        { x => x.Id, product.Id }
-    };
+        var parameters = new DialogParameters<LoanProductDetailDialog> 
+        { 
+            { x => x.Product, product }, 
+            { x => x.Requirements, productRequirements },
+            { x => x.Id, product.Id }
+        };
 
-    var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        await DialogService.ShowAsync<LoanProductDetailDialog>("Loan Product Details", parameters, options);
+    }
 
-    // 4. Show the Dialog
-    await DialogService.ShowAsync<LoanProductDetailDialog>("Loan Product Details", parameters, options);
-}
-
-     private async Task OpenEditDialog(int id)
+    private async Task OpenEditDialog(int id)
     {
         Navigation.NavigateTo($"/loanproducts/edit/{id}");
     }
-
-
 }

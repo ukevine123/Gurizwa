@@ -199,60 +199,6 @@
                           For="@(() => Model.KinPhoneNumber)" />
         </MudItem>
 
-
-
-                   @* <MudItem xs="6" >
-                    <MudSelect T="string"
-                     Value="Model.Province"
-                     Label="Province"
-                      ValueChanged="OnProvinceChanged"
-                       ReadOnly="IsReadOnly" 
-                       Required="true">
-                        @foreach (var p in _provinces)
-                        {
-                            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" 
-                    Value="Model.District" 
-                    Label="District" 
-                    ValueChanged="OnDistrictChanged" 
-                    ReadOnly="IsReadOnly" Required="true" 
-                    Disabled="@(string.IsNullOrEmpty(Model.Province))">
-                        @foreach (var d in _districts)
-                        {
-                            <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))">
-                        @foreach (var s in _sectors)
-                        {
-                            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6" >
-                    <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Sector))">
-                        @foreach (var c in _cells)
-                        {
-                            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Label="Village" @bind-Value="Model.Village" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Cell))">
-                        @foreach (var v in _villages)
-                        {
-                            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem> *@
-
-@* --- PROVINCE --- *@
 <MudItem xs="6">
     <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
                ReadOnly="IsReadOnly" Required="true" Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"

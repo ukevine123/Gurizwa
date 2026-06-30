@@ -13,15 +13,9 @@
 <PageTitle>Borrowers</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
-        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Borrowers</MudText>
-    </div>
-
-    @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
 
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
@@ -37,7 +31,28 @@
         </MudItem>
     </MudGrid>
 
-    @* 3. THE DATAGRID *@
+    @* 3. BORROWER TYPE SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="2">
+        @if (_borrowerTypeCounts != null && _borrowerTypeCounts.Any())
+        {
+            @foreach (var typeCount in _borrowerTypeCounts)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@typeCount.BorrowerType</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@typeCount.Count</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Borrowers</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
     <MudDataGrid T="Borrower" Items="@_borrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
@@ -109,14 +124,22 @@
 @code {
      private string _searchString = "";
 
+       List<Borrower> _borrowers = new();
+    private HashSet<Borrower> _selectedItems = new();
+
     private IEnumerable<Borrower> FilteredBorrowers => _borrowers
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
                     x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
                     x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
                     x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
-     //s
-       List<Borrower> _borrowers = new();
-    private HashSet<Borrower> _selectedItems = new();
+
+    private List<BorrowerTypeCount> _borrowerTypeCounts = new();
+
+    private class BorrowerTypeCount
+    {
+        public string? BorrowerType { get; set; }
+        public int Count { get; set; }
+    }
 
       protected override async Task OnInitializedAsync()
     {
@@ -139,6 +162,18 @@
      private async Task LoadBorrower()
     {
         _borrowers = await BorrowerService.GetAllBorrowersAsync();
+        
+        // Calculate borrower type counts
+        _borrowerTypeCounts = _borrowers
+            .Where(b => b.BorrowerType != null)
+            .GroupBy(b => b.BorrowerType.Type)
+            .Select(g => new BorrowerTypeCount
+            {
+                BorrowerType = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+        
         StateHasChanged();
     }
         private Color GetStatusColor(LoanStatus status)

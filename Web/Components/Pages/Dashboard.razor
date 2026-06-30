@@ -1,0 +1,512 @@
+@page "/dashboard"
+@using Application.DTO
+@using Application.Services.Disbursements
+@using Application.Services.LoanApplications
+@using Application.Interfaces
+@using Domain.Entities
+@using Domain.ValueObjects
+@inject ILoanApplicationService LoanApplicationService
+@inject IDisbursementService DisbursementService
+@inject IAccountService AccountService
+@inject IDialogService DialogService
+
+
+<style>
+    .dashboard-container {
+        padding: 24px;
+        background-color: #F7F9FC;
+        min-height: calc(100vh - 64px);
+        display: flex;
+        flex-direction: column;
+        font-family: 'Inter', sans-serif;
+        color: #1B2559;
+    }
+
+    /* === DARK MODE OVERRIDES === */
+    .dark-mode-layout .dashboard-container {
+        background-color: transparent;
+        color: #E6EEF8;
+    }
+
+    .dark-mode-layout .performance-card,
+    .dark-mode-layout .activity-sidebar {
+        background: #111C44 !important;
+        border-color: #1E293B !important;
+    }
+
+    .dark-mode-layout .account-balance-card {
+        background: #111C44 !important;
+        border-color: #1E293B !important;
+    }
+
+    .dark-mode-layout .stat-card {
+        background: rgba(17, 28, 68, 0.9) !important;
+        border-color: #1E293B !important;
+    }
+
+    .dark-mode-layout .overview-title,
+    .dark-mode-layout .account-type,
+    .dark-mode-layout .account-amount {
+        color: #E6EEF8 !important;
+    }
+
+    .dark-mode-layout [style*="color: #1B2559"] {
+        color: #E6EEF8 !important;
+    }
+
+    .dark-mode-layout .heatmap-cell {
+        background-color: #1E293B !important;
+    }
+
+    .dark-mode-layout .stat-value {
+        background: linear-gradient(135deg, #A3AED0 0%, #6366F1 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+    }
+
+    .overview-title {
+        font-weight: 800;
+        font-size: 26px;
+        letter-spacing: -0.5px;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 16px 20px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 110px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #4318FF;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #A3AED0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        font-size: 26px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1B2559 0%, #4318FF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-change {
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 8px;
+        width: fit-content;
+    }
+
+    .stat-change.up { background: rgba(5, 205, 153, 0.1); color: #05CD99; }
+    .stat-change.down { background: rgba(238, 93, 80, 0.1); color: #EE5D50; }
+
+    .performance-card {
+        background: white;
+        border-radius: 30px;
+        padding: 24px;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.03);
+        border: 1px solid #EDF2F7;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .activity-sidebar {
+        background: white;
+        border-radius: 30px;
+        padding: 24px;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.03);
+        border: 1px solid #EDF2F7;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .heatmap-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-top: 8px;
+    }
+
+    .heatmap-cell {
+        aspect-ratio: 1;
+        border-radius: 6px;
+        background-color: #F4F7FE;
+        transition: background-color 0.2s;
+    }
+
+    .heatmap-cell.active-low { background-color: rgba(67, 24, 255, 0.1); }
+    .heatmap-cell.active-mid { background-color: rgba(67, 24, 255, 0.4); }
+    .heatmap-cell.active-high { background-color: #4318FF; }
+
+    .account-balance-card {
+        background: white;
+        border-radius: 20px;
+        padding: 16px 20px;
+        box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.03);
+        border: 1px solid #EDF2F7;
+        transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .account-balance-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1);
+        border-color: #4318FF;
+    }
+
+    .account-balance-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(to bottom, #4318FF, #05CD99);
+    }
+
+    .account-type {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1B2559;
+    }
+
+    .account-id {
+        font-size: 11px;
+        color: #A3AED0;
+        margin-bottom: 8px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .account-amount {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1B2559;
+    }
+
+    .status-badge {
+        font-size: 10px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-final-review { background: #F4F7FE; color: #4318FF; }
+
+    .chart-container {
+        flex-grow: 1;
+        min-height: 0;
+        padding: 10px 0;
+    }
+
+    .export-btn {
+        background: linear-gradient(135deg, #05CD99 0%, #04b688 100%) !important;
+        color: white !important;
+        border-radius: 14px;
+        text-transform: none;
+        font-weight: 700;
+        padding: 10px 24px !important;
+        box-shadow: 0 10px 20px -5px rgba(5, 205, 153, 0.4);
+    }
+
+    .main-grid {
+        flex-grow: 1;
+        min-height: 0;
+        margin-bottom: 20px;
+    }
+
+    .timeline-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 8px;
+        margin-top: 10px;
+    }
+
+    .timeline-container::-webkit-scrollbar { width: 5px; }
+    .timeline-container::-webkit-scrollbar-thumb { background: #E9EDF7; border-radius: 10px; }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="d-flex align-center">
+            <div class="overview-title">Overview</div>
+        </div>
+        <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.FileDownload" Class="export-btn">Export</MudButton>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <MudGrid Spacing="3">
+            <!-- Left Side: Performance & Stats -->
+            <MudItem xs="12" lg="9" Style="height: 100%; display: flex; flex-direction: column;">
+                <div class="performance-card">
+                    <div class="d-flex justify-space-between align-center mb-3">
+                        <div style="font-size: 16px; font-weight: 700; color: #1B2559;">Performance</div>
+                        <MudSelect T="string" Dense="true" Margin="Margin.Dense" Value="@("Last Year")" Class="pa-0" Style="width: 100px; color: #1B2559; font-weight: 700; font-size: 12px;">
+                            <MudSelectItem Value="@("Last Year")" />
+                            <MudSelectItem Value="@("Last Month")" />
+                        </MudSelect>
+                    </div>
+
+                    <MudGrid Class="mb-3" Spacing="2">
+                        <MudItem xs="3">
+                            <div class="stat-card" style="border-left: 4px solid #4318FF;">
+                                <div>
+                                    <div class="stat-label">Applied</div>
+                                    <div class="stat-value">@CountApplied</div>
+                                </div>
+                                <div class="stat-change up">
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" />
+                                    +8.2%
+                                </div>
+                            </div>
+                        </MudItem>
+                        <MudItem xs="3">
+                            <div class="stat-card" style="border-left: 4px solid #05CD99;">
+                                <div>
+                                    <div class="stat-label">Approved</div>
+                                    <div class="stat-value">@CountApproved</div>
+                                </div>
+                                <div class="stat-change up">
+                                    <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                                    Active
+                                </div>
+                            </div>
+                        </MudItem>
+                        <MudItem xs="3">
+                            <div class="stat-card" style="border-left: 4px solid #EE5D50;">
+                                <div>
+                                    <div class="stat-label">Rejected</div>
+                                    <div class="stat-value">@CountRejected</div>
+                                </div>
+                                <div class="stat-change down">
+                                    <MudIcon Icon="@Icons.Material.Filled.Block" Size="Size.Small" />
+                                    Attention
+                                </div>
+                            </div>
+                        </MudItem>
+                        <MudItem xs="3">
+                            <div class="stat-card" style="border-left: 4px solid #7047EB;">
+                                <div>
+                                    <div class="stat-label">Disbursed</div>
+                                    <div class="stat-value">@CountDisbursed</div>
+                                </div>
+                                <div class="stat-change up">
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" />
+                                    +1.4%
+                                </div>
+                            </div>
+                        </MudItem>
+                    </MudGrid>
+
+                    <div class="chart-container">
+                        <MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@Labels" Width="100%" Height="250px" />
+                    </div>
+                </div>
+            </MudItem>
+
+            <!-- Right Side: Daily Activity -->
+            <MudItem xs="12" lg="3" Style="height: 100%;">
+                <div class="activity-sidebar">
+                    <div class="d-flex justify-space-between align-center mb-2">
+                        <div style="font-size: 14px; font-weight: 700; color: #1B2559;">Daily Activity</div>
+                        <div style="font-size: 10px; color: #A3AED0;">Last 5 Weeks</div>
+                    </div>
+
+                    <div class="heatmap-grid">
+                        @for (int i = 0; i < 35; i++)
+                        {
+                            <div class="heatmap-cell @(i == 17 ? "active" : "")"></div>
+                        }
+                    </div>
+                    <div class="d-flex justify-space-between mt-1 mb-2" style="font-size: 8px; color: #94A3B8;">
+                        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+                    </div>
+
+                    <div class="d-flex align-center mb-2">
+                        <div style="font-size: 14px; font-weight: 800; color: #1B2559;">@DateTime.Today.ToString("MMM dd, yy")</div>
+                    </div>
+
+                    <div class="timeline-container">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.5; padding: 16px 0;">
+                            <MudIcon Icon="@Icons.Material.Outlined.Inbox" Style="font-size: 32px; color: #A3AED0;" />
+                            <MudText Typo="Typo.caption" Style="color: #A3AED0; font-weight: 600; margin-top: 8px; text-align: center;">No recent activity</MudText>
+                        </div>
+                    </div>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </div>
+
+    <!-- Bottom Section: Account Balances by Type -->
+    <div style="flex-shrink: 0;">
+        <div class="d-flex justify-space-between align-center mb-2">
+            <div style="font-size: 16px; font-weight: 800; color: #1B2559;">Account Balances</div>
+            <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.NorthEast" Color="Color.Primary" Style="text-transform: none; font-weight: 700; font-size: 11px; height: 24px;">View All</MudButton>
+        </div>
+        
+        <MudGrid Spacing="2">
+            @if (AccountBalances.Any())
+            {
+                @foreach (var balance in AccountBalances.Take(4))
+                {
+                    <MudItem xs="6" md="3">
+                        <div class="account-balance-card" style="border-left: 4px solid @(GetBalanceColor(balance.Type));">
+                            <div class="d-flex justify-space-between align-center mb-1">
+                                <div class="account-type">@balance.Type</div>
+                                <div class="status-badge status-final-review">Active</div>
+                            </div>
+                            <div class="account-id">#@balance.Type.GetHashCode().ToString("X").Substring(0, 6)</div>
+                            <div class="account-amount">Rwf @balance.Balance.ToString("N0")</div>
+                        </div>
+                    </MudItem>
+                }
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Style="font-size: 12px;">No account data found.</MudAlert>
+                </MudItem>
+            }
+        </MudGrid>
+    </div>
+</div>
+
+@code {
+    private decimal TotalBalance;
+    private decimal TotalDisbursed;
+    private int ActiveBorrowers;
+    private int CountApplied;
+    private int CountApproved;
+    private int CountRejected;
+    private int CountDisbursed;
+
+    private List<AccountBalanceByType> AccountBalances = new();
+
+    // Chart Data
+    private List<ChartSeries> Series = new();
+    private string[] Labels = Array.Empty<string>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        var apps = await LoanApplicationService.GetAllLoanApplicationsAsync() ?? new List<LoanApplication>();
+        CountApplied = apps.Count(a => a.Status == LoanStatus.Applied);
+        CountApproved = apps.Count(a => a.Status == LoanStatus.Approved);
+        CountRejected = apps.Count(a => a.Status == LoanStatus.Rejected);
+        CountDisbursed = apps.Count(a => a.Status == LoanStatus.Disbursed);
+
+        var disbursements = await DisbursementService.GetAllDisbursementsAsync() ?? new List<Disbursement>();
+        
+        var disbursementWithOutstanding = disbursements.Select(d => new {
+            Disbursement = d,
+            Outstanding = d.Amount - d.Payments.Sum(p => p.Amount)
+        }).ToList();
+
+        TotalBalance = disbursementWithOutstanding.Sum(x => x.Outstanding);
+        TotalDisbursed = disbursements.Sum(d => d.Amount);
+        ActiveBorrowers = apps.Where(a => a.Status == LoanStatus.Disbursed).Select(a => a.BorrowerId).Distinct().Count();
+
+        // Load chart data: Application Trend over the last 6 months
+        var last6Months = Enumerable.Range(0, 6)
+            .Select(i => DateTime.Now.AddMonths(-i))
+            .OrderBy(d => d)
+            .ToList();
+
+        var trendData = last6Months.Select(month => new {
+            Month = month.ToString("MMM"),
+            Count = apps.Count(a => a.DateofApplication.Month == month.Month && a.DateofApplication.Year == month.Year)
+        }).ToList();
+
+        // No applications yet - trendData will have real zero counts
+
+        Labels = trendData.Select(t => t.Month).ToArray();
+        Series = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = "Applications",
+                Data = trendData.Select(t => (double)t.Count).ToArray()
+            }
+        };
+
+        // Load account balances by type (Real Data)
+        var accounts = await AccountService.GetAllAccountsAsync();
+        if (accounts != null && accounts.Any())
+        {
+            AccountBalances = accounts
+                .GroupBy(a => a.AccountType?.AccountTypeName ?? "General")
+                .Select(g => new AccountBalanceByType { 
+                    Type = g.Key, 
+                    Balance = g.Sum(a => a.Balance) 
+                })
+                .OrderByDescending(x => x.Balance)
+                .ToList();
+        }
+        else
+        {
+            // No accounts exist - AccountBalances stays empty, UI will show "No account data found"
+            AccountBalances = new List<AccountBalanceByType>();
+        }
+        
+        StateHasChanged();
+    }
+
+    private string GetBalanceColor(string type)
+    {
+        return type.ToLower() switch
+        {
+            "mortgage" => "#05CD99",
+            "personal loan" => "#EE5D50",
+            "education" => "#4318FF",
+            "car loan" => "#FFA500",
+            _ => "#A3AED0"
+        };
+    }
+
+    public class AccountBalanceByType { public string Type { get; set; } = ""; public decimal Balance { get; set; } }
+}

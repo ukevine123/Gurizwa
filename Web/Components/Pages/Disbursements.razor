@@ -57,7 +57,7 @@
                 </CellTemplate>
             </TemplateColumn>
 
-            <PropertyColumn Property="x => x.PrincipalOffered" Title="Principal" Format="C" />
+            <PropertyColumn Property="x => x.PrincipalOffered" Title="Principal" Format="n" />
             
             @* DYNAMIC REMAINING BALANCE *@
             <TemplateColumn Title="Remaining Balance">
@@ -67,7 +67,7 @@
                         var balance = context.Item.Amount - totalPaid;
                     }
                     <MudText Typo="Typo.body2" Color="@(balance <= 0.1m ? Color.Success : Color.Default)">
-                        <b>@balance.ToString("C")</b>
+                        <b>@balance.ToString("n")</b>
                     </MudText>
                 </CellTemplate>
             </TemplateColumn>

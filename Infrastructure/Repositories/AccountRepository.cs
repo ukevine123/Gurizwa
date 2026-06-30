@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
 
             if (_userContext.Id == null)
             {
-                throw new Exception("User not authenticated");
+                return new List<Account>();
             }
 
             return await  dbContext.Users
@@ -47,7 +47,7 @@ namespace Infrastructure.Repositories
             // .FirstOrDefaultAsync(i => i.Id == id);
             if (_userContext.Id == null)
     {
-        throw new UnauthorizedAccessException("User not authenticated");
+        return null;
     }
 
     using var dbContext = await _dbContextFactory.CreateDbContextAsync();

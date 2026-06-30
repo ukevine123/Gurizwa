@@ -18,6 +18,7 @@ using Application.Services.RequiredDocuments;
 using Infrastructure.Identity;
 using Application.Services.AccountTypes;
 using Application.Services.Collaterals;
+using Application.Services.Waivers;
 
 namespace Infrastructure.DependencyInjection
 {
@@ -58,6 +59,10 @@ namespace Infrastructure.DependencyInjection
             services.AddScoped<ICollateral, CollateralRepository>();
             services.AddScoped<IProcessFeeDeposit, ProcessFeeDepositRepository>();
             services.AddScoped<ILoanProductSetting, LoanProductSettingRepository>();
+            services.AddScoped<IReportRepository, ReportRepository>();
+            services.AddScoped<IWaiver, WaiverRepository>();
+            services.AddScoped<IWaiverType, WaiverTypeRepository>();
+            services.AddScoped<IWaiverService, WaiverService>();
 
 
 

@@ -10,37 +10,83 @@ namespace Infrastructure.Repositories
     {
 
   private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
-        // public ProvidedDocumentRepository(ApplicationDbContext context)
-         public ProvidedDocumentRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
+  private readonly IUserContext _userContext;
+      
+         public ProvidedDocumentRepository(IDbContextFactory<ApplicationDbContext> contextFactory, IUserContext userContext)
         {
            _contextFactory = contextFactory;
+           _userContext = userContext;
         }
         public  async Task<List<ProvidedDocument>> GetAllProvidedDocumentAsync()
         {
-          List<ProvidedDocument> _providedDocument = _contextFactory.CreateDbContext().ProvidedDocuments.ToList();
-          return _providedDocument;
+    
+        using var dbContext = await _contextFactory.CreateDbContextAsync();
+        if (_userContext.Id == null)
+            {
+                return new List<ProvidedDocument>();
+            }
+        return await dbContext.ProvidedDocuments
+         .Include(a => a.LoanApplication)
+           .Where(a => a.PersonId == _userContext.Id)
+           .ToListAsync(); 
         }
         public async Task <ProvidedDocument> GetProvidedDocumentById(int Id)
         {
-            return  _contextFactory.CreateDbContext().ProvidedDocuments.FirstOrDefault(t => t.Id == Id);
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            if (_userContext.Id == null)
+            {
+                return null;
+            }
+            return await dbContext.ProvidedDocuments
+            .Where(a => a.PersonId == _userContext.Id) 
+            .Include(d => d.LoanApplication)
+            .FirstOrDefaultAsync(t => t.Id == Id);
         }
         public async Task<ProvidedDocument> CreateProvidedDocument(CreateProvidedDocumentDTO dto)
-{
-    var newDoc = new ProvidedDocument
-    {
-        DocumentName = dto.DocumentName,
-        DocumentFile = dto.DocumentFile, 
-        CreatedAt = DateTime.Now,
-        CreatedBy = "Admin" 
-    };
+       {
+            if (_userContext.Id == null)
+            {
+                throw new Exception("User not authenticated");
+            }
 
-    _contextFactory.CreateDbContext().ProvidedDocuments.Add(newDoc);
-    await _contextFactory.CreateDbContext().SaveChangesAsync(); // The ID is generated here
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
 
-    return newDoc; // Hand the object (with its new ID) back to the Service
-}
+    // 2. Query 'Users' from the dbContext instance, NOT the factory
+         var user = await dbContext.Users
+        .Include(u => u.Person) // You'll likely need this to link the account
+        .FirstOrDefaultAsync(u => u.Id == _userContext.Id);
+
+            if (user == null)
+            {
+                throw new Exception("User record not found");
+            }
+
+            if (user.Person == null)
+            {
+                throw new Exception("Authenticated user does not have an associated Person record.");
+            }
+       
+
+        var loanApplication = await dbContext.LoanApplications.FindAsync(dto.LoanApplicationId);
+        
+        var newDoc = new ProvidedDocument
+        {
+            LoanApplication = loanApplication,
+            DocumentName = dto.DocumentName,
+            PersonId = user.Person.Id,
+            DocumentFile = dto.DocumentFile, 
+            CreatedAt = DateTime.Now,
+            CreatedBy = "Admin" 
+        };
+        // Add and Save using the SAME dbContext instance
+        dbContext.ProvidedDocuments.Add(newDoc);
+        await dbContext.SaveChangesAsync(); 
+
+        return newDoc; 
+     }
+   }
     }
-    }   
+      
     
     
         

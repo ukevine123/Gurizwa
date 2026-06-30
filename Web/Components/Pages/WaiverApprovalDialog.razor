@@ -1,0 +1,109 @@
+@using Application.DTO
+@using Application.Services.Waivers
+@using MudBlazor
+
+@inject IWaiverService WaiverService
+@inject ISnackbar Snackbar
+
+<MudDialog Style="border-radius:12px; overflow:hidden;">
+    <DialogContent>
+        <!-- ══════════ HEADER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4CAF50); padding: 14px 18px; margin-bottom: 16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle"
+                         Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Approve Waiver
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Review and approve the waiver request
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="ApprovalModel" OnValidSubmit="OnApprove" FormName="ApproveWaiverForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">
+                        <MudText Typo="Typo.body2">
+                            You are about to approve the waiver for Disbursement ID: <b>@WaiverId</b>
+                        </MudText>
+                    </MudAlert>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField Label="Approved By (Manager Name)"
+                                  @bind-Value="ApprovalModel.ApprovedBy"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Required="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Person"
+                                  AdornmentColor="Color.Primary"
+                                  Placeholder="Enter your name" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField Label="Approval Notes"
+                                  @bind-Value="ApprovalModel.RejectionReason"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Lines="3"
+                                  Placeholder="Add any notes regarding this approval..." />
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex gap-2 justify-end">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               OnClick="@(() => MudDialog.Cancel())">
+                        Cancel
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Success"
+                               ButtonType="ButtonType.Submit">
+                        Approve Waiver
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public int WaiverId { get; set; }
+
+    private UpdateWaiverStatusDTO ApprovalModel { get; set; } = new() { Status = "Approved" };
+
+    protected override void OnInitialized()
+    {
+        ApprovalModel.WaiverId = WaiverId;
+    }
+
+    private async Task OnApprove()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(ApprovalModel.ApprovedBy))
+            {
+                Snackbar.Add("Please enter your name", Severity.Warning);
+                return;
+            }
+
+            await WaiverService.ApproveWaiverAsync(WaiverId, ApprovalModel.ApprovedBy);
+            Snackbar.Add("Waiver approved successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error approving waiver: {ex.Message}", Severity.Error);
+        }
+    }
+}

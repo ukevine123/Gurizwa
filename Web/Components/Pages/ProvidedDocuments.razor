@@ -13,14 +13,14 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
+    <!-- <div class="d-flex align-center justify-space-between mb-6">
         <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Provided Document</MudText>
-    </div>
+    </div> -->
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
 
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>

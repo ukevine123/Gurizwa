@@ -1,22 +1,20 @@
 @using Application.DTO
 @using Application.Interfaces
+@using Application.Services.Collaterals
 @using Application.Services.LoanApplications
 @using Domain.Entities
 @using MudBlazor
-@using Microsoft.EntityFrameworkCore.Metadata.Internal
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components
 
-@inject ICollateral CollateralService
+@inject ICollateralService CollateralService
 @inject ILocationService LocationService
 @inject ILoanApplicationService LoanApplicationService
-@inject ILocationService LocationService
 @inject ISnackbar Snackbar
-@inject IDialogService DialogService
 
 <MudDialog Style="overflow:hidden;">
     <DialogContent>
-        @* HEADER SECTION WITH ORANGE GRADIENT FOR COLLATERAL *@
+        @* HEADER *@
         <MudPaper Elevation="0"
                   Style="background: linear-gradient(135deg, #2b44e9 0%, #2b44e9 100%); padding:14px 18px; margin-bottom:16px;">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -34,41 +32,35 @@
 
         <EditForm Model="Model" OnValidSubmit="OnValidSubmit" FormName="CreateCollateralForm">
             <DataAnnotationsValidator />
-            
+
             <MudGrid Spacing="1">
+
                 @* 1. LOAN SELECTION *@
-              @* 1. LOAN SELECTION *@
-<MudItem xs="12">
-    @* Change T to string to match your DTO *@
-    <MudSelect T="int"
-               Label="Linked Loan Application"
-               @bind-Value="Model.LoanApplicationId"
-               Variant="Variant.Outlined"
-               Dense="true"
-               Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Link"
-               AdornmentColor="Color.Warning">
-        
-       <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
-        
-        @foreach (var app in loanApplications)
-        {
-            var displayName = $"{app.Borrower?.FirstName} {app.Borrower?.LastName} ({app.AmountRequested:N0} RWF)";
-            
-            @* Convert app.Id to string using .ToString() *@
-            <MudSelectItem T="int" Value="@app.Id">@displayName</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="int"
+                               Label="Linked Loan Application"
+                               @bind-Value="Model.LoanApplicationId"
+                               Variant="Variant.Outlined"
+                               Dense="true"
+                               Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Link"
+                               AdornmentColor="Color.Warning">
+                        <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
+                        @foreach (var app in _loanApplications)
+                        {
+                            <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
 
                 @* 2. ASSET DETAILS *@
                 <MudItem xs="6">
-                    <MudTextField Label="Asset Name" Placeholder="e.g. Toyota Hilux" 
-                                  Variant="Variant.Outlined" Margin="Margin.Dense" 
+                    <MudTextField Label="Asset Name" Placeholder="e.g. Toyota Hilux"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
                                   @bind-Value="Model.AssetName" For="@(() => Model.AssetName)" />
                 </MudItem>
                 <MudItem xs="6">
-                    <MudSelect T="string" Label="Asset Type" @bind-Value="Model.AssetType" 
+                    <MudSelect T="string" Label="Asset Type" @bind-Value="Model.AssetType"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
                         <MudSelectItem Value="@("Vehicle")">Vehicle</MudSelectItem>
                         <MudSelectItem Value="@("Real Estate")">Real Estate / Land</MudSelectItem>
@@ -78,247 +70,182 @@
                 </MudItem>
 
                 <MudItem xs="6">
-                    <MudNumericField Label="Estimated Value (RWF)" Variant="Variant.Outlined" 
-                                     Margin="Margin.Dense" @bind-Value="Model.EstimatedValue" 
+                    <MudNumericField Label="Estimated Value (RWF)" Variant="Variant.Outlined"
+                                     Margin="Margin.Dense" @bind-Value="Model.EstimatedValue"
                                      HideSpinButtons="true" Adornment="Adornment.Start" AdornmentText="Frw" />
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="ID / Plate / Title No" Variant="Variant.Outlined" 
+                    <MudTextField Label="ID / Plate / Title No" Variant="Variant.Outlined"
                                   Margin="Margin.Dense" @bind-Value="Model.IdentificationNumber" />
                 </MudItem>
 
-               @* --- PROVINCE --- *@
-<MudItem xs="6">
-    <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
-               Required="true" Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Public" AdornmentColor="Color.Primary">
-        @foreach (var p in _provinces)
-        {
-            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-
-@* --- DISTRICT --- *@
-<MudItem xs="6">
-    <MudSelect T="string" Value="Model.District" Label="District" ValueChanged="OnDistrictChanged"
-               Required="true" Disabled="@(string.IsNullOrEmpty(Model.Province))"
-               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Category" AdornmentColor="Color.Primary">
-        @foreach (var d in _districts)
-        {
-            <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-
-@* --- SECTOR --- *@
-<MudItem xs="6">
-    <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged"
-               Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))"
-               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Map" AdornmentColor="Color.Primary">
-        @foreach (var s in _sectors)
-        {
-            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-
-@* --- CELL --- *@
-<MudItem xs="6">
-    <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged"
-               Required="true" Disabled="@(string.IsNullOrEmpty(Model.Sector))"
-               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Layers" AdornmentColor="Color.Primary">
-        @foreach (var c in _cells)
-        {
-            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-
-@* --- VILLAGE --- *@
-<MudItem xs="6">
-    <MudSelect T="string" @bind-Value="Model.Village" Label="Village"
-               Required="true" Disabled="@(string.IsNullOrEmpty(Model.Cell))"
-               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary">
-        @foreach (var v in _villages)
-        {
-            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-
-                @* 4. VALUATION DETAILS *@
+                @* 3. LOCATION *@
                 <MudItem xs="6">
-                    <MudTextField Label="Valuer Name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.ValuerName" />
+                    <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
+                               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Public" AdornmentColor="Color.Primary">
+                        @foreach (var p in _provinces)
+                        {
+                            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
+                        }
+                    </MudSelect>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudDatePicker Label="Valuation Date" @bind-Value="Model.ValuationDate" Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
+                    <MudSelect T="string" Value="Model.District" Label="District" ValueChanged="OnDistrictChanged"
+                               Disabled="@(string.IsNullOrEmpty(Model.Province))"
+                               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Category" AdornmentColor="Color.Primary">
+                        @foreach (var d in _districts)
+                        {
+                            <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged"
+                               Disabled="@(string.IsNullOrEmpty(Model.District))"
+                               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Map" AdornmentColor="Color.Primary">
+                        @foreach (var s in _sectors)
+                        {
+                            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged"
+                               Disabled="@(string.IsNullOrEmpty(Model.Sector))"
+                               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Layers" AdornmentColor="Color.Primary">
+                        @foreach (var c in _cells)
+                        {
+                            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" @bind-Value="Model.Village" Label="Village"
+                               Disabled="@(string.IsNullOrEmpty(Model.Cell))"
+                               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary">
+                        @foreach (var v in _villages)
+                        {
+                            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* 4. VALUATION *@
+                <MudItem xs="6">
+                    <MudTextField Label="Valuer Name" Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @bind-Value="Model.ValuerName" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudDatePicker Label="Valuation Date" @bind-Date="Model.ValuationDate"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudTextField Label="Asset Description" Variant="Variant.Outlined" Margin="Margin.Dense" 
-                                  @bind-Value="Model.Description" Lines="2" />
+                    <MudTextField Label="Asset Description" Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" @bind-Value="Model.Description" Lines="2" />
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-2">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" 
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
                                ButtonType="ButtonType.Submit" Style="font-weight: bold; height:40px;">
                         Save Collateral
                     </MudButton>
                 </MudItem>
+
             </MudGrid>
-            </EditForm>
-        </DialogContent>
-    </MudDialog>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
 
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
- @code {
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
-    private string ErrorMessage { get; set; }
-    private CollateralCreateDTO Model { get; set; } = new() { ValuationDate = DateTime.Now };
+    private CollateralCreateDTO Model { get; set; } = new() { ValuationDate = DateTime.Today };
 
-    // 1. THIS LINE IS LIKELY MISSING OR MISSPELLED
-    private List<LoanApplication> loanApplications = new(); 
-
-     private List<Province> _provinces = new();
-    private List<District> _districts = new();
-    private List<Sector> _sectors = new();
-    private List<Cell> _cells = new();
-    private List<Village> _villages = new();
-
-        
+    private List<LoanApplication> _loanApplications = new();
+    private List<Province>        _provinces         = new();
+    private List<District>        _districts         = new();
+    private List<Sector>          _sectors           = new();
+    private List<Cell>            _cells             = new();
+    private List<Village>         _villages          = new();
 
     protected override async Task OnInitializedAsync()
     {
-        try 
+        try
         {
-            // 2. FETCH THE DATA
-            var results = await LoanApplicationService.GetAllLoanApplicationsAsync();
-            if (results != null)
-            {
-                loanApplications = results;
-            }
+            var apps = await LoanApplicationService.GetAllLoanApplicationsAsync();
+            if (apps != null) _loanApplications = apps;
 
             _provinces = await LocationService.GetAllLocationsAsync() ?? new();
-        
- _provinces = await LocationService.GetAllLocationsAsync();
-         // 3. Handle Pre-selected data (Edit mode)
-            if (!string.IsNullOrEmpty(Model.Province))
-            {
-                var province = _provinces.FirstOrDefault(p => p.Name == Model.Province);
-                if (province != null)
-                {
-                    _districts = province.Districts;
-                    var district = _districts.FirstOrDefault(d => d.Name == Model.District);
-                    if (district != null)
-                    {
-                        _sectors = district.Sectors;
-                        var sector = _sectors.FirstOrDefault(s => s.Name == Model.Sector);
-                        if (sector != null)
-                        {
-                            _cells = sector.Cells;
-                            var cell = _cells.FirstOrDefault(c => c.Name == Model.Cell);
-                            if (cell != null)
-                            {
-                                _villages = cell.Villages;
-                            }
-                            
-                        }
-                    }
-                }
-            }
-             StateHasChanged();
         }
         catch (Exception ex)
         {
-            Snackbar.Add("Error loading initial data", Severity.Error);
-            ErrorMessage = ex.Message;
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
         }
     }
 
-
-     private void OnProvinceChanged(string value)
+    private void OnProvinceChanged(string value)
     {
         Model.Province = value;
         Model.District = string.Empty;
-        Model.Sector = string.Empty;
-        Model.Cell = string.Empty;
-        Model.Village = string.Empty;
-
+        Model.Sector   = string.Empty;
+        Model.Cell     = string.Empty;
+        Model.Village  = string.Empty;
         _districts = _provinces.FirstOrDefault(p => p.Name == value)?.Districts ?? new();
-        _sectors = new();
-        _cells = new();
-        _villages = new();
+        _sectors   = new();
+        _cells     = new();
+        _villages  = new();
     }
 
     private void OnDistrictChanged(string value)
     {
         Model.District = value;
-        Model.Sector = string.Empty;
-        Model.Cell = string.Empty;
-        Model.Village = string.Empty;
-
-        _sectors = _districts.FirstOrDefault(d => d.Name == value)?.Sectors ?? new();
-        _cells = new();
+        Model.Sector   = string.Empty;
+        Model.Cell     = string.Empty;
+        Model.Village  = string.Empty;
+        _sectors  = _districts.FirstOrDefault(d => d.Name == value)?.Sectors ?? new();
+        _cells    = new();
         _villages = new();
     }
 
     private void OnSectorChanged(string value)
     {
-        Model.Sector = value;
-        Model.Cell = string.Empty;
+        Model.Sector  = value;
+        Model.Cell    = string.Empty;
         Model.Village = string.Empty;
-
-        _cells = _sectors.FirstOrDefault(s => s.Name == value)?.Cells ?? new();
+        _cells    = _sectors.FirstOrDefault(s => s.Name == value)?.Cells ?? new();
         _villages = new();
     }
 
     private void OnCellChanged(string value)
     {
-        Model.Cell = value;
+        Model.Cell    = value;
         Model.Village = string.Empty;
-
         _villages = _cells.FirstOrDefault(c => c.Name == value)?.Villages ?? new();
     }
 
-    // ... your existing variables (Model, _provinces, etc.) ...
-
-    private async Task OnValidSubmit()
+    private async Task OnValidSubmit(EditContext context)
     {
         try
-     {
-    // 1. Validation Check (Now using int comparison)
-    if (Model.LoanApplicationId <= 0)
-    {
-        Snackbar.Add("Please select a valid Loan Application.", Severity.Warning);
-        return;
-    }
+        {
+            if (Model.LoanApplicationId <= 0)
+            {
+                Snackbar.Add("Please select a valid Loan Application.", Severity.Warning);
+                return;
+            }
 
-            // 2. Call your Repository/Service
-            // This matches the CreateCollateralAsync method in your CollateralRepository
             await CollateralService.CreateCollateralAsync(Model);
-
-            // 3. Success Feedback
             Snackbar.Add("Collateral asset registered successfully!", Severity.Success);
-
-            // 4. Close the Dialog and pass 'true' back to the main page to trigger a refresh
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            // 5. Error Handling
             Snackbar.Add($"Error saving collateral: {ex.Message}", Severity.Error);
         }
-       
-
-        // Open the CreateGuarantorDialog with parameters
-          var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-          var parameters = new DialogParameters<CreateGuarantorDialog>(); 
-            
-            await DialogService.ShowAsync<CreateGuarantorDialog>("Create Guarantor Information", parameters, options);
-    }  
+    }
 }

@@ -5,6 +5,8 @@ namespace Domain.Entities
         public int Id { get; set; }
         public int LoanApplicationId { get; set; }
         public LoanApplication LoanApplication { get; set; } = default!;
+        public int PersonId { get; set; }
+        public Person Person { get; set; } 
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
         public int ReasonId { get; set; }
@@ -17,4 +19,3 @@ namespace Domain.Entities
         public int? UpdatedBy { get; set; }
 }
     }
-

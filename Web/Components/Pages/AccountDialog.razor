@@ -116,25 +116,7 @@
                               For="@(() => Model.Currency)" />
                 </MudItem>
 
-                
-                        @* <MudItem xs="12">
-    <MudSelect T="Maritalstatus"
-               Label="Maritalstatus"
-               @bind-Value="Model.Maritalstatus"
-               Variant="Variant.Outlined"
-               Dense="true"
-               Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Transgender"
-               AdornmentColor="Color.Primary">
-        
-        <MudSelectItem T="Maritalstatus" Disabled="true">-- Select Maritalstatus --</MudSelectItem>
 
-        @foreach (Maritalstatus item in Enum.GetValues(typeof(Maritalstatus)))
-        {
-            <MudSelectItem T="Maritalstatus" Value="item">@item.ToString()</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem> *@
 
                  
                 <MudItem xs="12">

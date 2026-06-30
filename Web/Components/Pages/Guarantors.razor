@@ -12,14 +12,14 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
+    <!-- <div class="d-flex align-center justify-space-between mb-6">
         <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Guarantor</MudText>
-    </div>
+    </div> -->
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
 
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
@@ -82,15 +82,15 @@
             <PropertyColumn Property="x => x.LastName" Title="LastName" />
             <PropertyColumn Property="x => x.GuarantorType.Name" Title="GuarantorType" />
             <PropertyColumn Property="x => x.Identification" Title="Identification" />
-            <PropertyColumn Property="x => x.LoanApplicationId" Title="LoanApplication" />
-            <PropertyColumn Property="x => x.Email" Title="Email" />
-            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" />
+            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="LoanApplication" />
+            @* <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" /> *@
             <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
             <PropertyColumn Property="x => x.Province" Title="Province" />
             <PropertyColumn Property="x => x.District" Title="District" />
-            <PropertyColumn Property="x => x.Sector" Title="Sector" />
+            @* <PropertyColumn Property="x => x.Sector" Title="Sector" />
             <PropertyColumn Property="x => x.Cell" Title="Cell" />
-            <PropertyColumn Property="x => x.Village" Title="Village" />
+            <PropertyColumn Property="x => x.Village" Title="Village" /> *@
             
 
         </Columns>

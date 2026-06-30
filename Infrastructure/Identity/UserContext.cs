@@ -1,6 +1,9 @@
+using System;
 using System.Security.Claims;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Identity
 {
@@ -8,13 +11,50 @@ namespace Infrastructure.Identity
     public class UserContext : IUserContext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IServiceProvider _serviceProvider;
 
-        public UserContext(IHttpContextAccessor httpContextAccessor)
+        public UserContext(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
         {
             _httpContextAccessor = httpContextAccessor;
+            _serviceProvider = serviceProvider;
         }
 
-        private ClaimsPrincipal? ClaimsPrincipal => _httpContextAccessor.HttpContext?.User;
+        private ClaimsPrincipal? ClaimsPrincipal
+        {
+            get
+            {
+                // 1. Try HttpContext
+                var httpContext = _httpContextAccessor.HttpContext;
+                if (httpContext?.User?.Identity != null)
+                {
+                    return httpContext.User;
+                }
+
+                // 2. Try AuthenticationStateProvider (Blazor interactive circuits)
+                try
+                {
+                    var authStateProvider = _serviceProvider.GetService<AuthenticationStateProvider>();
+                    if (authStateProvider != null)
+                    {
+                        var task = authStateProvider.GetAuthenticationStateAsync();
+                        if (task.IsCompleted)
+                        {
+                            return task.Result?.User;
+                        }
+                        else
+                        {
+                            return task.GetAwaiter().GetResult()?.User;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fallback
+                }
+
+                return null;
+            }
+        }
 
         /// <inheritdoc />
         public int? Id
@@ -55,5 +95,12 @@ namespace Infrastructure.Identity
                 return $"{first}{last}";
             }
         }
+
+        /// <inheritdoc />
+        public int? ParentUserId =>
+            int.TryParse(ClaimsPrincipal?.FindFirst("ParentUserId")?.Value, out var id) ? id : null;
+
+        /// <inheritdoc />
+        public bool IsSubUser => ParentUserId.HasValue;
     }
 }

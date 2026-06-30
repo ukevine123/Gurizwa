@@ -1,0 +1,79 @@
+@using Application.DTO
+@using Application.Services.LoanApplications
+@using MudBlazor
+@inject ILoanApplicationService LoanApplicationService
+
+<MudDialog>
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else if (_transactions == null || !_transactions.Any())
+        {
+            <MudText Typo="Typo.body1">No transactions found for this application.</MudText>
+        }
+        else
+        {
+            <MudTable Items="@_transactions" Dense="true" Hover="true" Striped="true">
+                <HeaderContent>
+                    <MudTh>Date</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Description</MudTh>
+                    <MudTh>Amount</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Date">@context.TransactionDate.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                    <MudTd DataLabel="Type">
+                        <MudChip T="string" Size="Size.Small" Color="@GetChipColor(context.TransactionType)">
+                            @context.TransactionType
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                    <MudTd DataLabel="Amount">@context.Amount.ToString("N2")</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    [Parameter] public int LoanApplicationId { get; set; }
+
+    private List<TransactionHistoryDTO> _transactions = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _transactions = await LoanApplicationService.GetTransactionHistoryAsync(LoanApplicationId);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private Color GetChipColor(string type)
+    {
+        return type switch
+        {
+            "Process Fee" => Color.Warning,
+            "Disbursement" => Color.Info,
+            "Payment" => Color.Success,
+            _ => Color.Default
+        };
+    }
+}

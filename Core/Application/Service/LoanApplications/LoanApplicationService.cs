@@ -18,7 +18,7 @@ namespace  Application.Services.LoanApplications
         {
          return await _loanApplication.GetAllLoanApplicationsAsync();
         }
-         public async Task<LoanApplication> GetLoanApplicationById(int Id)
+         public async Task<LoanApplication?> GetLoanApplicationById(int Id)
         {
             return await _loanApplication.GetLoanApplicationById(Id);
         }
@@ -33,6 +33,11 @@ namespace  Application.Services.LoanApplications
         public async Task UpdateStatusAsync(int Id, LoanStatus newStatus)
         {
             await _loanApplication.UpdateStatusAsync(Id, newStatus);
+        }
+
+        public async Task<List<TransactionHistoryDTO>> GetTransactionHistoryAsync(int loanApplicationId)
+        {
+            return await _loanApplication.GetTransactionHistoryAsync(loanApplicationId);
         }
     }
 }

@@ -3,8 +3,10 @@ namespace Domain.ValueObjects
     public enum LoanStatus
     {
         Applied,
-        Confirmed,
+        Approved,
         Rejected,
-        Disbursed
+        Disbursed,
+        Paid,
+        Rescheduled
     }
 }

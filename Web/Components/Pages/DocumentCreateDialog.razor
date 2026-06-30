@@ -2,6 +2,7 @@
 @using  Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
+@using Application.Services.LoanApplications
 @using Domain.Entities
 @using Application.Services.ProvidedDocuments
 @using MudBlazor
@@ -12,6 +13,7 @@
 @* @attribute [Authorize] *@
 @inject NavigationManager Navigation
 @inject IProvidedDocumentService ProvidedDocumentService
+@inject ILoanApplicationService LoanApplicationService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
@@ -52,6 +54,32 @@
                          letter-spacing:.08em; text-transform:uppercase;">
                     Basic Information *@
                 @* </MudText> *@
+
+                 <MudItem xs="6">
+                    <MudSelect T="int"
+            Label="PaymentModality"
+            Placeholder="--Select Loan Application--"
+            @bind-Value="Model.LoanApplicationId"
+            Variant="Variant.Outlined"
+            Dense="true"
+            Margin="Margin.Dense"
+            AdornmentIcon="@Icons.Material.Filled.Category"
+            AdornmentColor="Color.Primary">
+
+            <MudSelectItem T="int" Value="0">--Select Loan Application-- --</MudSelectItem>
+
+    
+        @if (_Loan != null)
+        {
+            @foreach (var item in _Loan)
+            {
+                @* <MudSelectItem T="int" Value="@item.Id">@item.Borrower.FirstName @item.Borrower.LastName</MudSelectItem> *@
+                <MudSelectItem T="int" Value="@item.Id">@item.ApplicationCode</MudSelectItem>
+
+            }
+        }
+    </MudSelect>
+ </MudItem>
 
                <MudGrid Spacing="1" Class="align-items-center">
 
@@ -117,6 +145,7 @@
     private void Cancel() => MudDialog.Cancel();
     private CreateProvidedDocumentDTO Model {get;set;} = new ();
     private string ErrorMessage { get; set; }
+    private List<LoanApplication> _Loan = new List<LoanApplication>();
     private async Task onValidSubmit()
     {
         try
@@ -134,6 +163,21 @@
           var parameters = new DialogParameters<CollateralCreateDialog>(); 
             
             await DialogService.ShowAsync<CollateralCreateDialog>("Create Collateral Information", parameters, options);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            var loanApp = await LoanApplicationService.GetAllLoanApplicationsAsync();
+            if (loanApp != null)
+            {
+                _Loan = loanApp.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading Loan Applications: {ex.Message}", Severity.Error);
+        }
     }
 private async Task UploadDocument(InputFileChangeEventArgs e)
 {

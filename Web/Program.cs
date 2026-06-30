@@ -31,6 +31,7 @@ using Application.Services.PaymentTypes;
 using Application.Services.Collaterals;
 using Application.Services.ProcessFeeDeposits;
 using Application.Services.LoanProductSettings;
+using Application.Service.Reports;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,7 +41,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Database Configuration
 var connectionString = builder.Configuration.GetConnectionString("LoanPlatformDBCONN");
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, x => x.MigrationsAssembly("Infrastructure")));
+    options.UseSqlServer(connectionString, x => x.MigrationsAssembly("Infrastructure")), ServiceLifetime.Scoped);
 
 builder.Services.AddScoped(p => 
     p.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
@@ -88,6 +89,7 @@ builder.Services.AddScoped<IPaymentTypeService, PaymentTypeService>();
 builder.Services.AddScoped<IProcessFeeDepositService, ProcessFeeDepositService>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<ILoanProductSettingService, LoanProductSettingService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 // File/Location Services
 builder.Services.AddSingleton<IFileProvider>(builder.Environment.WebRootFileProvider);
 builder.Services.AddSingleton<ILocationService, JsonLocationService>();

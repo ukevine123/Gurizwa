@@ -1,0 +1,241 @@
+@using Application.DTO
+@using Application.Interfaces
+@using Application.Services.Waivers
+@using Domain.Entities
+@using MudBlazor
+
+@inject IWaiverService WaiverService
+@inject IDisbursement DisbursementRepo
+@inject IPerson PersonRepo
+@inject ISnackbar Snackbar
+
+<MudDialog Style="border-radius:12px; overflow:hidden;">
+    <DialogContent>
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #FF6B6B); padding: 14px 18px; margin-bottom: 16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.GppGood"
+                         Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Create Waiver
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Waive off fees or loan amounts for borrowers
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="OnValidSubmit" FormName="CreateWaiverForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudSelect T="int"
+                               Label="Disbursement"
+                               Value="@Model.DisbursementId"
+                               ValueChanged="@OnDisbursementChanged"
+                               ValueExpression="() => Model.DisbursementId"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Required="true"
+                               AdornmentIcon="@Icons.Material.Filled.Receipt"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem T="int" Value="0">--Select Disbursement--</MudSelectItem>
+                        @if (Disbursements != null)
+                        {
+                            @foreach (var disbursement in Disbursements)
+                            {
+                                <MudSelectItem T="int" Value="@disbursement.Id">
+                                    #@disbursement.Id - Rwf @disbursement.Amount.ToString("N0") (@disbursement.LoanApplication?.ApplicationCode)
+                                </MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudSelect T="string"
+                               Label="Waiver Type"
+                               Value="@Model.WaiverType"
+                               ValueChanged="OnWaiverTypeChanged"
+                               ValueExpression="() => Model.WaiverType"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Required="true"
+                               AdornmentIcon="@Icons.Material.Filled.Category"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem T="string" Value="@((string?)null)">--Select Type--</MudSelectItem>
+                        <MudSelectItem T="string" Value="@PenaltyWaiverValue">Penalty Waiver</MudSelectItem>
+                        <MudSelectItem T="string" Value="@InterestWaiverValue">Interest Waiver</MudSelectItem>
+                        <MudSelectItem T="string" Value="@PrincipalWaiverValue">Principal Waiver</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudTextField Label="Amount (Rwf)"
+                                  @bind-Value="Model.Amount"
+                                  For="@(() => Model.Amount)"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  InputType="InputType.Number"
+                                  Required="true"
+                                  RequiredError="Amount is required"
+                                  AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                  AdornmentColor="Color.Primary" />
+                </MudItem>
+
+                @if (Model.WaiverType == "Interest Waiver")
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Please specify the interest waiver amount in Rwf.
+                        </MudText>
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudSelect T="string"
+                               Label="Reason"
+                               @bind-Value="Model.Reason"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Required="true"
+                               AdornmentIcon="@Icons.Material.Filled.Info"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem T="string" Value="@((string?)null)">--Select Reason--</MudSelectItem>
+                        <MudSelectItem T="string" Value="@NaturalDisasterValue">Natural Disaster</MudSelectItem>
+                        <MudSelectItem T="string" Value="@GovernmentInitiativeValue">Government Initiative</MudSelectItem>
+                        <MudSelectItem T="string" Value="@GoodwillValue">Goodwill</MudSelectItem>
+                        <MudSelectItem T="string" Value="@HardshipValue">Hardship</MudSelectItem>
+                        <MudSelectItem T="string" Value="@OtherReasonValue">Other</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField Label="Description"
+                                  @bind-Value="Model.Description"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Lines="3"
+                                  Placeholder="Provide details about the waiver request..." />
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex gap-2 justify-end">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               OnClick="@(() => MudDialog.Cancel())">
+                        Cancel
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               ButtonType="ButtonType.Submit">
+                        Create Waiver
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    private CreateWaiverDTO Model { get; set; } = new();
+    private List<Disbursement> Disbursements { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load all active disbursements
+            var disbursements = await DisbursementRepo.GetAllDisbursementsAsync();
+            Disbursements = disbursements.Where(d => d.IsActive).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading disbursements: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        try
+        {
+            // Create waiver
+            var waiver = await WaiverService.CreateWaiverAsync(Model);
+            
+            Snackbar.Add("Waiver created successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(waiver));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error creating waiver: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task OnDisbursementChanged(int disbursementId)
+    {
+        Model.DisbursementId = disbursementId;
+        
+        // Auto-fill the amount if waiver type is already selected
+        if (!string.IsNullOrEmpty(Model.WaiverType) && disbursementId > 0)
+        {
+            try
+            {
+                var autoFillAmount = await WaiverService.GetAutoFillAmountAsync(disbursementId, Model.WaiverType);
+                Model.Amount = autoFillAmount;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error calculating amount: {ex.Message}", Severity.Warning);
+            }
+        }
+    }
+
+    private async Task OnWaiverTypeChanged(string waiverType)
+    {
+        Model.WaiverType = waiverType;
+        
+        // Auto-fill the amount based on waiver type
+        if (!string.IsNullOrEmpty(waiverType) && Model.DisbursementId > 0)
+        {
+            try
+            {
+                var autoFillAmount = await WaiverService.GetAutoFillAmountAsync(Model.DisbursementId, waiverType);
+                Model.Amount = autoFillAmount;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error calculating amount: {ex.Message}", Severity.Warning);
+            }
+        }
+    }
+
+    private decimal GetRemainingDisbursementAmount(int disbursementId)
+    {
+        var disbursement = Disbursements.FirstOrDefault(d => d.Id == disbursementId);
+        if (disbursement == null)
+            return 0;
+
+        decimal totalPaid = disbursement.Payments?.Where(p => p.IsActive).Sum(p => p.Amount) ?? 0;
+        return Math.Max(0, disbursement.Amount - totalPaid);
+    }
+
+    private bool IsInterestWaiver => Model.WaiverType == InterestWaiverValue;
+
+    private readonly string PenaltyWaiverValue = "Penalty Waiver";
+    private readonly string InterestWaiverValue = "Interest Waiver";
+    private readonly string PrincipalWaiverValue = "Principal Waiver";
+
+    private readonly string NaturalDisasterValue = "Natural Disaster";
+    private readonly string GovernmentInitiativeValue = "Government Initiative";
+    private readonly string GoodwillValue = "Goodwill";
+    private readonly string HardshipValue = "Hardship";
+    private readonly string OtherReasonValue = "Other";
+}

@@ -26,6 +26,10 @@ namespace Infrastructure.Identity
             identity.AddClaim(new Claim("FirstName", user.FirstName ?? string.Empty));
             identity.AddClaim(new Claim("LastName", user.LastName ?? string.Empty));
 
+            // Stamp parent info so sub-user pages know who owns this account
+            if (user.ParentUserId.HasValue)
+                identity.AddClaim(new Claim("ParentUserId", user.ParentUserId.Value.ToString()));
+
             return identity;
         }
     }

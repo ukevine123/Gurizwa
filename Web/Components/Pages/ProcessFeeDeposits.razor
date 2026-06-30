@@ -10,15 +10,9 @@
 
 <PageTitle>Process Fee Deposits</PageTitle>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
-        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Process Fee Deposits</MudText>
-    </div>
-
-    @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
 
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
@@ -70,19 +64,12 @@
 
         <Columns>
             <SelectColumn T="ProcessFeeDeposit" />
-            <TemplateColumn Title="FirstName">
-                <CellTemplate>
-                   
-                </CellTemplate>
-            </TemplateColumn>
             
-            <PropertyColumn Property="x => x.PaymentType.PaymentTypeName" Title="PaymentType" />
-            <PropertyColumn Property="x => x.LoanApplication.Borrower.IdentificationNumber" Title="Identification" />
-            <PropertyColumn Property="x => x.LoanApplicationId" Title="LoanApplication" />
-            <PropertyColumn Property="x => x.Borrower.FirstName" Title="Email" />
+            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Loan Application " />
+            @* <PropertyColumn Property="x => x.LoanApplication.Borrower.FirstName  " + x.LoanApplication.Borrower.LastName" Title="LoanApplication" /> *@
             <PropertyColumn Property="x => x.Amount" Title="Amount" />
             <PropertyColumn Property="x => x.DepositDate" Title="DepositDate" />
-            <PropertyColumn Property="x => x.Account.AccountNumber" Title="Province" />
+            <PropertyColumn Property="x => x.Account.AccountNumber" Title="Account Number" />
             
 
         </Columns>
@@ -98,9 +85,9 @@
 
     private IEnumerable<ProcessFeeDeposit> FilteredProcessFeeDeposits => _processFeeDeposits
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
-                    x.Borrower.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.Borrower.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.Borrower.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+                    x.LoanApplication.Borrower.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                    x.LoanApplication.Borrower.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                    x.LoanApplication.Borrower.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
      //s
        List<ProcessFeeDeposit> _processFeeDeposits = new();
     private HashSet<ProcessFeeDeposit> _selectedItems = new();
@@ -115,7 +102,7 @@
     {
         DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
 
-        var dialog = await DialogService.ShowAsync<CreateGuarantorDialog>("Add Guarantor", options);
+        var dialog = await DialogService.ShowAsync<CreateProcessFeeDepositdialog>("Add Fee Deposit", options);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)
