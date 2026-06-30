@@ -1,3 +1,45 @@
-**/obj/
-**/bin/
-.vs/
+## .NET Core ignore rules
+[Bb]in/
+[Oo]bj/
+
+## External packages
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Tt]est[Rr]esult*/
+
+## Visual Studio Code
+.vscode/
+
+## Visual Studio for Mac / macOS
+.DS_Store
+
+## JetBrains IDEs
+.idea/
+
+## Local configuration files (Often contain connection strings)
+appsettings.json
+appsettings.*.json
+*.db
+*.sqlite
+
+## Migration files (Disallowed as per user request)
+**/Migrations/*
+
+## User Secrets
+secrets.json
+
+## Logs
+*.log
+
+## todo
+TODO.md
