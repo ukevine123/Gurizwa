@@ -26,6 +26,26 @@ namespace Application.Services.Users
         {
             await _identity.RegisterUser(dto);
         }
+        
+        public async Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId)
+        {
+            await _identity.RegisterSubUser(dto, parentPersonId);
+        }
+        
+        public async Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId)
+        {
+            return await _identity.GetSubUsers(parentPersonId);
+        }
+
+        public async Task<List<string>> GetRolesAsync(int parentPersonId)
+        {
+            return await _identity.GetRolesAsync(parentPersonId);
+        }
+
+        public async Task CreateRoleAsync(string roleName, int parentPersonId)
+        {
+            await _identity.CreateRoleAsync(roleName, parentPersonId);
+        }
         public async Task<List<UserDetailDTO>> GetAllUsers()
         {
             return await _identity.GetAllUsers();

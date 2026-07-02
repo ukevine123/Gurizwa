@@ -25,6 +25,7 @@ namespace Infrastructure.Identity
             // Add custom claims for FirstName and LastName
             identity.AddClaim(new Claim("FirstName", user.FirstName ?? string.Empty));
             identity.AddClaim(new Claim("LastName", user.LastName ?? string.Empty));
+            identity.AddClaim(new Claim("PersonId", user.PersonId.ToString()));
 
             return identity;
         }

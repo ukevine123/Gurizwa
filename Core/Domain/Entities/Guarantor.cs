@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Domain.Entities
 {
     public class Guarantor
@@ -5,9 +7,14 @@ namespace Domain.Entities
         public int Id {get;set;}
         public int GuarantorTypeId {get;set;}
         public GuarantorType GuarantorType {get;set;}
+        public int PersonId {get;set;}
+        public Person Person {get;set;}
         public string FirstName {get;set;}
         public string LastName {get;set;}
-        public string Identification {get;set;}
+        [Required(ErrorMessage = "Identification is required")]
+        [StringLength(16, MinimumLength = 16, ErrorMessage = "Identification must be exactly 16 digits")]
+        [RegularExpression(@"^\d{16}$", ErrorMessage = "Identification must contain only numbers")]
+        public required string Identification {get;set;}
         public int LoanApplicationId {get;set;}
         public LoanApplication LoanApplication {get;set;}
         public DateTime DateOfBirth {get;set;}
@@ -18,8 +25,6 @@ namespace Domain.Entities
         public string Sector {get;set;}
         public string Cell {get;set;}
         public string Village {get;set;}
-        public DateTime CreatedAt {get;set;}
-        public string CreatedBy {get;set;} 
 
     }
 }

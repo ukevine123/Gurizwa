@@ -7,26 +7,27 @@
 @inject IGuarantorService GuarantorService
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Guarantors</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
+    <!-- <div class="d-flex align-center justify-space-between mb-6">
         <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Guarantor</MudText>
-    </div>
+    </div> -->
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
 
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteGuarantor" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
             <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
@@ -82,15 +83,15 @@
             <PropertyColumn Property="x => x.LastName" Title="LastName" />
             <PropertyColumn Property="x => x.GuarantorType.Name" Title="GuarantorType" />
             <PropertyColumn Property="x => x.Identification" Title="Identification" />
-            <PropertyColumn Property="x => x.LoanApplicationId" Title="LoanApplication" />
-            <PropertyColumn Property="x => x.Email" Title="Email" />
-            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" />
+            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="LoanApplication" />
+            @* <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" /> *@
             <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
             <PropertyColumn Property="x => x.Province" Title="Province" />
             <PropertyColumn Property="x => x.District" Title="District" />
-            <PropertyColumn Property="x => x.Sector" Title="Sector" />
+            @* <PropertyColumn Property="x => x.Sector" Title="Sector" />
             <PropertyColumn Property="x => x.Cell" Title="Cell" />
-            <PropertyColumn Property="x => x.Village" Title="Village" />
+            <PropertyColumn Property="x => x.Village" Title="Village" /> *@
             
 
         </Columns>
@@ -162,5 +163,29 @@
         var result = await dialog.Result;
     }
 
+    private async Task ConfirmDeleteGuarantor()
+    {
+        var selected = _selectedItems.FirstOrDefault();
+        if (selected == null) return;
 
+        var result = await DialogService.ShowMessageBox(
+            "Delete Guarantor",
+            $"Are you sure you want to delete guarantor {selected.FirstName} {selected.LastName}?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            try
+            {
+                await GuarantorService.DeleteGuarantor(selected.Id);
+                Snackbar.Add("Guarantor deleted successfully.", Severity.Success);
+                _selectedItems.Clear();
+                await LoadGuarantor();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
 }

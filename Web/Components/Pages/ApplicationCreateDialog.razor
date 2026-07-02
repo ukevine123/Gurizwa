@@ -70,23 +70,27 @@
                     <MudItem xs="6">
 
                         <MudItem xs="12">
-    <MudTextField T="string"
-                  Label="Identification Number"
-                  Variant="Variant.Outlined"
-                  Margin="Margin.Dense"
-                  Immediate="true"
-                  ValueChanged="@OnIdentificationChange"
-                  Placeholder="Type ID Number to search..."
-                  AdornmentIcon="@Icons.Material.Filled.Search"
-                  AdornmentColor="Color.Primary" />
+    <MudSelect T="int"
+               Label="Select Borrower"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               ValueChanged="OnBorrowerSelected"
+               Value="Model.BorrowerId">
+        <MudSelectItem Value="0">-- Select a Borrower --</MudSelectItem>
+        @foreach (var b in _borrowers)
+        {
+            var displayName = string.IsNullOrEmpty(b.CompanyName) ? $"{b.FirstName} {b.LastName}" : b.CompanyName;
+            <MudSelectItem Value="@b.Id">@($"{b.IdentificationNumber} - {displayName}")</MudSelectItem>
+        }
+    </MudSelect>
 </MudItem>
 
         @if (SelectedBorrower != null)
         {
             <MudItem xs="12">
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-n2">
-                    <MudText Typo="Typo.body2"><b>Borrower:</b> @SelectedBorrower.FirstName @SelectedBorrower.LastName</MudText>
-                    <MudText Typo="Typo.caption"><b>Contact:</b> @SelectedBorrower.PhoneNumber | @SelectedBorrower.Email</MudText>
+                    <MudText Typo="Typo.body2"><b>Borrower:</b> @(string.IsNullOrEmpty(SelectedBorrower.CompanyName) ? $"{SelectedBorrower.FirstName} {SelectedBorrower.LastName}" : SelectedBorrower.CompanyName)</MudText>
+                    <MudText Typo="Typo.caption"><b>Contact:</b> @(string.IsNullOrEmpty(SelectedBorrower.CompanyName) ? SelectedBorrower.PhoneNumber : SelectedBorrower.ContactPersonPhone) | @SelectedBorrower.Email</MudText>
                     <MudText Typo="Typo.caption" Class="d-block"><b>Location:</b> @SelectedBorrower.District, @SelectedBorrower.Sector</MudText>
                 </MudAlert>
             </MudItem>
@@ -109,7 +113,7 @@
            Placeholder="--Select Product--"
            Adornment="Adornment.End"
            AdornmentColor="Color.Info"
-         OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
+            OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
            
     
     <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
@@ -150,30 +154,6 @@
  </MudItem>
 
 
-            <MudItem xs="6">
-                <MudSelect T="int"
-                Label="Document"
-                Placeholder="--Select Document--"
-                @bind-Value="Model.ProvidedDocumentId"
-                Variant="Variant.Outlined"
-                Dense="true"
-                Margin="Margin.Dense"
-                AdornmentIcon="@Icons.Material.Filled.Category"
-                AdornmentColor="Color.Primary">
-
-                <MudSelectItem T="int" Value="0">--Select Document--</MudSelectItem>
-
-        
-            @if (_documents != null)
-            {
-                @foreach (var item in _documents)
-                {
-                    <MudSelectItem T="int" Value="@item.Id">@item.DocumentName</MudSelectItem>
-                }
-            }
-        </MudSelect>
-     </MudItem>
-
                 <MudItem  xs="6">
                 <MudTextField Label="Amount Requested"
                               Variant="Variant.Outlined"
@@ -196,21 +176,26 @@
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
                         Adornment="Adornment.Start" 
-                        AdornmentColor="Color.Primary" />
+                        AdornmentColor="Color.Primary"
+                        Editable="true"
+                        Placeholder="Select Date" />
                 </MudItem>
-
-                <MudItem xs="6">
-    <MudSelect T="LoanStatus" 
-               Label="Status" 
-               Variant="Variant.Outlined" 
-               Margin="Margin.Dense"
-               @bind-Value="Model.Status"
-               AnchorOrigin="Origin.BottomCenter">
-        @foreach (LoanStatus item in Enum.GetValues(typeof(LoanStatus)))
-        {
-            <MudSelectItem Value="@item">@item.ToString()</MudSelectItem>
-        }
-    </MudSelect>
+                 <MudItem  xs="6">
+                    <MudTextField Label="Application Code" 
+                      Value="@Model.ApplicationCode" 
+                      Variant="Variant.Filled" 
+                      ReadOnly="true" 
+                      HelperText="This code is generated automatically"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.QrCode" />
+    </MudItem>
+               <MudItem xs="6">
+    <MudTextField T="string" 
+                  Label="Status" 
+                  Variant="Variant.Outlined" 
+                  Margin="Margin.Dense"
+                  Value="@("Applied")" 
+                  ReadOnly="true" />
 </MudItem>
                 <MudItem  xs="6">
                    
@@ -335,21 +320,7 @@ try
             Snackbar.Add("Error loading Payment Modalities", Severity.Error);
         }
 
-        // 3. Load Loan Document (Optional based on your variables)
-        try 
-        {
-
-            var document = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
-            if (document != null)
-            {
-                _documents = document.ToList();
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add("Error loading Document Modalities", Severity.Error);
-        }
-        StateHasChanged();
+        // 3. Load Loan Document (Optional based on your variables
 
 
         try 
@@ -374,10 +345,16 @@ try
         return;
     }
 
-    // 2. Find the full product object from your pre-loaded list
-    var productToView = _loanProducts.FirstOrDefault(p => p.Id == id);
+    // 2. Find the LoanProductSetting and get the associated LoanProduct
+    var selectedSetting = _loanProductSettings.FirstOrDefault(s => s.Id == id);
 
-    if (productToView == null)
+    if (selectedSetting == null)
+    {
+        Snackbar.Add("Product setting not found.", Severity.Error);
+        return;
+    }
+
+    if (selectedSetting.LoanProduct == null)
     {
         Snackbar.Add("Product details not found.", Severity.Error);
         return;
@@ -386,8 +363,8 @@ try
     // 3. Setup parameters (Matching the [Parameter] names in LoanProductDetail.razor)
     var parameters = new DialogParameters<LoanProductDetail>
     {
-        { x => x.Product, productToView },
-        { x => x.Requirements, _allRequirements.Where(r => r.LoanProductId == id).ToList() }
+        { x => x.Product, selectedSetting.LoanProduct },
+        { x => x.Requirements, _allRequirements.Where(r => r.LoanProductId == selectedSetting.LoanProductId).ToList() }
     };
 
     var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
@@ -405,34 +382,10 @@ try
     private Borrower SelectedBorrower { get; set; }
     private string SearchID { get; set; }
 
-    private void OnIdentificationChange(string value)
+    private void OnBorrowerSelected(int id)
     {
-        SearchID = value;
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            SelectedBorrower = null;
-            Model.BorrowerId = 0;
-            return;
-        }
-
-        
-
-        // Search in the pre-loaded list (Case-insensitive)
-      SelectedBorrower = _borrowers.FirstOrDefault(b => 
-    b.IdentificationNumber != null && 
-    b.IdentificationNumber.AsSpan().Trim().Equals(value.AsSpan().Trim(), StringComparison.OrdinalIgnoreCase));
-
-        if (SelectedBorrower != null)
-        {
-            // Auto-bind the ID to your Model so the form submission still works
-            Model.BorrowerId = SelectedBorrower.Id;
-            Snackbar.Add($"Found: {SelectedBorrower.FirstName}", Severity.Info);
-        }
-        else
-        {
-            Model.BorrowerId = 0;
-        }
+        Model.BorrowerId = id;
+        SelectedBorrower = _borrowers.FirstOrDefault(b => b.Id == id);
     }
 
     private List<Requirement> _allRequirements = new(); 

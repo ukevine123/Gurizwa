@@ -7,6 +7,8 @@ namespace Domain.Entities
         public int Id { get; set; }
         public int RequiredDocumentId { get; set; }
         public RequiredDocument RequiredDocument {get;set;}
+        public int PersonId { get; set; }
+        public Person Person { get; set; }
         public int? LoanProductId { get; set; }
         public LoanProduct LoanProduct {get;set;}
 

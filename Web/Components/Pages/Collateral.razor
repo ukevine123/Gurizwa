@@ -12,7 +12,7 @@
     <div class="d-flex align-center justify-space-between mb-6">
         <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Collateral Assets</MudText>
         <MudButton Variant="Variant.Filled" 
-                   Color="Color.Warning" 
+                   Color="Color.Primary" 
                    StartIcon="@Icons.Material.Filled.Add" 
                    OnClick="OpenCreateDialog">
             Add Collateral
@@ -22,6 +22,8 @@
     @* Explicitly define the Type T as the Domain Entity *@
     <MudDataGrid T="Entity.Collateral" Items="@_collateralList" Hover="true" Elevation="0" Class="rounded-xl">
         <Columns>
+
+            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Asset Name" />
             <PropertyColumn Property="x => x.AssetName" Title="Asset Name" />
             <PropertyColumn Property="x => x.AssetType" Title="Type" />
             <PropertyColumn Property="x => x.IdentificationNumber" Title="Ref/Plate No" />
@@ -49,7 +51,8 @@
                                    OnClick="@(() => OpenEditDialog(context.Item.Id))" />
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                    Color="Color.Error" 
-                                   Size="Size.Small" />
+                                   Size="Size.Small"
+                                   OnClick="@(() => ConfirmDeleteCollateral(context.Item))" />
                 </CellTemplate>
             </TemplateColumn>
         </Columns>
@@ -96,6 +99,30 @@
         if (result != null && !result.Canceled) 
         {
             await LoadData();
+        }
+    }
+
+    private async Task ConfirmDeleteCollateral(Entity.Collateral item)
+    {
+        if (item == null) return;
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Collateral Asset",
+            $"Are you sure you want to delete the collateral asset: {item.AssetName}?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            try
+            {
+                await CollateralService.DeleteCollateralAsync(item.Id);
+                Snackbar.Add("Collateral asset deleted successfully.", Severity.Success);
+                await LoadData();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
         }
     }
 }

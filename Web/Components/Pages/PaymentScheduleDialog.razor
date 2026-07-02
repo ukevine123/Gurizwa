@@ -1,0 +1,101 @@
+@namespace Web.Components.Pages
+@using Domain.Entities
+@using Application.Interfaces
+@using MudBlazor
+@inject IPayment PaymentService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <div style="max-height: 400px; overflow-y: auto;">
+            @if (isLoading)
+            {
+                <div class="d-flex justify-center pa-8">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+            else if (!RecentPayments.Any())
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="ma-4">
+                    No recent payments found around this date.
+                </MudAlert>
+            }
+            else
+            {
+                <MudTable T="Payment" Items="@RecentPayments" Hover="true" Dense="true" Elevation="0" Class="payment-table">
+                    <HeaderContent>
+                        <MudTh>Application</MudTh>
+                        <MudTh>Borrower</MudTh>
+                        <MudTh>Amount</MudTh>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Status</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Application">
+                            <div style="font-weight: 700; color: #1B2559;">#@context.Disbursement?.LoanApplication?.ApplicationCode</div>
+                        </MudTd>
+                        <MudTd DataLabel="Borrower">@context.Disbursement?.LoanApplication?.Borrower?.FirstName @context.Disbursement?.LoanApplication?.Borrower?.LastName</MudTd>
+                        <MudTd DataLabel="Amount">
+                            <div style="font-weight: 800; color: #4318FF;">$ @context.Amount.ToString("N2")</div>
+                        </MudTd>
+                        <MudTd DataLabel="Date">
+                            <div style="color: #A3AED0; font-size: 12px;">@context.PaymentDate.ToString("MMM dd, yyyy")</div>
+                        </MudTd>
+                        <MudTd DataLabel="Status">
+                            <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)" Variant="Variant.Text" Style="font-weight: 700; font-size: 10px;">
+                                @(context.IsActive ? "Paid" : "Pending")
+                            </MudChip>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Style="text-transform: none; font-weight: 700;">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .payment-table .mud-table-head .mud-th {
+        font-weight: 800;
+        color: #A3AED0;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #F4F7FE;
+    }
+    .payment-table .mud-table-body .mud-td {
+        border-bottom: 1px solid #F4F7FE;
+        padding: 12px 8px;
+    }
+</style>
+
+@code {
+    [CascadingParameter] MudBlazor.IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private List<Payment> RecentPayments = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            var allPayments = await PaymentService.GetAllPaymentsAsync() ?? new List<Payment>();
+            RecentPayments = allPayments
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(10)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading payments: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

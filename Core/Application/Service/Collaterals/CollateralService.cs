@@ -32,6 +32,10 @@ namespace Application.Services.Collaterals
         {
             await _collateral.UpdateCollateralAsync(id, collateralUpdateDTO);
         }
-           
+
+        public async Task DeleteCollateralAsync(int id)
+        {
+            await _collateral.DeleteCollateralAsync(id);
+        }
     }
 }

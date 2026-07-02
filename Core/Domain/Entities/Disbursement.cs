@@ -2,9 +2,15 @@ namespace Domain.Entities
 {
     public class Disbursement
     {
-        public int Id { get; set; }
+        public int Id { get; set; } 
         public int LoanApplicationId { get; set; }
         public LoanApplication LoanApplication { get; set; } = default!;
+
+       // Ensure these two exist and match exactly
+         public int AccountId { get; set; } 
+        public  Account Account { get; set; } = default!;
+        public int PersonId { get; set; }   
+        public Person Person { get; set; }
         public int PaymentModalityId { get; set; }
         public PaymentModality PaymentModality { get; set; } = default!;
         public int TotalInstallments { get; set; }
@@ -23,4 +29,5 @@ namespace Domain.Entities
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
     }
-}   
+}
+   

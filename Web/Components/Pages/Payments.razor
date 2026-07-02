@@ -5,113 +5,59 @@
 @inject IPaymentService PaymentService
 @inject IDialogService DialogService
 
-<PageTitle>Payments</PageTitle>
-
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* --- DESIGN ADDITION: HEADER AREA --- *@
-    @* <div class="d-flex align-center justify-space-between mb-6">
-        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Payment Management</MudText>
-    </div> *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Primary" Size="Size.Large" />
+        <MudText Typo="Typo.h5" Style="font-weight: 800;">Transaction History</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToCreatePayment" 
+                   StartIcon="@Icons.Material.Filled.Add" Class="rounded-lg">New Payment</MudButton>
+    </MudStack>
 
-    @* --- DESIGN ADDITION: ACTION BAR --- *@
-    <MudGrid Class="mb-4" Spacing="2">
-        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
-            @if (_selectedItems.Any())
-            {
-                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
-                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-            }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-        </MudItem>
-    </MudGrid>
-
-    @* --- DATA GRID WITH UPDATED STYLING --- *@
-    <MudDataGrid T="Payment" 
-                 Items="@_payments" 
-                 Hover="true" 
-                 Bordered="false" 
-                 Elevation="0" 
-                 MultiSelection="true"
-                 @bind-SelectedItems="_selectedItems"
-                 Class="rounded-xl border-none shadow-sm">   
-
-        <ToolBarContent>
-            <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Payments List</MudText>
-            <MudSpacer />
-            <MudMenu Label="Add Payment" 
-                     Variant="Variant.Filled" 
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
-                     Color="Color.Primary"
-                     Class="rounded-lg">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreatePayment())">Single</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
-            </MudMenu>
-        </ToolBarContent>
-
+    <MudDataGrid T="Payment" Items="@_payments" Elevation="0" Class="rounded-xl border shadow-sm">
         <Columns>
-            <SelectColumn T="Payment" />
-
             <PropertyColumn Property="x => x.Id" Title="ID" />
-            
-            @* Enhanced Formatting for Payments *@
-            <PropertyColumn Property="x => x.Disbursement.PrincipalOffered" Title="Disbursement" Format="C" />
-            <PropertyColumn Property="x => x.Account.Name" Title="Account" />
-            <PropertyColumn Property="x => x.PaymentType.PaymentTypeName" Title="Payment Type" />
-            <PropertyColumn Property="x => x.Amount" Format="C" Title="Amount" />
-            <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="d" />       
-            
+            <TemplateColumn Title="Borrower">
+                <CellTemplate>
+                    <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                        @context.Item.Disbursement?.LoanApplication?.Borrower?.FirstName @context.Item.Disbursement?.LoanApplication?.Borrower?.LastName
+                    </MudText>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Amount" Title="Amount Paid" Format="n" />
+            <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="MMM dd, yyyy" />
+            <TemplateColumn Title="Account">
+                <CellTemplate>
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Info">
+                        @context.Item.Account?.Name
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
             <TemplateColumn Title="Status">
                 <CellTemplate>
-                    <MudChip T="string" 
-                             Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
-                             Size="Size.Small" 
-                             Variant="Variant.Text"
-                             Style="font-weight: 600;">
-                        @(context.Item.IsActive ? "Active" : "Inactive")
+                    <MudChip T="string" Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
+                             Size="Size.Small" Variant="Variant.Filled">
+                        @(context.Item.IsActive ? "COMPLETED" : "VOID")
                     </MudChip>
                 </CellTemplate>
             </TemplateColumn>
         </Columns>
-
-        <PagerContent>
-            <MudDataGridPager T="Payment" />
-        </PagerContent>
     </MudDataGrid>
 </MudContainer>
 
-@code{
+@code {
     private List<Payment> _payments = new();
-    private HashSet<Payment> _selectedItems = new(); // Required for the design to work
-   
-    private readonly DialogOptions _closeButton = new() { CloseButton = true };
-    
-    protected override async Task OnInitializedAsync()
-    {
-      await LoadPayments();
-    }
 
-    private async Task LoadPayments()
-    {
+    protected override async Task OnInitializedAsync() => await LoadPayments();
+
+    private async Task LoadPayments() {
         _payments = await PaymentService.GetAllPaymentsAsync();
         StateHasChanged();
     }
 
-    private async Task GoToCreatePayment()
-    {
-        // Set to Medium or matching your Disbursement dialog size for consistency
-        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-
-        var dialog = await DialogService.ShowAsync<CreatePayment>("Add Payments", options);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled)
-        {
-            await Task.Delay(50);
-            await LoadPayments();
-        }
+    private async Task GoToCreatePayment() {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<CreatePayment>("Record Payment", options);
+        if (!(await dialog.Result).Canceled) await LoadPayments();
     }
 }

@@ -34,5 +34,15 @@ namespace  Application.Services.LoanApplications
         {
             await _loanApplication.UpdateStatusAsync(Id, newStatus);
         }
+
+        public async Task<List<TransactionHistoryDTO>> GetTransactionHistoryAsync(int loanApplicationId)
+        {
+            return await _loanApplication.GetTransactionHistoryAsync(loanApplicationId);
+        }
+
+        public async Task DeleteLoanApplicationAsync(int id)
+        {
+            await _loanApplication.DeleteLoanApplicationAsync(id);
+        }
     }
 }

@@ -7,6 +7,8 @@ public class Payment
     public Disbursement Disbursement { get; set; } = default!;
     public int AccountId { get; set; }
     public Account Account { get; set; } = default!;
+    public int PersonId { get; set; }
+    public Person Person { get; set; } 
     public int PaymentTypeId { get; set; }
     public PaymentType PaymentType { get; set; } = default!;
     public decimal Amount { get; set; }

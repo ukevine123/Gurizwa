@@ -10,6 +10,10 @@ namespace Application.Services.Users
             Task UpdateUser(int id, UserDetailDTO dto);
             Task<bool> LoginAsync(LoginDTO dto);
             Task LogoutAsync();
+            Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId);
+            Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId);
+            Task<List<string>> GetRolesAsync(int parentPersonId);
+            Task CreateRoleAsync(string roleName, int parentPersonId);
    
     }   
 }

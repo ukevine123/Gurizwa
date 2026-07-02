@@ -13,39 +13,33 @@ namespace Application.Services.Payments
             _payment = payment;
         }
 
-        public async Task<Payment?> GetPaymentByIdAsync(int id)
-        {
-            return await _payment.GetPaymentByIdAsync(id);
-        }
+        public async Task<Payment?> GetPaymentByIdAsync(int id) => await _payment.GetPaymentByIdAsync(id);
 
-        public async Task<List<Payment>> GetAllPaymentsAsync()
-        {
-            return await _payment.GetAllPaymentsAsync();
-        }
+        public async Task<List<Payment>> GetAllPaymentsAsync() => await _payment.GetAllPaymentsAsync();
 
         public async Task CreatePaymentAsync(CreatePaymentDTO paymentDTO)
         {
-            // 1. Fetch the expected schedule for this disbursement
+            // 1. Fetch current installment status
             var (expectedAmount, dueDate) = await _payment.GetNextScheduledPaymentAsync(paymentDTO.DisbursementId);
 
-            // 2. Map nullable PaymentDate to a non-nullable local variable for comparison
-            DateTime actualPaymentDate = paymentDTO.PaymentDate ?? DateTime.Today;
+            DateTime today = DateTime.Today; 
+            bool isAfterDueDate = today > dueDate;
+            
+            // 2. Calculate the Shortfall
+            decimal shortfall = expectedAmount - paymentDTO.Amount;
 
-            // 3. Logic Check: Compare using the correct DTO property name
-            if (paymentDTO.Amount < expectedAmount || actualPaymentDate > dueDate)
+            // 3. Execution Logic with 2% Penalty
+            if (isAfterDueDate && shortfall > 0)
             {
-                // Calculate the unpaid gap (Shortfall)
-                decimal shortfall = Math.Max(0, expectedAmount - paymentDTO.Amount);
-                
-                // Calculate the 5% penalty fee on the shortfall
-                decimal penaltyAmount = shortfall * 0.05m;
+                // SCENARIO: Payment is late and doesn't cover the scheduled amount.
+                // Updated to 2% as requested
+                decimal penaltyAmount = shortfall * 0.02m; 
 
-                // 4. Process with penalty logic
                 await _payment.CreatePaymentWithPenaltyAsync(paymentDTO, shortfall, penaltyAmount);
             }
             else
             {
-                // Standard flow for perfect payments
+                // SCENARIO: On-time payment, overpayment, or clearing the balance.
                 await _payment.CreatePaymentAsync(paymentDTO);
             }
         }

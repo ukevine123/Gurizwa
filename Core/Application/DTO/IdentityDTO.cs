@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Domain.ValueObjects;
 
 namespace Application.DTO
 {
@@ -12,11 +13,13 @@ namespace Application.DTO
          [EmailAddress(ErrorMessage = "Invalid email Address.")]
          public string Email { get; set; } = string.Empty;
          public string Status { get; set; } = string.Empty; 
-         public DateTime DateOfBirth { get; set; }
+         [Required(ErrorMessage = "Date of birth is required.")]
+         public DateTime? DateOfBirth { get; set; }
          public string Country { get; set; }
          public string City { get; set; }
          public string Street { get; set; }
-         public string Sex { get; set; }
+         [Required(ErrorMessage = "Sex is required.")]
+         public Sex Sex { get; set; }
 
         
         public string PhoneNumber { get; set; }

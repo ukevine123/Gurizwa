@@ -59,7 +59,8 @@
                         <MudSelect T="int"
                                    Label="Borrower Type"
                                    Placeholder="--Select Borrower Type--"
-                                   @bind-Value="Model.BorrowerTypeId"
+                                   Value="Model.BorrowerTypeId"
+                                   ValueChanged="OnBorrowerTypeChanged"
                                    Variant="Variant.Outlined"
                                    Dense="true"
                                    Margin="Margin.Dense"
@@ -77,69 +78,82 @@
                             }
                         </MudSelect>
                     </MudItem>
-                <MudItem  xs="6">
-                <MudTextField Label="FirstName"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              @bind-Value="Model.FirstName"
-                              For="@(() => Model.FirstName)" />
-                </MudItem>
-                <MudItem  xs="6">
-                <MudTextField Label="LastName"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              @bind-Value="Model.LastName"
-                              For="@(() => Model.LastName)" />
-                </MudItem>
+                @if (!isOrganization)
+                {
+                    <MudItem  xs="6">
+                    <MudTextField Label="FirstName"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  @bind-Value="Model.FirstName"
+                                  For="@(() => Model.FirstName)" />
+                    </MudItem>
+                    <MudItem  xs="6">
+                    <MudTextField Label="LastName"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  @bind-Value="Model.LastName"
+                                  For="@(() => Model.LastName)" />
+                    </MudItem>
+                }
+                else
+                {
+                    <MudItem  xs="12">
+                    <MudTextField Label="Company Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  @bind-Value="Model.CompanyName"
+                                  For="@(() => Model.CompanyName)" />
+                    </MudItem>
+                }
 
           
 
-                  <MudItem xs="6">
-    <MudSelect T="Maritalstatus"
-               Label="Maritalstatus"
-               @bind-Value="Model.Maritalstatus"
-               Variant="Variant.Outlined"
-               Dense="true"
-               Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Transgender"
-               AdornmentColor="Color.Primary">
-        
-        <MudSelectItem T="Maritalstatus" Disabled="true">-- Select Maritalstatus --</MudSelectItem>
-        @foreach (Maritalstatus item in Enum.GetValues(typeof(Maritalstatus)))
-        {
-            <MudSelectItem T="Maritalstatus" Value="item">@item.ToString()</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-                <MudItem xs="6">
-    <MudSelect T="Sex"
-               Label="Sex"
-               @bind-Value="Model.sex"
-               Variant="Variant.Outlined"
-               Dense="true"
-               Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Transgender"
-               AdornmentColor="Color.Primary">
-    
-        <MudSelectItem T="Sex" Disabled="true">-- Select Sex --</MudSelectItem>
-
-        @foreach (Sex item in Enum.GetValues(typeof(Sex)))
-        {
-            <MudSelectItem T="Sex" Value="item">@item.ToString()</MudSelectItem>
-        }
-    </MudSelect>
-</MudItem>
-                <MudItem  xs="6"> 
-                      <MudDatePicker Label="Date Of Birth"
-                       @bind-Value="Model.DateOfBirth"
-                        Variant="Variant.Outlined"
-                        Margin="Margin.Dense"
-                        Adornment="Adornment.Start" 
-                        AdornmentColor="Color.Primary" />
-                </MudItem>
+                @if (!isOrganization)
+                {
+                    <MudItem xs="6">
+                        <MudSelect T="Maritalstatus?"
+                                   Label="Maritalstatus"
+                                   @bind-Value="Model.Maritalstatus"
+                                   Variant="Variant.Outlined"
+                                   Dense="true"
+                                   Margin="Margin.Dense"
+                                   AdornmentIcon="@Icons.Material.Filled.Transgender"
+                                   AdornmentColor="Color.Primary">
+                            <MudSelectItem T="Maritalstatus?" Disabled="true">-- Select Maritalstatus --</MudSelectItem>
+                            @foreach (Maritalstatus item in Enum.GetValues(typeof(Maritalstatus)))
+                            {
+                                <MudSelectItem T="Maritalstatus?" Value="item">@item.ToString()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudSelect T="Sex?"
+                                   Label="Sex"
+                                   @bind-Value="Model.sex"
+                                   Variant="Variant.Outlined"
+                                   Dense="true"
+                                   Margin="Margin.Dense"
+                                   AdornmentIcon="@Icons.Material.Filled.Transgender"
+                                   AdornmentColor="Color.Primary">
+                            <MudSelectItem T="Sex?" Disabled="true">-- Select Sex --</MudSelectItem>
+                            @foreach (Sex item in Enum.GetValues(typeof(Sex)))
+                            {
+                                <MudSelectItem T="Sex?" Value="item">@item.ToString()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem  xs="6"> 
+                          <MudDatePicker Label="Date Of Birth"
+                           @bind-Value="Model.DateOfBirth"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            Adornment="Adornment.Start" 
+                            AdornmentColor="Color.Primary" />
+                    </MudItem>
+                }
 
                   <MudItem  xs="6">
-                <MudTextField Label="IdentificationNumber"
+                <MudTextField Label="@(isOrganization ? "TIN / Registration No." : "Identification Number")"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.IdentificationNumber"
@@ -164,95 +178,60 @@
                               For="@(() => Model.PhoneNumber)" />
                 </MudItem>
                  
-                  @if (Model.Maritalstatus == Maritalstatus.Married)
-                    {
-        <MudItem xs="6">
-            <MudTextField Label="Spouse ID Number"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          @bind-Value="Model.SpouceIdNumber"
-                          For="@(() => Model.SpouceIdNumber)" />
-        </MudItem>
+                  @if (!isOrganization && Model.Maritalstatus == Domain.ValueObjects.Maritalstatus.Married)
+                  {
+                      <MudItem xs="6">
+                          <MudTextField Label="Spouse ID Number"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.SpouceIdNumber"
+                                        For="@(() => Model.SpouceIdNumber)" />
+                      </MudItem>
+                      <MudItem xs="6">
+                          <MudTextField Label="Spouse Name"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.SpouceName"
+                                        For="@(() => Model.SpouceName)" />
+                      </MudItem>
+                  }
 
-        <MudItem xs="6">
-            <MudTextField Label="Spouse Name"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          @bind-Value="Model.SpouceName"
-                          For="@(() => Model.SpouceName)" />
-        </MudItem>
-                }
+                  @if (!isOrganization)
+                  {
+                      <MudItem xs="6">
+                          <MudTextField Label="Next Of Kin"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.NextOfKin"
+                                        For="@(() => Model.NextOfKin)" />
+                      </MudItem>
 
-  <MudItem xs="6">
-            <MudTextField Label="Next Of Kin"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          @bind-Value="Model.NextOfKin"
-                          For="@(() => Model.NextOfKin)" />
-        </MudItem>
+                      <MudItem xs="6">
+                          <MudTextField Label="Kin PhoneNumber"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.KinPhoneNumber"
+                                        For="@(() => Model.KinPhoneNumber)" />
+                      </MudItem>
+                  }
+                  else
+                  {
+                      <MudItem xs="6">
+                          <MudTextField Label="Contact Person Name"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.ContactPersonName"
+                                        For="@(() => Model.ContactPersonName)" />
+                      </MudItem>
+                      <MudItem xs="6">
+                          <MudTextField Label="Contact Person Phone"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.ContactPersonPhone"
+                                        For="@(() => Model.ContactPersonPhone)" />
+                      </MudItem>
+                  }
 
-        <MudItem xs="6">
-            <MudTextField Label="Kin PhoneNumber"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          @bind-Value="Model.KinPhoneNumber"
-                          For="@(() => Model.KinPhoneNumber)" />
-        </MudItem>
-
-
-
-                   @* <MudItem xs="6" >
-                    <MudSelect T="string"
-                     Value="Model.Province"
-                     Label="Province"
-                      ValueChanged="OnProvinceChanged"
-                       ReadOnly="IsReadOnly" 
-                       Required="true">
-                        @foreach (var p in _provinces)
-                        {
-                            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" 
-                    Value="Model.District" 
-                    Label="District" 
-                    ValueChanged="OnDistrictChanged" 
-                    ReadOnly="IsReadOnly" Required="true" 
-                    Disabled="@(string.IsNullOrEmpty(Model.Province))">
-                        @foreach (var d in _districts)
-                        {
-                            <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))">
-                        @foreach (var s in _sectors)
-                        {
-                            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6" >
-                    <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Sector))">
-                        @foreach (var c in _cells)
-                        {
-                            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Label="Village" @bind-Value="Model.Village" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Cell))">
-                        @foreach (var v in _villages)
-                        {
-                            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem> *@
-
-@* --- PROVINCE --- *@
 <MudItem xs="6">
     <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
                ReadOnly="IsReadOnly" Required="true" Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
@@ -343,8 +322,21 @@
 
     [Parameter] public bool IsReadOnly { get; set; } = false;
 
-    public Sex sex { get; set; }
-    public Maritalstatus maritalstatus { get; set; }
+    private bool isOrganization = false;
+
+    private void OnBorrowerTypeChanged(int typeId)
+    {
+        Model.BorrowerTypeId = typeId;
+        var type = acctype.FirstOrDefault(t => t.Id == typeId);
+        if (type != null && type.Type.Equals("Organization", StringComparison.OrdinalIgnoreCase))
+        {
+            isOrganization = true;
+        }
+        else
+        {
+            isOrganization = false;
+        }
+    }
 
     private List<Province> _provinces = new();
     private List<District> _districts = new();

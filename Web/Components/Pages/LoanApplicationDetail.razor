@@ -15,6 +15,9 @@
 @inject ILoanApplicationService LoanService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
+@inject IUserContext UserContext
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Manager")]
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
   
@@ -22,21 +25,26 @@
 <div class="d-flex align-center justify-space-between pa-4 mb-4 mt-2 rounded shadow-sm bg-white">
     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight:bold">Loan Application Details</MudText>
 
-    <div class="d-flex gap-4">
-        @* Reject Button *@
-        <MudButton Variant="Variant.Filled" 
-                   Color="Color.Error" 
-                   OnClick="@(() => HandleStatusUpdate(LoanStatus.Rejected))">
-            Reject
-        </MudButton>
-        
-        @* Approved Button *@
-        <MudButton Variant="Variant.Filled" 
-                   Color="Color.Info" 
-                   OnClick="@(() => HandleStatusUpdate(LoanStatus.Confirmed))">
-            Approved
-        </MudButton>
-    </div>
+    <AuthorizeView Roles="Manager">
+        @if (application?.Status != LoanStatus.Paid)
+        {
+            <div class="d-flex gap-4">
+                @* Reject Button *@
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Error" 
+                           OnClick="@(() => HandleStatusUpdate(LoanStatus.Rejected))">
+                    Reject
+                </MudButton>
+                
+                @* Approved Button *@
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Info" 
+                           OnClick="@(() => HandleStatusUpdate(LoanStatus.Confirmed))">
+                    Approved
+                </MudButton>
+            </div>
+        }
+    </AuthorizeView>
 </div>
         @* <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Loan Application Details</MudText> *@
     
@@ -101,7 +109,7 @@
                             <MudText Typo="Typo.subtitle2" Color="Color.Primary">Location Details</MudText>
                             <MudText Typo="Typo.body2">@borrower.Province, @borrower.District, @borrower.Sector</MudText>
                             
-                            @if (borrower.Maritalstatus == Maritalstatus.Married)
+                            @if (borrower.Maritalstatus == Domain.ValueObjects.Maritalstatus.Married)
                             {
                                 <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
                                     Spouse: @borrower.SpouceName (@borrower.SpouceIdNumber)
@@ -173,12 +181,52 @@
                 </MudCardContent>
             </MudCard>
         </MudItem>
+
+        @if (application?.Status == LoanStatus.Paid)
+        {
+            <MudItem xs="12">
+                <MudCard Elevation="2" Class="rounded-lg">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-4">Transaction Details</MudText>
+
+                        @if (transactions == null || !transactions.Any())
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No transactions found for this application.</MudText>
+                        }
+                        else
+                        {
+                            <MudTable Items="@transactions" Dense="true" Hover="true" Striped="true">
+                                <HeaderContent>
+                                    <MudTh>Date</MudTh>
+                                    <MudTh>Type</MudTh>
+                                    <MudTh>Description</MudTh>
+                                    <MudTh>Amount</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Date">@context.TransactionDate.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                                    <MudTd DataLabel="Type">
+                                        <MudChip T="string" Size="Size.Small" Color="@GetTransactionColor(context.TransactionType)">
+                                            @context.TransactionType
+                                        </MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                                    <MudTd DataLabel="Amount">@context.Amount.ToString("N2")</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
     </MudGrid>
 </MudContainer>
 
 @code {
     [Parameter] 
     public int LoanId { get; set; }
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
     public int collateralId { get; set; }
     
     private LoanApplication application;
@@ -189,6 +237,7 @@
     private LoanProduct loanProduct;
     private LoanProductSetting loanProductSetting;
     private List<ProvidedDocument> documents = new();
+    private List<TransactionHistoryDTO> transactions = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -219,6 +268,10 @@
             collaterals = allCollaterals
                 .Where(c => c.LoanApplicationId == LoanId) 
                 .ToList();
+
+            transactions = application.Status == LoanStatus.Paid
+                ? await LoanService.GetTransactionHistoryAsync(application.Id)
+                : new List<TransactionHistoryDTO>();
         }
     }
 
@@ -230,7 +283,7 @@
         {
             Status = newStatus,
             AmountRequested = application.AmountRequested,
-            ApprovedBy = "LoanOfficer", // You can replace this with actual auth logic
+            ApprovedBy = UserContext.FullName ?? "Manager", 
             PreferredDate = application.PreferredDate,
             DateofApplication = application.DateofApplication,
             PaymentModalityId = application.PaymentModalityId
@@ -241,8 +294,9 @@
             await LoanService.UpdateLoanApplication(application.Id, updateDto);
             Snackbar.Add($"Application successfully {newStatus.ToString()}!", Severity.Success);
             
-            // Refresh the page data to update the UI status chip and hide buttons
+            // Refresh this view, then notify the parent grid to reload.
             await LoadData();
+            MudDialog?.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
@@ -255,6 +309,14 @@
         LoanStatus.Confirmed => Color.Success,
         LoanStatus.Rejected => Color.Error,
         LoanStatus.Applied => Color.Warning,
+        _ => Color.Default
+    };
+
+    private Color GetTransactionColor(string type) => type switch
+    {
+        "Process Fee" => Color.Warning,
+        "Disbursement" => Color.Info,
+        "Payment" => Color.Success,
         _ => Color.Default
     };
 

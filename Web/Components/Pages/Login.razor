@@ -1,147 +1,244 @@
 @page "/"
 @page "/account/login"
-@layout Layout.AuthLayout
+@layout AuthLayout
 
 @using MudBlazor
 @using Microsoft.AspNetCore.Components
 @inject NavigationManager Navigation
 
 <style>
-    .auth-background {
-        background: radial-gradient(circle at center, #1a1b3a 0%, #050505 100%);
-        min-height: 100vh;
+    :root {
+        --sellora-blue: #070bdc;
+        --sellora-bg: #ffffff;
+        --sellora-text-main: #1a1a1a;
+        --sellora-text-muted: #757575;
+    }
+
+    /* Force the page to fill the screen and remove scrolling */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Removes scrollbars */
+    }
+
+    .page-container {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
+        height: 100vh; /* Fixed height to viewport */
+        width: 100vw;
+        background-color: var(--sellora-bg);
+        font-family: 'Inter', sans-serif;
         overflow: hidden;
     }
 
-    /* The subtle glowing lines in the background of your image */
-    .auth-background::before {
-        content: "";
-        position: absolute;
-        width: 200%;
-        height: 200%;
-        background: repeating-linear-gradient(45deg, transparent, transparent 100px, rgba(78, 93, 235, 0.03) 100px, rgba(78, 93, 235, 0.03) 200px);
-        top: -50%;
-        left: -50%;
+    /* Left Side - Login Form */
+    .login-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 40px;
+        justify-content: center; /* Centers vertically */
     }
 
-    .glass-card {
-        background: #1a1b3a
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 24px;
-        padding: 40px;
+    .login-form-container {
         width: 100%;
-        max-width: 480px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        max-width: 420px;
+        margin: 0 auto;
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 48px;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--sellora-text-main);
+    }
+
+    /* Right Side - Blue Panel */
+    .blue-panel {
+        background-color: var(--sellora-blue);
+        border-radius: 40px 0 0 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px;
+        flex: 1;
+    }
+
+    .custom-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--sellora-text-main);
+        margin-bottom: 8px;
+        display: block;
     }
 
     .login-btn {
-        background: linear-gradient(90deg, #2539e8 0%, #2536eb 100%) !important;
+        background-color: #4318FF !important;
         color: white !important;
         text-transform: none !important;
         font-weight: 600 !important;
         height: 48px;
+        border-radius: 8px !important;
     }
 
-    .google-btn {
-        background-color: #2539e8 !important;
-        border: 1px solid #2539e8 !important;
-        color: white !important;
+    .social-btn {
+        background-color: #f8f9fa !important;
+        border: 1px solid #e0e0e0 !important;
+        color: #444 !important;
         text-transform: none !important;
+        font-weight: 500 !important;
+        border-radius: 8px !important;
+        height: 44px;
     }
 
-    .custom-label {
-        color: #b0b0b0;
-        font-size: 0.85rem;
-        margin-bottom: 4px;
-        display: block;
+    @@media (max-width: 960px) {
+        .blue-panel { display: none; }
+        html, body { overflow: auto; } /* Allow scroll on mobile if content is too long */
     }
-
-    .mud-input-control {
-        margin-bottom: 20px;
-    }
-
-    @* .mud-input.mud-input-outlined {
-        background-color: rgba(0,0,0,0.2);
-    } *@
 </style>
 
-<div class="auth-background">
-    <div class="glass-card">
-        <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; color: white; margin-bottom: 8px;">
-            Sign In to Your Account
-        </MudText>
-        <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #888; margin-bottom: 32px;">
-            Welcome back! Please enter your details to manage your workflow and enhance collaboration.
-        </MudText>
-
-        @if (!string.IsNullOrEmpty(Error))
-        {
-            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4">@Error</MudAlert>
-        }
-
-        <MudButton Variant="Variant.Filled" 
-                   FullWidth="true" 
-                   Class="google-btn mb-6 py-2"
-                   StartIcon="@Icons.Custom.Brands.Google">
-            Sign in with Google
-        </MudButton>
-
-        <div class="d-flex align-center mb-6">
-            <hr style="flex-grow: 1; border: none; border-top: 1px solid #333;" />
-            <MudText Typo="Typo.caption" Class="mx-4" Style="color: #666;">Or</MudText>
-            <hr style="flex-grow: 1; border: none; border-top: 1px solid #333;" />
-        </div>
-
-        <form method="post" action="/api/account/login">
-            <AntiforgeryToken />
-            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
-
-            <span class="custom-label">Email</span>
-            <MudTextField @bind-Value="email"
-                          name="email"
-                          Placeholder="Enter your email"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          T="string"
-                          Style="color: rgb(235, 235, 244);"/>
-
-            <div class="d-flex justify-space-between align-center">
-                <span class="custom-label">Password</span>
-            </div>
-            <MudTextField @bind-Value="password"
-                          name="password"
-                          Placeholder="Enter your password"
-                          InputType="@_passwordInput"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@_passwordInputIcon"
-                          OnAdornmentClick="TogglePasswordVisibility"
-                          T="string"
-                          Style="color: rgb(235, 235, 244);"/>
-
-            <div class="d-flex justify-end mb-6">
-                <MudLink Href="/account/forgot-password" Underline="Underline.None" Style="color: #1707f0; font-size: 0.8rem;">
-                    Forgot your password?
-                </MudLink>
+<div class="page-container">
+    <!-- Left Section -->
+    <div class="login-section">
+        <div class="login-form-container">
+            <div class="brand-logo">
+                <MudIcon Icon="@Icons.Material.Filled.AllInclusive" Color="Color.Primary" Size="Size.Large" />
+                <span>DIGITAL LOAN PLATFORM</span>
             </div>
 
-            <MudButton ButtonType="ButtonType.Submit"
-                       Variant="Variant.Filled"
-                       FullWidth="true"
-                       Class="login-btn rounded-lg mb-4">
-                Sign In
-            </MudButton>
-
-            <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #1707f0;">
-                Don't have an account? <MudLink href="/RegisterUser" Style="color: #4e5deb; font-weight: 600;">Register Now</MudLink>
+            <MudText Typo="Typo.h4" Style="font-weight: 800; margin-bottom: 8px;">Welcome Back</MudText>
+            <MudText Typo="Typo.body2" Style="color: #757575; margin-bottom: 32px;">
+                Enter your email and password to access your account.
             </MudText>
-        </form>
+
+            @if (!string.IsNullOrEmpty(Error))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Class="mb-4">@Error</MudAlert>
+            }
+
+            <form method="post" action="/api/account/login">
+                <AntiforgeryToken />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+                <span class="custom-label">Email</span>
+                <MudTextField @bind-Value="email"
+                             name="email"
+                             Placeholder="isabel@gmail.com"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             T="string"
+                             Class="mb-4"/>
+
+                <span class="custom-label">Password</span>
+                <MudTextField @bind-Value="password"
+                             name="password"
+                             Placeholder="••••••••"
+                             InputType="@_passwordInput"
+                             Variant="Variant.Outlined"
+                             Margin="Margin.Dense"
+                             Adornment="Adornment.End"
+                             AdornmentIcon="@_passwordInputIcon"
+                             OnAdornmentClick="TogglePasswordVisibility"
+                             T="string" />
+
+                <div class="d-flex justify-space-between align-center mt-2 mb-6">
+                    <MudCheckBox @bind-Value="rememberMe" Label="Remember Me" Color="Color.Primary" Dense="true" Size="Size.Small" />
+                    <MudLink Href="/account/forgot-password" Underline="Underline.None" Style="color: #4318FF; font-size: 0.85rem; font-weight: 600;">
+                        Forgot Your Password?
+                    </MudLink>
+                </div>
+
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" FullWidth="true" Class="login-btn mb-6">
+                    Log In
+                </MudButton>
+
+                <div class="d-flex align-center mb-6">
+                    <hr style="flex-grow: 1; border: none; border-top: 1px solid #eee;" />
+                    <MudText Typo="Typo.caption" Class="mx-4" Style="color: #999;">Or Login With</MudText>
+                    <hr style="flex-grow: 1; border: none; border-top: 1px solid #eee;" />
+                </div>
+
+                <MudGrid Spacing="2" Class="mb-8">
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Outlined" FullWidth="true" Class="social-btn" StartIcon="@Icons.Custom.Brands.Google">Google</MudButton>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudButton Variant="Variant.Outlined" FullWidth="true" Class="social-btn" StartIcon="@Icons.Custom.Brands.Apple">Apple</MudButton>
+                    </MudItem>
+                </MudGrid>
+
+                <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #757575;">
+                    Don't Have An Account? <MudLink href="/RegisterUser" Style="color: #4318FF; font-weight: 700;">Register Now.</MudLink>
+                </MudText>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Section (Blue Panel) -->
+    <div class="blue-panel">
+        <div style="z-index: 2; width: 100%; max-width: 500px;">
+            <MudText Typo="Typo.h3" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
+                Manage your LOANS and Its Operations.
+            </MudText>
+            <MudText Typo="Typo.h6" Style="font-weight: 400; opacity: 0.9;" Class="mb-10">
+                Log in to access your DIGITAL LOAN PLATFORM and manage your team.
+            </MudText>
+
+            <MudPaper Elevation="25" Class="pa-4 rounded-xl relative" Style="background-color: white; min-height: 350px; color: black;">
+                <div class="d-flex justify-space-between mb-4">
+                    <div style="height: 12px; width: 60px; background: #eee; border-radius: 6px;"></div>
+                    <div style="height: 12px; width: 40px; background: #eee; border-radius: 6px;"></div>
+                </div>
+                
+                <MudGrid Spacing="2">
+                    <MudItem xs="4">
+                        <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: #f8f9ff;">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Total LOAN</MudText>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 800; color: #070bdc;">All LOANS</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: #f8f9ff;">
+                            <div class="d-flex justify-space-between">
+                                 <MudText Typo="Typo.caption" Color="Color.Secondary">Performance</MudText>
+                                 <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Success"/>
+                            </div>
+                            <div style="height: 20px; width: 100%; background: linear-gradient(90deg, #070bdc 30%, #eee 30%); border-radius: 10px; margin-top: 4px;"></div>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12">
+                         <MudTable Items="_mockRows" Elevation="0" Dense="true" Class="rounded-lg mt-2">
+                            <HeaderContent>
+                                <MudTh><MudText Typo="Typo.caption" Style="font-weight:700">Order ID</MudText></MudTh>
+                                <MudTh><MudText Typo="Typo.caption" Style="font-weight:700">Product</MudText></MudTh>
+                                <MudTh><MudText Typo="Typo.caption" Style="font-weight:700">Status</MudText></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd><MudText Typo="Typo.caption">#@context.Id</MudText></MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@context.Name</MudText></MudTd>
+                                <MudTd>
+                                    <MudChip T="string" Color="@context.Color" Size="Size.Small" Style="font-size: 10px; height: 18px;">@context.Status</MudChip>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudItem>
+                </MudGrid>
+
+                <MudPaper Elevation="10" Class="pa-4 rounded-xl absolute d-flex flex-column align-center" 
+                          Style="bottom: -20px; right: -40px; width: 160px; background: white; border: 1px solid #eee;">
+                     <MudText Typo="Typo.caption" Style="font-weight: 700;">Expense Category</MudText>
+                     <MudProgressCircular Color="Color.Success" Size="Size.Large" Class="my-2" />
+                     <MudText Typo="Typo.caption" Style="font-weight: 800; text-align:center;">Get all expenses</MudText>
+                </MudPaper>
+            </MudPaper>
+        </div>
     </div>
 </div>
 
@@ -151,23 +248,21 @@
 
     private string email = "";
     private string password = "";
+    private bool rememberMe = false;
     private bool _isPasswordVisible = false;
     private InputType _passwordInput = InputType.Password;
-    private string _passwordInputIcon = Icons.Material.Filled.Visibility;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private List<MockOrder> _mockRows = new() {
+        new(5298, "GIRA IWAWE", "Active", Color.Success),
+        new(5299, "STUDENT LOAN", "Active", Color.Warning),
+        
+    };
 
-    public void TogglePasswordVisibility()
-    {
-        if (_isPasswordVisible)
-        {
-            _isPasswordVisible = false;
-            _passwordInputIcon = Icons.Material.Filled.Visibility;
-            _passwordInput = InputType.Password;
-        }
-        else
-        {
-            _isPasswordVisible = true;
-            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
-            _passwordInput = InputType.Text;
-        }
+    public record MockOrder(int Id, string Name, string Status, Color Color);
+
+    public void TogglePasswordVisibility() {
+        _isPasswordVisible = !_isPasswordVisible;
+        _passwordInputIcon = _isPasswordVisible ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff;
+        _passwordInput = _isPasswordVisible ? InputType.Text : InputType.Password;
     }
 }

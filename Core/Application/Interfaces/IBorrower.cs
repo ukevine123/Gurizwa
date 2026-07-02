@@ -9,5 +9,6 @@ namespace Application.Interfaces
         Task<Borrower> GetBorrowerById(int id);   
         Task CreateBorrower(CreateBorrowerDTO borrowerDTO);
         Task UpdateBorrower(int id, UpdateBorrowerDTO borrowerDTO);
+        Task DeleteBorrowerAsync(int id);
     }
 }

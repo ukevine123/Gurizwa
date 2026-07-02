@@ -1,35 +1,4 @@
-﻿@* <div class="d-flex flex-column align-start px-4 py-6"> *@
-    
-    @* Logo Section *@
-    @* <div class="mb-10 px-2">
-        <MudText Typo="Typo.h6" Style="color: white; font-weight: 800; letter-spacing: 1px;">
-            <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />
-            LOAN PLATFORM
-        </MudText>
-    </div>
-
-    <MudNavMenu Class="mud-width-full">
-        <MudNavLink Href="/home" 
-                    Match="NavLinkMatch.All" 
-                    Icon="@Icons.Material.Outlined.Home" 
-                    Style="color: #A3AED0; margin-bottom: 8px;">
-            Dashboard
-        </MudNavLink>
-        
-        <MudNavLink Href="/employees" 
-                    Match="NavLinkMatch.Prefix" 
-                    Icon="@Icons.Material.Outlined.TableChart" 
-                    Style="color: #A3AED0; margin-bottom: 8px;">
-            My Loans
-        </MudNavLink>
-
-        <MudNavLink Href="/employees" 
-                    Icon="@Icons.Material.Outlined.Person" 
-                    Style="color: #A3AED0;">
-            Employees
-        </MudNavLink>
-    </MudNavMenu>
-</div> *@
+@namespace Web.Components.Layout
 
 <style>
     .mud-nav-link.active {
@@ -52,6 +21,10 @@
 <MudNavMenu>
     <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
         @(!IsMini ? "Dashboard" : "")
+    </MudNavLink>
+
+    <MudNavLink Href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+        @(!IsMini ? "Reports" : "")
     </MudNavLink>
 
      <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">

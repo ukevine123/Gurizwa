@@ -5,6 +5,8 @@ namespace Domain.ValueObjects
         Applied,
         Confirmed,
         Rejected,
-        Disbursed
+        Disbursed,
+        Paid,
+        Rescheduled
     }
 }

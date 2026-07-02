@@ -9,8 +9,19 @@ namespace Application.Interfaces
     {
         
         int? Id { get; }
+        int? PersonId { get; }
         bool IsAuthenticated { get; }
         string Email { get; }
+        
+        /// <summary>
+        /// Gets all roles assigned to the user.
+        /// </summary>
+        IList<string> Roles { get; }
+        
+        /// <summary>
+        /// Gets the primary role for UI display purposes.
+        /// </summary>
+        string PrimaryRole { get; }
 
         string FirstName { get; }
 

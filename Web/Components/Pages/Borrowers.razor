@@ -6,29 +6,23 @@
 @using Domain.ValueObjects
 
 @inject IBorrowerService BorrowerService
-
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Borrowers</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
-        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Borrowers</MudText>
-    </div>
-
-    @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
 
-        <MudItem xs="12" sm="8" Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteBorrower" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
             <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
@@ -37,7 +31,28 @@
         </MudItem>
     </MudGrid>
 
-    @* 3. THE DATAGRID *@
+    @* 3. BORROWER TYPE SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="2">
+        @if (_borrowerTypeCounts != null && _borrowerTypeCounts.Any())
+        {
+            @foreach (var typeCount in _borrowerTypeCounts)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@typeCount.BorrowerType</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@typeCount.Count</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Borrowers</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
     <MudDataGrid T="Borrower" Items="@_borrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
@@ -80,8 +95,18 @@
                    
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
-            <PropertyColumn Property="x => x.LastName" Title="LastName" />
+            <TemplateColumn Title="Name">
+                <CellTemplate>
+                    @if (!string.IsNullOrEmpty(context.Item.CompanyName))
+                    {
+                        <MudText Typo="Typo.body2">@context.Item.CompanyName</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">@($"{context.Item.FirstName} {context.Item.LastName}")</MudText>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
             <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
             <PropertyColumn Property="x => x.sex" Title="Sex" />
             @* <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" /> *@
@@ -109,14 +134,23 @@
 @code {
      private string _searchString = "";
 
-    private IEnumerable<Borrower> FilteredBorrowers => _borrowers
-        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
-                    x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
-     //s
        List<Borrower> _borrowers = new();
     private HashSet<Borrower> _selectedItems = new();
+
+    private IEnumerable<Borrower> FilteredBorrowers => _borrowers
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    (x.FirstName != null && x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.LastName != null && x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.CompanyName != null && x.CompanyName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Email != null && x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase)));
+
+    private List<BorrowerTypeCount> _borrowerTypeCounts = new();
+
+    private class BorrowerTypeCount
+    {
+        public string? BorrowerType { get; set; }
+        public int Count { get; set; }
+    }
 
       protected override async Task OnInitializedAsync()
     {
@@ -139,6 +173,18 @@
      private async Task LoadBorrower()
     {
         _borrowers = await BorrowerService.GetAllBorrowersAsync();
+        
+        // Calculate borrower type counts
+        _borrowerTypeCounts = _borrowers
+            .Where(b => b.BorrowerType != null)
+            .GroupBy(b => b.BorrowerType.Type)
+            .Select(g => new BorrowerTypeCount
+            {
+                BorrowerType = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+        
         StateHasChanged();
     }
         private Color GetStatusColor(LoanStatus status)
@@ -167,5 +213,31 @@
         var result = await dialog.Result;
     }
 
+    private async Task ConfirmDeleteBorrower()
+    {
+        var selected = _selectedItems.FirstOrDefault();
+        if (selected == null) return;
 
+        var name = string.IsNullOrEmpty(selected.CompanyName) ? $"{selected.FirstName} {selected.LastName}" : selected.CompanyName;
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Borrower",
+            $"Are you sure you want to delete borrower {name}?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            try
+            {
+                await BorrowerService.DeleteBorrowerAsync(selected.Id);
+                Snackbar.Add("Borrower deleted successfully.", Severity.Success);
+                _selectedItems.Clear();
+                await LoadBorrower();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
 }

@@ -11,6 +11,7 @@ namespace Application.Services.Collaterals
         Task<Collateral?> GetCollateralByIdAsync(int id);
         Task CreateCollateralAsync(CollateralCreateDTO collateralCreateDTO);
         Task UpdateCollateralAsync(int id, CollateralUpdateDTO collateralUpdateDTO);
+        Task DeleteCollateralAsync(int id);
     }
 }
 

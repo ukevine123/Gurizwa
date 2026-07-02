@@ -76,12 +76,8 @@
                         {
                             foreach (var app in loanApplications)
                             {
-                                // Concatenate names; handle nulls with the null-conditional operator
-                                var fullName = $"{app.Borrower?.FirstName} {app.Borrower?.LastName}";
-
-                                <MudSelectItem T="int" Value="@app.Id">
-                                    @fullName
-                                </MudSelectItem>
+             
+                                 <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
                             }
                         }
                     </MudSelect>
@@ -99,7 +95,7 @@
                 </MudItem>
 
                 <MudItem xs="6">
-                    <MudTextField Label="IdentificationNumber" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Identification" For="@(() => Model.Identification)" />
+                    <MudTextField Label="IdentificationNumber" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Identification" For="@(() => Model.Identification)"  Immediate="true" MaxLength="16"Counter="16"/> 
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Email" For="@(() => Model.Email)" />
@@ -146,34 +142,7 @@
                         }
                     </MudSelect>
                 </MudItem>
-                @* <MudItem xs="6">
-                    <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))">
-                        @foreach (var s in _sectors)
-                        {
-                            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Sector))">
-                        @foreach (var c in _cells)
-                        {
-                            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudSelect T="string" Label="Village" @bind-Value="Model.Village" ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Cell))">
-                        @foreach (var v in _villages)
-                        {
-                            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem> *@
-
-
-
-                @* --- SECTOR SELECT --- *@
+               
 <MudItem xs="6">
     <MudSelect T="string" 
                Value="Model.Sector" 

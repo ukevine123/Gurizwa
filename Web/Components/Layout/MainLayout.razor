@@ -1,13 +1,20 @@
-﻿@inherits LayoutComponentBase
+@namespace Web.Components.Layout
+@inherits LayoutComponentBase
+@using Application.Interfaces
+@using Infrastructure.Identity
 @using MudBlazor
+@inject NavigationManager NavigationManager
+@inject IUserContext UserContext
+@inject Application.Services.Persons.IPersonService PersonService
 
-<MudThemeProvider Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
+<MudThemeProvider Theme="_theme" 
+@bind-IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
+
 <style>
-    /* Ensure the browser takes up the full viewport */
     html, body {
         height: 100%;
         margin: 0;
@@ -15,109 +22,195 @@
         overflow-x: hidden;
     }
 
-    /* Main layout wrapper to ensure 100% height */
     .mud-layout {
         min-height: 100vh;
         display: flex;
     }
 
-    /* Remove border radius from the drawer and force 100% height */
-    .mud-drawer {
-        height: 100vh !important;
-        border-radius: 0 !important; /* Removes the rounded corners on menu side */
+    /* Side Drawer Background */
+    .white-drawer {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #F0F2F5 !important;
     }
 
-    /* Style for the content area to match drawer height exactly */
+    /* Main Content Area */
     .mud-main-content {
         min-height: 100vh;
-        padding-top: 0 !important; /* Removes space above */
-        @* display: flex; *@
+        padding-top: 0 !important;
         flex: 1;
-        overflow-x: auto; /* This allows the content area to scroll if the table is too wide */
+        @* overflow-x: auto; *@
         max-width: 100%;
-        @* flex-direction: column; *@
     }
 
-    /* If you use a MudPaper inside @Body, make sure it stretches */
     .content-fill {
         height: 100%;
         min-height: 100vh;
         border-radius: 0 !important;
     }
 
-    /* Styling for the column headers */
-    .mud-table-head .mud-table-cell {
-        color: #A3AED0 !important;
-        font-size: 0.75rem !important;
-        text-transform: uppercase;
-        font-weight: 700 !important;
+    /* Default Navigation Link Styling */
+    .mud-nav-link {
+        font-weight: 600 !important;
+        font-size: 0.98rem !important;
+        color: #020818 !important; /* Muted grey for inactive items */
+        @* margin: 4px 0; *@
+        border-right: 4px solid transparent;
     }
 
-    /* The blue highlight for active menu item */
-    .mud-nav-link.active {
-        background-color: #4318FF !important;
-        color: #FFFFFF !important;
-        font-weight: 900;
-        font-size: 1.1rem !important;
-    }
-    .mud-nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: #ffffff !important;
-    }
     .mud-nav-link .mud-nav-link-icon {
-        font-size: 1.4rem !important; 
-        color: #ffffff !important;
+        color: #14151a !important;
+        margin-right: 16px;
     }
-    .mud-nav-link {
-        font-weight: 700 !important;      /* Makes it bold by default */
-        font-size: 1.05rem !important;    /* Increases the text size */
-        color: #ffffff !important;        /* Keeps the greyish color from your theme */
+
+    /* Active Link Styling (Matching Screenshot) */
+    .mud-nav-link.active {
+        background-color: transparent !important;
+        color: #1B2559 !important; /* Deep dark blue for active text */
+        font-weight: 700 !important;
+        border-right: 4px solid #4318FF !important; /* Purple indicator */
     }
-    
+
+    .mud-nav-link.active .mud-nav-link-icon {
+        color: #4318FF !important; /* Icon turns purple when active */
+    }
+
+    /* Typography Overrides */
+    .brand-title {
+        color: #1B2559;
+        font-weight: 800;
+        line-height: 1.1;
+        font-family: 'Century Gothic';
+    }
+
+    .brand-subtitle {
+        color: #A3AED0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
 </style>
 
 <MudLayout>
-    @* AppBar - Kept transparent, but removed from the flow to save space if needed *@
+    @* Top AppBar *@
     <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.Search" Color="Color.Default" />
+        
         <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+        
         <MudIconButton
             Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-            Color="Color.Inherit"
+            Color="Color.Default"
             OnClick="ToggleTheme" />
+
+        @if (UserContext.IsAuthenticated)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-4">
+                <ActivatorContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="cursor-pointer">
+                        <MudAvatar Color="Color.Primary" Size="Size.Small" Style="font-weight: bold;">
+                        </MudAvatar>
+
+                        <div class="d-none d-md-flex flex-column">
+
+                            <MudText Typo="Typo.caption" Color="Color.Primary" Style="line-height: 1.1; font-size: 0.9rem;">
+                                @UserContext.Email
+                            </MudText>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" Class="mt-1">
+                                Role: @UserContext.PrimaryRole
+                            </MudChip>
+                            @if (!string.IsNullOrEmpty(tenantName))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1" Style="font-size: 0.75rem;">
+                                    Tenant: @tenantName
+                                </MudText>
+                            }
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Medium" Color="Color.Primary" />
+                    </MudStack>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }
     </MudAppBar>
 
+    @* Side Navigation Drawer *@
     <MudDrawer @bind-Open="_drawerOpen" 
                Variant="DrawerVariant.Mini" 
                OpenMiniOnHover="false" 
                Elevation="0" 
-               Class="py-4"
-               Style="background-color: #111C44;">
+               Class="py-4 white-drawer">
+               
         
-        @* Top Logo Area *@
-        <div class="d-flex align-center justify-center mb-10 mt-2">
+        <div class="d-flex align-center justify-center mb-10 mt-2 px-4">
             <MudIcon Icon="@Icons.Material.Filled.Home" Color="Color.Primary" Size="Size.Large" />
             @if (_drawerOpen)
             {
                 <div class="d-flex flex-column ml-3">
-                    <MudText Typo="Typo.h6" Style="color: white; font-weight: 800; line-height: 1.1; font-family: 'Century Gothic';">
-                        DIGITAL LOAN
-                    </MudText>
-                    <MudText Style="color: #A3AED0; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">
-                        PLATFORM
-                    </MudText>
+                    <MudText Typo="Typo.h6" Class="brand-title">DIGITAL LOAN</MudText>
+                    <MudText Class="brand-subtitle">PLATFORM</MudText>
                 </div>
             }
         </div>
 
-        <NavMenu IsMini="!_drawerOpen" />
+        <MudNavMenu>
+            <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
+                @(_drawerOpen ? "Dashboard" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+                @(_drawerOpen ? "Reports" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
+                @(_drawerOpen ? "Account" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Paid">
+                @(_drawerOpen ? "LoanProducts" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
+                @(_drawerOpen ? "Borrowers" : "")
+            </MudNavLink>
+
+            <MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
+                <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment"> Loan Application</MudNavLink>
+                <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">Guarantors</MudNavLink>
+                <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">Collateral</MudNavLink>
+                <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">Documents</MudNavLink>
+            </MudNavGroup>
+
+            <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Disbursement" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Payments" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Penality" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Process Fee" : "")
+            </MudNavLink>
+
+            <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+                <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+                @if (UserContext.PrimaryRole == "Tenant")
+                {
+                    <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                }
+            </MudNavGroup>
+        </MudNavMenu>
     </MudDrawer>
 
-    @* Main Content - No padding (pa-0) to fill height and width completely *@
     <MudMainContent Class="pa-0">
-        <MudPaper Elevation="0" Class="content-fill pa-8" Style="@( _isDarkMode ? "background-color: #0B1139;" : "background-color: #F4F7FE;")">
+        <MudPaper Elevation="0" Class="content-fill pa-8" Style="@(_isDarkMode ? "background-color: #0B1139;" : "background-color: #F4F7FE;")">
             @Body
         </MudPaper>
     </MudMainContent>
@@ -133,10 +226,10 @@
         {
             Primary = "#4318FF",
             Background = "#F4F7FE",
-            DrawerBackground = "#111C44",
-            DrawerText = "#A3AED0",
-            Surface = "#FFFFFF",
+            AppbarBackground = "rgba(255,255,255,0)",
+            DrawerBackground = "#FFFFFF",
             TextPrimary = "#1B2559",
+            ActionDefault = "#A3AED0"
         },
         PaletteDark = new PaletteDark()
         {
@@ -146,15 +239,27 @@
             AppbarBackground = "#0B1139",
             DrawerBackground = "#111C44",
             TextPrimary = "#FFFFFF",
-            TextSecondary = "#A3AED0",
+            ActionDefault = "#FFFFFF"
         }
     };
+
+    private string tenantName = "";
 
     protected override void OnInitialized()
     {
         _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+        
+        if (UserContext.IsAuthenticated && UserContext.PersonId.HasValue && UserContext.PrimaryRole != "Tenant")
+        {
+            var person = PersonService.GetPersonById(UserContext.PersonId.Value);
+            if (person != null)
+            {
+                tenantName = $"{person.FirstName} {person.LastName}";
+            }
+        }
     }
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
     void ToggleTheme() => _isDarkMode = !_isDarkMode;
+    void Logout() => NavigationManager.NavigateTo("/account/login");
 }

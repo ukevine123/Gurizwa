@@ -53,10 +53,9 @@
         
         @foreach (var app in loanApplications)
         {
-            var displayName = $"{app.Borrower?.FirstName} {app.Borrower?.LastName} ({app.AmountRequested:N0} RWF)";
             
             @* Convert app.Id to string using .ToString() *@
-            <MudSelectItem T="int" Value="@app.Id">@displayName</MudSelectItem>
+            <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
         }
     </MudSelect>
 </MudItem>

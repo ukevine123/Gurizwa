@@ -7,6 +7,11 @@ namespace Application.DTO
       [Range(1, int.MaxValue, ErrorMessage = "Please select an Expense type")]
        public int LoanApplicationId  { get; set; }   // ✅ correct property
 
+       // --- NEW PROPERTY: Connects the loan to the bank/cash account ---
+        [Required(ErrorMessage = "Please select the Source Account")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select the account providing the funds")]
+        public int AccountId { get; set; }
+
         [Required(ErrorMessage = "Please select Payment Modality")]
       [Range(1, int.MaxValue, ErrorMessage = "Please select Payment Modality")]
        public int PaymentModalityId   { get; set; }   // ✅ correct property

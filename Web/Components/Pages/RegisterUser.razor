@@ -1,11 +1,22 @@
 @page "/RegisterUser"
-@layout Layout.AuthLayout
+@layout AuthLayout
 @using Application.DTO
+@using Domain.ValueObjects
 @rendermode InteractiveServer
 @using Application.Interfaces
 @using Application.Services.Users
 @inject IIdentityService IdentityService
 @inject NavigationManager NavigationManager
+
+<style>
+    /* Force the page to fill the screen and remove scrolling */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Removes scrollbars */
+    }
+</style>
 
 <PageTitle>Register | Digital Loan</PageTitle>
 
@@ -13,11 +24,11 @@
 <MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center pa-0" Style="height: 100vh; background-color: #f5f5f5;">
     
     @* Main Small Card - Fixed size to match Login *@
-    <MudPaper Elevation="4" Class="d-flex" Style="width: 850px; height: 550px; border-radius: 24px;">
+    <MudPaper Elevation="4" Class="d-flex" Style="width: 900px; height: 680px; border-radius: 24px; overflow: hidden;">
         
         <MudGrid Spacing="0">
             @* Left Side: Dark Marketing (Matches Login exactly) *@
-            <MudItem md="5" Class="d-none d-md-flex flex-column align-center justify-center pa-10" Style="background-color: #1a1512; color: white;">
+            <MudItem md="5" Class="d-none d-md-flex flex-column align-center justify-center pa-8" Style="background-color: #1a1512; color: white;">
                 <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
                     Register <br /> For Login
                 </MudText>
@@ -32,7 +43,7 @@
             </MudItem>
 
             @* Right Side: Registration Form *@
-            <MudItem xs="12" md="7" Class="pa-10 d-flex flex-column" Style="background-color: white;">
+            <MudItem xs="12" md="7" Class="pa-8 d-flex flex-column" Style="background-color: white; height: 100%;">
                 
                 @* Top Branding Bar *@
                 <div class="d-flex align-center mb-6">
@@ -61,10 +72,21 @@
                             <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.LastName)" />
                         </MudItem>
                         <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.Sex" Label="Sex" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Sex)" />
+                            <MudSelect T="Sex"
+                                       Label="Sex"
+                                       @bind-Value="Model.Sex"
+                                       Variant="Variant.Outlined"
+                                       Dense="true"
+                                       Margin="Margin.Dense"
+                                       For="@(() => Model.Sex)">
+                                @foreach (Sex item in Enum.GetValues(typeof(Sex)))
+                                {
+                                    <MudSelectItem T="Sex" Value="item">@item.ToString()</MudSelectItem>
+                                }
+                            </MudSelect>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.DateOfBirth" Label="Date of Birth" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.DateOfBirth)" />
+                            <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.DateOfBirth)" />
                         </MudItem>
                         <MudItem xs="6">
                             <MudTextField @bind-Value="Model.Country" Label="Country" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Country)" />
@@ -75,34 +97,21 @@
                         <MudItem xs="6">
                             <MudTextField @bind-Value="Model.Street" Label="Street" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Street)" />
                         </MudItem>
+                         <MudItem  xs="6">
+                           <MudTextField @bind-Value="Model.PhoneNumber"  Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Placeholder="+079 456 7890" For="@(() => Model.PhoneNumber)" />
+                         </MudItem>
                     </MudGrid>
 
                     <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" For="@(() => Model.Email)" />
 
-                    <MudTextField @bind-Value="Model.PhoneNumber" 
-              Label="Phone Number" 
-              Variant="Variant.Outlined" 
-              Margin="Margin.Dense" 
-              Class="mb-4" 
-              Placeholder="+079 456 7890"
-              For="@(() => Model.PhoneNumber)" />
-
-                    <MudTextField @bind-Value="Model.Password" 
-                                  Label="Password" 
-                                  Variant="Variant.Outlined" 
-                                  Margin="Margin.Dense"
-                                  InputType="@_passwordInput"
-                                  Adornment="Adornment.End" 
-                                  AdornmentIcon="@_passwordInputIcon" 
-                                  OnAdornmentClick="TogglePasswordVisibility"
-                                  For="@(() => Model.Password)" />
+                    <MudTextField @bind-Value="Model.Password" Label="Password" Variant="Variant.Outlined" Margin="Margin.Dense"  InputType="@_passwordInput" Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"  OnAdornmentClick="TogglePasswordVisibility" For="@(() => Model.Password)" />
 
                     @* Action Button - Same Gradient Style *@
                     <MudButton ButtonType="ButtonType.Submit"
                                Variant="Variant.Filled"
                                FullWidth="true" 
                                Disabled="@_isProcessing"
-                               Class="py-3 shadow-none mt-8"
+                               Class="py-3 shadow-none mt-6"
                                Style="background: #02086b; color: white; border-radius: 25px; text-transform: none; font-weight: 700;">
                         @if (_isProcessing)
                         {

@@ -9,5 +9,6 @@ namespace Application.Interfaces
         Task<Guarantor> GetGuarantorById(int id);   
         Task CreateGuarantor(CreateGuarantorDTO guarantorDTO);
         Task UpdateGuarantor(int id, UpdateGuarantorDTO guarantorDTO);
+        Task DeleteGuarantor(int id);
     }
 }

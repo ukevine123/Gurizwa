@@ -107,6 +107,14 @@
                               For="@(() => Model.GracePeriodDays)" />
                
                 </MudItem>
+                 <MudItem  xs="6">
+                <MudTextField Label="PenalityRate"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.PenalityRate"
+                              For="@(() => Model.PenalityRate)" />
+               
+                </MudItem>
                  
                 <MudItem xs="12">
                 <MudButton Variant="Variant.Filled"
@@ -118,8 +126,6 @@
                     Add LoanProduct
                 </MudButton>
                 </MudItem>
-
-
 
             </MudGrid>
 
