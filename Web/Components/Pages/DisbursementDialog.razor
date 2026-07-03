@@ -129,11 +129,11 @@
 
     private string HeaderStyle => IsReschedule 
         ? "background: linear-gradient(90deg, #b02a37 0%, #dc3545 100%); border-radius:12px; color:white; position:relative;" 
-        : "background: linear-gradient(90deg, #1B2559 0%, #3F51B5 100%); border-radius:12px; color:white; position:relative;";
+        : "background: linear-gradient(135deg, #4318FF ); border-radius:12px; color:white; position:relative;";
 
     private string ButtonStyle => IsReschedule 
         ? "background-color: #dc3545; color: white; border-radius: 8px; font-weight: 700;" 
-        : "background-color: #1B2559; color: white; border-radius: 8px; font-weight: 700;";
+        : "background: linear-gradient(135deg, #4318FF ); color: white; border-radius: 8px; font-weight: 700;";
 
     private decimal PrincipalWrapper { get => Model.PrincipalOffered; set { Model.PrincipalOffered = value; Calculate(); } }
     private decimal RateWrapper { get => Model.InterestRate; set { Model.InterestRate = value; Calculate(); } }

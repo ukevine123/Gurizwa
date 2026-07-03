@@ -12,23 +12,22 @@
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <!-- ════════════ HEADER ════════════ -->
-    <MudPaper Elevation="0" Class="pa-4 mb-4 rounded shadow-sm" Style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);">
+    <MudPaper Elevation="0" Class="pa-4 mb-4 rounded shadow-sm" Style="background: linear-gradient(135deg, #4318FF );">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
             <MudIcon Icon="@Icons.Material.Filled.GppGood" Style="color:white; font-size:2.5rem;" />
             <MudStack Spacing="1">
                 <MudText Typo="Typo.h5" Style="color:white; font-weight:bold;">Waiver Management</MudText>
                 <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.85);">Manage loan and fee waivers</MudText>
             </MudStack>
-            <MudSpacer />
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Warning"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       OnClick="OpenCreateDialog"
-                       Style="color: white;">
-                New Waiver
-            </MudButton>
         </MudStack>
     </MudPaper>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog"
+                       Style="color: white; background: linear-gradient(135deg, #4318FF );">
+                New Waiver
+            </MudButton>
 
     <!-- ════════════ TABS ════════════ -->
     <MudTabs Elevation="2" ApplyEffectsToContainer="true" PanelClass="pa-4">

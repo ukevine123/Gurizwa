@@ -83,12 +83,6 @@
             <SelectColumn T="LoanApplication" />
             <HierarchyColumn T="LoanApplication" />
             @* <PropertyColumn Property="x => x.Id" Title="ID" /> *@
-            <TemplateColumn >
-                <CellTemplate>
-                   
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.ApplicationCode" Title="Application Code" />
            <PropertyColumn Property="x => x.LoanProductSettingId" Title="Product" />
             <PropertyColumn Property="x => x.Borrower.FirstName" Title="Borrower" />
             <PropertyColumn Property="x => x.PaymentModality.Mode" Title="Payment Method" />
@@ -112,17 +106,6 @@
     </CellTemplate>
 </TemplateColumn>
 
-
-            <TemplateColumn Title="Status">
-                <CellTemplate>
-                    <MudChip T="string" 
-                             Color="@GetStatusColor(context.Item.Status)" 
-                             Size="Size.Small" 
-                             Variant="Variant.Text">
-                        @context.Item.Status
-                    </MudChip>
-                </CellTemplate>
-            </TemplateColumn>
 
             <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
                 <CellTemplate>

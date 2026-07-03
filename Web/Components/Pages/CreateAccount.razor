@@ -9,6 +9,7 @@
 @using Microsoft.EntityFrameworkCore.Metadata.Internal
 @inject NavigationManager Navigation
 @inject IAccountService AccountService
+@inject IAccountTypeService AccountTypeService
 
 <PageTitle>Create Account</PageTitle>
 
@@ -29,7 +30,7 @@
                         <MudStack Spacing="2">
                             <MudTextField Label="Name" @bind-Value="Model.Name" For="@(() => Model.Name)" />
                             <MudTextField Label="Provider" @bind-Value="Model.Provider" For="@(() => Model.Provider)" />
-<MudItem xs="12" sm="6">
+                <MudItem xs="12" sm="6">
                     <MudSelect T="int" Label="Account type" @bind-Value="Model.AccountTypeId"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                AdornmentIcon="@Icons.Material.Filled.Category" Adornment="Adornment.Start"
@@ -43,10 +44,21 @@
                 </MudItem>
                             <MudTextField Label="Account Number" @bind-Value="Model.AccountNumber" For="@(() => Model.AccountNumber)" />
                             <MudNumericField Label="Balance" @bind-Value="Model.Balance" For="@(() => Model.Balance)" Format="N2" />
-                            <MudSelect T="string" Label="Currency" @bind-Value="Model.Currency" For="@(() => Model.Currency)" Required="true">
-                                @foreach (var c in new List<string> { "RWF", "USD", "EUR" })
+                            <MudSelect T="string"
+                                       Label="Currency"
+                                       @bind-Value="Model.Currency"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       Dense="true"
+                                       AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                       Adornment="Adornment.Start"
+                                       AdornmentColor="Color.Primary"
+                                       Required="true"
+                                       For="@(() => Model.Currency)">
+                                <MudSelectItem T="string" Value="@string.Empty">Select Currency</MudSelectItem>
+                                @foreach (var currency in Currencies)
                                 {
-                                    <MudSelectItem Value="@c">@c</MudSelectItem>
+                                    <MudSelectItem T="string" Value="@currency.Code">@currency.Label</MudSelectItem>
                                 }
                             </MudSelect>
                             
@@ -59,11 +71,26 @@
 </div>
 </div>
 @code {
-    
-    private AccountCreateDTO Model {get;set;} = new ();
+
+    private AccountCreateDTO Model { get; set; } = new();
 
     private List<AccountType> AccountTypes = new();
-    
+
+    private readonly List<(string Code, string Label)> Currencies = new()
+    {
+        ("RWF", "🇷🇼 RWF — Rwandan Franc"),
+        ("USD", "🇺🇸 USD — US Dollar"),
+        ("EUR", "🇪🇺 EUR — Euro"),
+        ("GBP", "🇬🇧 GBP — British Pound"),
+        ("CAD", "🇨🇦 CAD — Canadian Dollar"),
+        ("AUD", "🇦🇺 AUD — Australian Dollar"),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        AccountTypes = await AccountTypeService.GetAllAccountTypesAsync();
+    }
+
     private void onValidSubmit()
     {
         AccountService.CreateAccountAsync(Model);

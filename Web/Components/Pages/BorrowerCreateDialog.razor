@@ -164,23 +164,23 @@
                               For="@(() => Model.PhoneNumber)" />
                 </MudItem>
                  
-                  @if (Model.Maritalstatus == Maritalstatus.Married)
-                    {
-        <MudItem xs="6">
-            <MudTextField Label="Spouse ID Number"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          @bind-Value="Model.SpouceIdNumber"
-                          For="@(() => Model.SpouceIdNumber)" />
-        </MudItem>
+                @if (Model.Maritalstatus == Maritalstatus.Married)
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="Spouse ID Number"
+                                    Variant="Variant.Outlined"
+                                    Margin="Margin.Dense"
+                                    @bind-Value="Model.SpouceIdNumber"
+                                    For="@(() => Model.SpouceIdNumber)" />
+                    </MudItem>
 
-        <MudItem xs="6">
-            <MudTextField Label="Spouse Name"
-                          Variant="Variant.Outlined"
-                          Margin="Margin.Dense"
-                          @bind-Value="Model.SpouceName"
-                          For="@(() => Model.SpouceName)" />
-        </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Spouse Name"
+                                    Variant="Variant.Outlined"
+                                    Margin="Margin.Dense"
+                                    @bind-Value="Model.SpouceName"
+                                    For="@(() => Model.SpouceName)" />
+                    </MudItem>
                 }
 
   <MudItem xs="6">

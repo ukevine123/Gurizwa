@@ -158,11 +158,6 @@
         {
             ErrorMessage = ex.Message;
         }
-        // Open the CollateralCreateDialog with parameters
-          var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-          var parameters = new DialogParameters<CollateralCreateDialog>(); 
-            
-            await DialogService.ShowAsync<CollateralCreateDialog>("Create Collateral Information", parameters, options);
     }
     protected override async Task OnInitializedAsync()
     {

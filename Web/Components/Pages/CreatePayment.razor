@@ -19,7 +19,7 @@
     <DialogContent>
         @* --- HEADER SECTION --- *@
         <MudPaper Elevation="0" Class="pa-5 mb-6"
-                  Style="background: linear-gradient(90deg, #1B2559 0%, #3F51B5 100%); border-radius:12px; color:white; position:relative; overflow:hidden;">
+                  Style="background: linear-gradient(135deg, #4318FF); border-radius:12px; color:white; position:relative; overflow:hidden;">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
                 <MudAvatar Style="height:60px; width:60px; background: rgba(255,255,255,0.2);">
                     <MudIcon Icon="@Icons.Material.Filled.Payments" Style="font-size:2.5rem; color: white;" />
@@ -145,7 +145,7 @@
                     <MudButton OnClick="OnValidSubmit" Variant="Variant.Filled" 
                                Disabled="@(_isProcessing || IsPaymentRestricted())"
                                StartIcon="@Icons.Material.Filled.CheckCircle" FullWidth="true"
-                               Style="background-color: #1B2559; color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;">
+                               Style="background: linear-gradient(135deg, #4318FF); color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;">
                         @(_isProcessing ? "PROCESSING..." : "CONFIRM TRANSACTION")
                     </MudButton>
                 </MudItem>

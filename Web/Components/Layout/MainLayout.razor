@@ -112,7 +112,6 @@
 
     /* Main Content Area */
     .mud-main-content {
-        padding-top: 0 !important;
         flex: 1;
         max-width: 100%;
         /* No hardcoded background — let MudBlazor theme control it */
@@ -203,7 +202,7 @@
 
 <MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
     @* Top AppBar *@
-    <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
+    @* <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
         <MudSpacer />
         
@@ -239,6 +238,48 @@
                 </ChildContent>
             </MudMenu>
         }
+    </MudAppBar> *@
+    <MudAppBar Elevation="2" Dense="false" Color="Color.Transparent" Fixed="true" Class="@(_isDarkMode ? "dark-mode" : "")">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@DrawerToggle"
+                       aria-label="Toggle navigation" />
+
+        <MudSpacer />
+
+        <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+
+        <MudIconButton
+            Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+            Color="Color.Default"
+            OnClick="ToggleTheme" />
+
+         @if (UserContext.IsAuthenticated)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-4">
+                <ActivatorContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="cursor-pointer">
+                        <MudAvatar Color="Color.Primary" Size="Size.Small" Style="font-weight: bold;">
+                        </MudAvatar>
+
+                        <div class="d-none d-md-flex flex-column">
+                            <MudText Typo="Typo.body2" Style="@($"line-height: 1.1; font-weight: 800; font-size: 1.05rem; color: {(_isDarkMode ? "#FFFFFF" : "#1B2559")};")">
+                                @UserContext.FullName
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Primary" Style="line-height: 1.1; font-size: 0.9rem;">
+                                @UserContext.Email
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Medium" Color="Color.Primary" />
+                    </MudStack>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }       
     </MudAppBar>
 
     @* Side Navigation Drawer *@
@@ -320,9 +361,14 @@
             </MudNavGroup>
         </MudNavMenu>
     </MudDrawer>
-
+@* 
     <MudMainContent Class="pa-0">
         <div class="content-fill">
+            @Body
+        </div>
+    </MudMainContent> *@
+    <MudMainContent Class="app-main-with-footer px-0">
+        <div class="app-main-body content-fill">
             @Body
         </div>
     </MudMainContent>

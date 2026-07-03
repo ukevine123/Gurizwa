@@ -59,10 +59,11 @@ namespace Infrastructure.Repositories
                 if (disbursement == null) throw new Exception("Disbursement not found.");
 
                 // 2. CHECK: Prevent payment if today is before the Loan Start Date
-                if (DateTime.Now.Date < disbursement.StartDate.Date)
-                {
-                    throw new InvalidOperationException($"The installment cycle for this loan starts on {disbursement.StartDate:MMMM dd, yyyy}. Please wait for the cycle to begin.");
-                }
+                // COMMENTED OUT to allow payment before the installment date
+                // if (DateTime.Now.Date < disbursement.StartDate.Date)
+                // {
+                //     throw new InvalidOperationException($"The installment cycle for this loan starts on {disbursement.StartDate:MMMM dd, yyyy}. Please wait for the cycle to begin.");
+                // }
 
                 // 3. Calculate Total Remaining Debt for the whole loan
                 var totalPaidSoFar = disbursement.Payments

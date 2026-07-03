@@ -3,6 +3,7 @@
 @using Application.Interfaces
 
 @using Application.Services.ProcessFeeDeposits
+@using Application.Services.Disbursements
 @using Application.Services.LoanApplications
 @using Application.Services.Accounts
 @using Domain.ValueObjects
@@ -17,21 +18,22 @@
 @inject IProcessFeeDepositService ProcessFeeDepositService
 @inject ILoanApplicationService LoanApplicationService
 @inject IAccountService AccountService
+@inject IDisbursementService DisbursementService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
 <MudDialog Style="overflow:hidden;">
     <DialogContent>
         <MudPaper Elevation="0"
-                  Style="background: linear-gradient(135deg, #5a55e6 0%, #f7f9f8 100%); padding:14px 18px; margin-bottom:16px;">
+                  Style="background: linear-gradient(135deg, #4318FF); padding:14px 18px; margin-bottom:16px;">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                 <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Style="color:white; font-size:1.6rem;" />
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:700; line-height:1.2;">
-                        Create Guarantor
+                        Create Process Fee Deposit  
                     </MudText>
                     <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
-                        Fill the form below to create a new Guarantor
+                        Fill the form below to create a new Process Fee Deposit
                     </MudText> 
                 </MudStack>
             </MudStack>
@@ -42,11 +44,12 @@
             <ValidationSummary />
 
             <MudGrid Spacing="1" Class="align-items-center">
-                <MudItem xs="6"> 
+                <MudItem xs="12"> 
                     <MudSelect T="int"
                                Label="LoanApplication"
                                Placeholder="--Select Loan Type--"
-                               @bind-Value="Model.LoanApplicationId"
+                               Value="Model.LoanApplicationId"
+                               ValueChanged="OnLoanApplicationChanged"
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
@@ -64,7 +67,11 @@
                 </MudItem>
 
                 <MudItem xs="6">
-                    <MudTextField Label="Amount" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Amount" For="@(() => Model.Amount)" />
+                    <MudNumericField T="decimal" Label="Percentage Rate (%)" Variant="Variant.Outlined" Margin="Margin.Dense" Value="Percentage" ValueChanged="OnPercentageChanged" />
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudNumericField T="decimal" Label="Amount" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Amount" For="@(() => Model.Amount)" />
                 </MudItem>
                           
                 <MudItem xs="12">
@@ -88,11 +95,8 @@
                     </MudSelect> 
                 </MudItem>           
 
-                <MudItem xs="6"> 
+                <MudItem xs="12"> 
                     <MudDatePicker Label="Deposited Date" @bind-Value="Model.DepositDate" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
-                </MudItem>
-                 <MudItem xs="6">
-                    <MudTextField Label="Status" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Status" For="@(() => Model.Status)" />
                 </MudItem>
 
                 <MudItem xs="12">
@@ -117,6 +121,7 @@
     public Sex sex { get; set; }
     private List<Account> accountN = new();
     private List<LoanApplication> loanApplications = new();
+    private List<Disbursement> disbursements = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -126,14 +131,21 @@
             var loans = await LoanApplicationService.GetAllLoanApplicationsAsync();
             if (loans != null)
             {
-                loanApplications = loans;
+                loanApplications = loans.Where(l => l.Status == LoanStatus.Approved).ToList();
             }
 
-            // 2. Load Guarantor Types
+            // 2. Load Guarantor Types (Accounts)
             var accounts = await AccountService.GetAllAccountsAsync();
             if (accounts != null)
             {
                 accountN = accounts;
+            }
+            
+            // 3. Load Disbursements
+            var disbs = await DisbursementService.GetAllDisbursementsAsync();
+            if (disbs != null)
+            {
+                disbursements = disbs;
             }
 
             StateHasChanged();
@@ -157,6 +169,46 @@
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+        }
+    }
+
+    private decimal Percentage { get; set; } = 0;
+
+    private void OnLoanApplicationChanged(int loanId)
+    {
+        Model.LoanApplicationId = loanId;
+        var selectedLoan = loanApplications.FirstOrDefault(l => l.Id == loanId);
+        if (selectedLoan != null && selectedLoan.LoanProductSetting != null)
+        {
+            // Default to 0, let the user set it manually
+            Percentage = 0;
+            CalculateAmount();
+        }
+        else
+        {
+            Model.Amount = 0;
+        }
+    }
+
+    private void OnPercentageChanged(decimal newPercentage)
+    {
+        Percentage = newPercentage;
+        CalculateAmount();
+    }
+
+    private void CalculateAmount()
+    {
+        if (Model.LoanApplicationId > 0)
+        {
+            var selectedLoan = loanApplications.FirstOrDefault(l => l.Id == Model.LoanApplicationId);
+            if (selectedLoan != null)
+            {
+                Model.Amount = selectedLoan.AmountRequested * (Percentage / 100m);
+            }
+            else
+            {
+                Model.Amount = 0;
+            }
         }
     }
 }

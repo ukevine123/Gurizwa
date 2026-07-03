@@ -102,7 +102,10 @@ namespace Infrastructure.Repositories
 
             if (app == null) return new CreateDisbursementDTO();
 
-            decimal fee = app.LoanProductSetting?.ProcessingFee ?? 0;
+            decimal feeDeposited = await context.ProcessFeeDeposits
+                .Where(p => p.LoanApplicationId == loanApplicationId)
+                .SumAsync(p => p.Amount);
+
             decimal rate = app.LoanProductSetting?.InterestRate ?? 0;
 
             return new CreateDisbursementDTO
@@ -110,7 +113,7 @@ namespace Infrastructure.Repositories
                 LoanApplicationId = app.Id,
                 PaymentModalityId = app.PaymentModalityId,
                 InterestRate = rate,
-                PrincipalOffered = app.AmountRequested - fee,
+                PrincipalOffered = app.AmountRequested - feeDeposited,
                 TotalInstallments = 1 
                 
             };

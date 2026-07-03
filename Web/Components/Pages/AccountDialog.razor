@@ -109,11 +109,22 @@
                               For="@(() => Model.Balance)" />
                 </MudItem>
                 <MudItem  xs="6">
-                <MudTextField Label="Currency"
-                              Variant="Variant.Outlined"
-                              Margin="Margin.Dense"
-                              @bind-Value="Model.Currency"
-                              For="@(() => Model.Currency)" />
+                <MudSelect T="string"
+                           Label="Currency"
+                           Variant="Variant.Outlined"
+                           Margin="Margin.Dense"
+                           AnchorOrigin="Origin.BottomCenter"
+                           AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                           Adornment="Adornment.Start"
+                           AdornmentColor="Color.Primary"
+                           @bind-Value="Model.Currency"
+                           For="@(() => Model.Currency)">
+                    <MudSelectItem T="string" Value="@string.Empty">--Select Currency--</MudSelectItem>
+                    @foreach (var currency in Currencies)
+                    {
+                        <MudSelectItem T="string" Value="@currency.Code">@currency.Label</MudSelectItem>
+                    }
+                </MudSelect>
                 </MudItem>
 
 
@@ -148,6 +159,16 @@
     private AccountCreateDTO Model {get;set;} = new ();
     private string ErrorMessage{get;set;}
     private List<AccountType> _accountTypes = new ();
+
+    private readonly List<(string Code, string Label)> Currencies = new()
+    {
+        ("RWF", "🇷🇼 RWF — Rwandan Franc"),
+        ("USD", "🇺🇸 USD — US Dollar"),
+        ("EUR", "🇪🇺 EUR — Euro"),
+        ("GBP", "🇬🇧 GBP — British Pound"),
+        ("CAD", "🇨🇦 CAD — Canadian Dollar"),
+        ("AUD", "🇦🇺 AUD — Australian Dollar"),
+    };
 
       protected override async Task OnInitializedAsync()
       {

@@ -15,7 +15,10 @@
     .dashboard-container {
         padding: 24px;
         background-color: #F7F9FC;
-        min-height: calc(100vh - 64px);
+        height: calc(100vh - 64px);
+        margin: -1.35rem -0.1rem -2.0rem; /* Negate .app-main-body padding to prevent scrollbar */
+        box-sizing: border-box;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         font-family: 'Inter', sans-serif;
