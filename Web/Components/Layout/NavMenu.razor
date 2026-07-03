@@ -22,10 +22,6 @@
         @(!IsMini ? "Dashboard" : "")
     </MudNavLink>
 
-    <MudNavLink Href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
-        @(!IsMini ? "Reports" : "")
-    </MudNavLink>
-
      <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
         @(!IsMini ? "Account" : "")
     </MudNavLink>
@@ -65,6 +61,10 @@
 
 </MudNavGroup>
 
+    <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Process Fee Deposits" : "")
+    </MudNavLink>
+
     @* <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
         @(!IsMini ? "Guarantors" : "")
     </MudNavLink> *@
@@ -90,8 +90,8 @@
         @(!IsMini ? "Waivers" : "")
     </MudNavLink>
 
-    <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Process Fee Deposits" : "")
+    <MudNavLink Href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+        @(!IsMini ? "Reports" : "")
     </MudNavLink>
 
 <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">

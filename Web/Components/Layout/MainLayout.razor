@@ -306,9 +306,6 @@
                 @(_drawerOpen ? "Dashboard" : "")
             </MudNavLink>
 
-            <MudNavLink href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
-                @(_drawerOpen ? "Reports" : "")
-            </MudNavLink>
 
             <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
                 @(_drawerOpen ? "Account" : "")
@@ -329,6 +326,10 @@
                 <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">Documents</MudNavLink>
             </MudNavGroup>
 
+            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Process Fee" : "")
+            </MudNavLink>
+
             <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
                 @(_drawerOpen ? "Disbursement" : "")
             </MudNavLink>
@@ -344,9 +345,9 @@
             <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
                   @(_drawerOpen ? "Waivers" : "")
             </MudNavLink>
-
-            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
-                @(_drawerOpen ? "Process Fee" : "")
+            
+            <MudNavLink href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+                @(_drawerOpen ? "Reports" : "")
             </MudNavLink>
 
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
