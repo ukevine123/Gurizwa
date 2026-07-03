@@ -1,0 +1,49 @@
+﻿@* <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router> *@
+
+
+@using Microsoft.AspNetCore.Components.Authorization
+<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(Program).Assembly"> 
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                @if (!context.User.Identity?.IsAuthenticated !=true)
+                 { 
+                    <RedirectToLogin /> 
+                    } 
+                    else
+                    {
+                        <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+                            <MudAlert Severity="Severity.Error">
+                                you are not authorized to access this page.
+                            </MudAlert>
+                        </MudContainer>
+                    }
+            </NotAuthorized>
+            <Authorizing>
+                <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+                    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Large" />
+                    <MudText Typo="Typo.h6" Class="mt-2"> Checking Authorization...</MudText>
+                </MudContainer>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Not Found</PageTitle>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+                    <MudAlert Severity="Severity.Warning">
+                        Sorry, there's nothing at this address.
+                    </MudAlert>
+                       
+                </MudContainer>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

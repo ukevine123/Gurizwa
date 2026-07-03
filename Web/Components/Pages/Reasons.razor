@@ -1,0 +1,104 @@
+@* @page "/Reasons"
+@using Domain.Entities
+@using Application.Services.Reasons   
+@using MudBlazor
+@inject IReasonService ReasonService
+@inject IDialogService DialogService
+
+<PageTitle>Reason Management</PageTitle>
+
+@* --- HEADER AREA: Matches Disbursement Page --- *@
+@* <div class="d-flex align-center justify-space-between mb-6 mt-4 px-4"> *@
+    @* <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Reason Management</MudText> *@
+@* </div> *@
+
+@* --- ACTION BAR: Clean spacing and alignment --- *@
+@* <MudGrid Class="mb-4 px-4" Spacing="2">
+    <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+        @if (_selectedItems.Any())
+        {
+            <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+            <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+        }
+        <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+    </MudItem>
+</MudGrid>
+
+@* --- DATA GRID: Styled with rounded corners and no borders --- *@
+@* <MudDataGrid T="Reason" 
+             Items="@_reason" 
+             Hover="true" 
+             Bordered="false" 
+             Elevation="0" 
+             MultiSelection="true"
+             @bind-SelectedItems="_selectedItems"
+             Class="rounded-xl border-none shadow-sm mx-4">
+     *@
+    @* <ToolBarContent>
+        <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Reasons List</MudText>
+        <MudSpacer />
+        <MudMenu Label="Add Reason" 
+                 Variant="Variant.Filled" 
+                 EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
+                 Color="Color.Primary"
+                 Class="rounded-lg">
+            <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreateReason())">Single</MudMenuItem>
+            <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+        </MudMenu>
+    </ToolBarContent>
+
+    <Columns>
+        <SelectColumn T="Reason" />
+
+        <PropertyColumn Property="x => x.Id" Title="ID" />
+        <PropertyColumn Property="x => x.Name" Title="Reason" />
+      
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                <MudChip T="string" 
+                         Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
+                         Size="Size.Small" 
+                         Variant="Variant.Text"
+                         Style="font-weight: 600;">
+                    @(context.Item.IsActive ? "Active" : "Inactive")
+                </MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="Reason" />
+    </PagerContent> *@
+@* </MudDataGrid> *@ 
+
+@* @code {
+    // --- ORIGINAL LOGIC PRESERVED ---
+    private List<Reason> _reason = new();
+    private HashSet<Reason> _selectedItems = new(); // Added to support selection UI
+    private readonly DialogOptions _closeButton = new() { CloseButton = true };
+
+    private async Task LoadReason()
+    {
+        _reason = await ReasonService.GetAllReasonsAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReason();
+    }
+
+    private async Task GoToCreateReason()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateReason>("Add Reason", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(100);
+            await LoadReason();
+        }
+    }
+} *@ 

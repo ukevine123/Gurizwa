@@ -1,0 +1,306 @@
+@page "/LoanApplication"
+@using Application.DTO
+@using Infrastructure.Repositories
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.LoanApplications
+@using Domain.ValueObjects
+
+@inject ILoanApplicationService LoanApplicationService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>LoanApplication</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+   
+    <MudGrid Class="mb-4" Spacing="2">
+
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @* 3. STATUS SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="2">
+        @if (_statusCounts != null && _statusCounts.Any())
+        {
+            @foreach (var statusCount in _statusCounts)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@statusCount.Status</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@statusCount.Count</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Applications</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
+    <MudDataGrid T="LoanApplication" Items="@_loanApplication" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Application</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add LoanApplication"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    Import
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
+            <MudSpacer />
+            <MudMenu Label="Add LoanApplication" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="LoanApplication" />
+            <HierarchyColumn T="LoanApplication" />
+            @* <PropertyColumn Property="x => x.Id" Title="ID" /> *@
+           <PropertyColumn Property="x => x.LoanProductSettingId" Title="Product" />
+            <PropertyColumn Property="x => x.Borrower.FirstName" Title="Borrower" />
+            <PropertyColumn Property="x => x.PaymentModality.Mode" Title="Payment Method" />
+            <PropertyColumn Property="x => x.AmountRequested" Title="AmountRequested" />
+            <PropertyColumn Property="x => x.PreferredDate" Title="PreferredDate" Format="yyyy-MM-dd" />
+            
+         <TemplateColumn T="LoanApplication" Title="History">
+    <CellTemplate>
+        @* Add the Rescheduled check here *@
+        @if (context.Item?.Status == LoanStatus.Disbursed || 
+             context.Item?.Status == LoanStatus.Paid || 
+             context.Item?.Status == LoanStatus.Approved ||
+             context.Item?.Status == LoanStatus.Rescheduled) 
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.History" 
+                           Size="Size.Small" 
+                           Color="Color.Primary" 
+                           OnClick="() => OpenTransactionHistoryDialog(context.Item.Id)" 
+                           Title="View Transaction History" />
+        }
+    </CellTemplate>
+</TemplateColumn>
+
+
+            <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" 
+                                   Size="Size.Small" 
+                                   Color="Color.Info"
+                                   OnClick="@(() => OpenDetailDialog(context.Item.Id))" 
+                                   Title="View Details" />
+                                   
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                   Size="Size.Small" 
+                                   Color="Color.Primary"
+                                   OnClick="@(() => OpenEditDialog(context.Item.Id))" 
+                                   Title="Edit Application" />
+                                   
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                   Size="Size.Small" 
+                                   Color="Color.Error" 
+                                   OnClick="@(() => ConfirmDeleteApplication(context.Item))" 
+                                   Title="Delete Application" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        
+        <PagerContent>
+            <MudDataGridPager T="LoanApplication" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+     private bool _isLoading = true;
+
+    private IEnumerable<LoanApplication> FilteredBorrowers => _loanApplication
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    
+            x.ApprovedBy.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+     //s
+       List<LoanApplication> _loanApplication = new();
+    private HashSet<LoanApplication> _selectedItems = new();
+
+    private List<LoanStatusCount> _statusCounts = new();
+
+    private class LoanStatusCount
+    {
+        public string? Status { get; set; }
+        public int Count { get; set; }
+    }
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadLoanApplication();
+         
+    }
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var dialog = await DialogService.ShowAsync<ApplicationCreateDialog>("Add Application", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+             await LoadLoanApplication();
+        }
+    }
+     private async Task LoadLoanApplication()
+    {
+        _loanApplication = await LoanApplicationService.GetAllLoanApplicationsAsync();
+        
+        // Calculate status counts
+        _statusCounts = _loanApplication
+            .GroupBy(a => a.Status.ToString())
+            .Select(g => new LoanStatusCount
+            {
+                Status = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+        
+        StateHasChanged();
+    }
+        private Color GetStatusColor(LoanStatus status)
+        {
+        return status.ToString() switch
+        {
+            "Applied" => Color.Warning,
+            "Approved" => Color.Success,
+            "Rejected" => Color.Error,
+            _ => Color.Default
+        };
+       }
+
+    private async Task OpenDetailDialog(int id)
+    {
+        var parameters = new DialogParameters<LoanApplicationDetail> { { x => x.LoanId, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+
+        var dialog = await DialogService.ShowAsync<LoanApplicationDetail>("View Details", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            _selectedItems.Clear();
+            await LoadLoanApplication();
+        }
+    }
+
+     private async Task OpenEditDialog(int id)
+    {
+        var parameters = new DialogParameters<EditBorrowerDialog> { { x => x.Id, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EditBorrowerDialog>("Edit Application", parameters, options);
+        var result = await dialog.Result;
+    }
+
+    @* private async Task OpenTransactionHistoryDialog(int id)
+    {
+        DialogParameters<TransactionHistoryDialog>? parameters = new DialogParameters<TransactionHistoryDialog> { { x => x.LoanApplicationId, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<TransactionHistoryDialog>("Transaction History", parameters, options);
+    } *@
+
+    private async Task OpenTransactionHistoryDialog(int? id)
+{
+    if (id == null) return; // Prevent crashes if id is null
+
+    DialogParameters<TransactionHistoryDialog> parameters = new DialogParameters<TransactionHistoryDialog> { { x => x.LoanApplicationId, id.Value } };
+    var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+    await DialogService.ShowAsync<TransactionHistoryDialog>("Transaction History", parameters, options);
+}
+
+
+    private async Task OnStatusChanged(LoanApplication item, LoanStatus newStatus)
+    {
+        // 1. Update the local UI immediately so the user sees the change
+        item.Status = newStatus;
+
+        // 2. Define the DTO (This fixes "does not exist in current context")
+        var updateApplicationDTO = new UpdateApplicationDTO
+        {
+            Status = newStatus,
+            AmountRequested = item.AmountRequested,
+            ApprovedBy = item.ApprovedBy,
+            PreferredDate = item.PreferredDate,
+            DateofApplication = item.DateofApplication,
+            PaymentModalityId = item.PaymentModalityId
+        };
+
+        try
+        {
+            // 3. Use the INJECTED service (This fixes CS0120)
+            // Note: Use 'LoanApplicationService' (the variable), NOT 'LoanApplicationRepository' (the class)
+            await LoanApplicationService.UpdateLoanApplication(item.Id, updateApplicationDTO);
+            
+           Snackbar.Add("Status updated successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            
+            // Optional: Refresh data if the update failed to reset the UI
+            await LoadLoanApplication(); 
+        }
+    }
+
+    private async Task ConfirmDeleteApplication(LoanApplication selected)
+    {
+        if (selected == null) return;
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Loan Application",
+            $"Are you sure you want to delete the loan application {selected.ApplicationCode}?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            Snackbar.Add("Delete feature is not implemented in the service yet.", Severity.Warning);
+            /*
+            try
+            {
+                await LoanApplicationService.DeleteLoanApplicationAsync(selected.Id);
+                Snackbar.Add("Loan application deleted successfully.", Severity.Success);
+                _selectedItems.Clear();
+                await LoadLoanApplication();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+            */
+        }
+    }
+}
+

@@ -1,0 +1,51 @@
+@inherits LayoutComponentBase
+
+@* Required for MudBlazor *@
+<MudThemeProvider DefaultScrollbar="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
+    @Body
+</div>
+@code{
+private MudTheme _theme = new()
+{
+    PaletteLight = new PaletteLight()
+    {
+        Primary = "#948a6b",          // --primary-color
+        Secondary = "#71877e",        // --text-color2
+        AppbarBackground = "#023d28", // --primary-color
+        AppbarText = "#FFFFFF",
+        Background = "#FFFFFF",       // --body-color
+        DrawerBackground = "#e4e9f7", // --sidebar-color
+        DrawerText = "#71877e",       // --text-sidebar-color
+        Surface = "#FFFFFF",
+        TextPrimary = "#948a6b",      // --text-color1
+        TextSecondary = "#71877e",    // --text-color2
+        ActionDefault = "#023d28",
+        Success = "#45dc59",          // --tablestatusactivetext
+        Warning = "#e8a950",          // --tablestatusinactivetext
+        Error = "#fe0808",            // --deletetextcoloraction
+        Divider = "#E5E7EB",          // --borders
+    },
+    PaletteDark = new PaletteDark()
+    {
+        Primary = "#948a6b",          // --primary-color (dark)
+        Secondary = "#71877e",        // --text-color2
+        AppbarBackground = "#064632", // --sidebar-color (dark)
+        Background = "#021b12",       // --body-color (dark)
+        DrawerBackground = "#064632", // --sidebar-color (dark)
+        DrawerText = "#71877e",
+        Surface = "#064632",          // Cards and Paper look better in sidebar color in dark mode
+        TextPrimary = "#5cf1bd",      // --text-color1 (dark)
+        TextSecondary = "#71877e",
+        ActionDefault = "#5cf1bd",
+        Success = "#45dc59",
+        Warning = "#e8a950",
+        Error = "#f55b5b",            // --deletetextcoloraction (dark)
+        Divider = "#5cf1bd",          // --borders (dark)
+    }
+    };
+}

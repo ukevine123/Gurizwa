@@ -1,0 +1,262 @@
+@page "/Users/Edit/{Id:int}"
+@using Application.DTO
+@using Application.Services.Users
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@inject IIdentityService IdentityService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit User</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    @if (isLoading)
+    {
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        <MudText Typo="Typo.body1" Class="mt-2">Loading user information...</MudText>
+    }
+    else if (user != null)
+    {
+        <MudCard>
+            <MudCardHeader>
+                <div class="d-flex justify-space-between align-center w-100">
+                    <div>
+                        <MudText Typo="Typo.h5">Edit User</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Update user information</MudText>
+                    </div>
+                </div>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.CheckCircle">
+                            @successMessage
+                        </MudAlert>
+                    }
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mb-4" Icon="@Icons.Material.Filled.Error">
+                            @errorMessage
+                        </MudAlert>
+                    }
+
+                    <MudGrid>
+                        <!-- User ID (Read-only) -->
+                        <MudItem xs="12">
+                            <MudTextField T="int"
+                                          @bind-Value="user.Id"
+                                          Label="User ID"
+                                          Variant="Variant.Outlined"
+                                          ReadOnly="true"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Badge" />
+                        </MudItem>
+
+                        <!-- First Name -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string"
+                                          @bind-Value="user.FirstName"
+                                          Label="First Name"
+                                          Variant="Variant.Outlined"
+                                          Required="true"
+                                          RequiredError="First name is required"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Person"
+                                          For="@(() => user.FirstName)" />
+                        </MudItem>
+
+                        <!-- Last Name -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="string"
+                                          @bind-Value="user.LastName"
+                                          Label="Last Name"
+                                          Variant="Variant.Outlined"
+                                          Required="true"
+                                          RequiredError="Last name is required"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Person"
+                                          For="@(() => user.LastName)" />
+                        </MudItem>
+
+                        <!-- Email (Read-only) -->
+                        <MudItem xs="12">
+                            <MudTextField T="string"
+                                          @bind-Value="user.Email"
+                                          Label="Email Address"
+                                          Variant="Variant.Outlined"
+                                          ReadOnly="true"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Email"
+                                          HelperText="Email cannot be changed" />
+                        </MudItem>
+
+                        <!-- Phone Number -->
+                        <MudItem xs="12">
+                            <MudTextField T="string"
+                                          @bind-Value="user.PhoneNumber"
+                                          Label="Phone Number (Optional)"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Phone"
+                                          For="@(() => user.PhoneNumber)" />
+                        </MudItem>
+
+                        <!-- Email Confirmed Status (Read-only) -->
+                        <MudItem xs="12">
+                            <MudCheckBox @bind-Value="user.EmailConfirmed"
+                                         Label="Email Confirmed"
+                                         ReadOnly="true"
+                                         Color="Color.Primary" />
+                        </MudItem>
+
+                        <!-- Metadata -->
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="DateTime"
+                                          Value="user.CreatedAt"
+                                          Label="Created At"
+                                          Variant="Variant.Outlined"
+                                          ReadOnly="true"
+                                          Format="yyyy-MM-dd HH:mm"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.CalendarToday" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField T="DateTime"
+                                          Value="user.UpdatedAt"
+                                          Label="Last Updated"
+                                          Variant="Variant.Outlined"
+                                          ReadOnly="true"
+                                          Format="yyyy-MM-dd HH:mm"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Update" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Action Buttons -->
+                    <MudCardActions Class="d-flex justify-end mt-4">
+                        <MudButton Href="@($"/Users/{Id}")" 
+                                   Variant="Variant.Text" 
+                                   Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.Cancel">
+                            Cancel
+                        </MudButton>
+                        <MudButton Href="/Users" 
+                                   Variant="Variant.Outlined" 
+                                   Color="Color.Secondary"
+                                   StartIcon="@Icons.Material.Filled.ArrowBack">
+                            Back to List
+                        </MudButton>
+                        <MudButton ButtonType="ButtonType.Submit" 
+                                   Variant="Variant.Filled" 
+                                   Color="Color.Primary"
+                                   Disabled="@isSaving"
+                                   StartIcon="@Icons.Material.Filled.Save">
+                            @if (isSaving)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span>Save Changes</span>
+                            }
+                        </MudButton>
+                    </MudCardActions>
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error">
+            User not found or error loading user data.
+        </MudAlert>
+        <MudButton Href="/Users" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">
+            Back to Users List
+        </MudButton>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UserDetailDTO? user;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUser();
+    }
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            Console.WriteLine($"[EditUser] Loading user with ID: {Id}");
+
+            user = await IdentityService.GetUserById(Id);
+
+            if (user == null)
+            {
+                errorMessage = $"User with ID {Id} not found.";
+                Console.WriteLine($"[EditUser] User not found: {Id}");
+            }
+            else
+            {
+                Console.WriteLine($"[EditUser] User loaded successfully: {user.Email}");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading user: {ex.Message}";
+            Console.WriteLine($"[EditUser] Error loading user: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+            successMessage = null;
+
+            Console.WriteLine($"[EditUser] Updating user: {user.Email}");
+
+            await IdentityService.UpdateUser(Id, user);
+
+            successMessage = "User updated successfully!";
+            Console.WriteLine($"[EditUser] User updated successfully: {Id}");
+
+            // Wait a moment to show success message, then redirect
+            await Task.Delay(1500);
+            NavigationManager.NavigateTo($"/Users/{Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating user: {ex.Message}";
+            Console.WriteLine($"[EditUser] Error updating user: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

@@ -1,0 +1,413 @@
+@inherits LayoutComponentBase
+@using Application.Interfaces
+@using Infrastructure.Identity
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@inject IUserContext UserContext
+
+<MudThemeProvider Theme="_theme" 
+@bind-IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    .mud-layout {
+        min-height: 100vh;
+        display: flex;
+    }
+
+    /* --- SIDE DRAWER STYLES (Theme Aware) --- */
+    .dark-drawer {
+        background-color: #F4F7FE !important;
+        border-right: 1px solid #E3E6F0 !important;
+        transition: background-color 0.3s ease, border-color 0.3s ease !important;
+    }
+    .dark-drawer.dark-mode {
+        background-color: #0B1139 !important;
+        border-right: 1px solid #1E293B !important;
+    }
+    .dark-drawer .mud-nav-link,
+    .dark-drawer .mud-nav-group-header {
+        font-weight: 600 !important;
+        font-size: 0.98rem !important;
+        color: #1B2559 !important; /* Black text for light mode */
+        border-right: 4px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .dark-drawer.dark-mode .mud-nav-link,
+    .dark-drawer.dark-mode .mud-nav-group-header {
+        color: #A3AED0 !important; /* Light text for dark mode */
+    }
+    .dark-drawer .mud-nav-link .mud-nav-link-icon,
+    .dark-drawer .mud-nav-group-header .mud-nav-link-icon,
+    .dark-drawer .mud-nav-group-header .mud-nav-group-sign {
+        color: #1B2559 !important;
+        margin-right: 16px;
+        transition: all 0.2s ease;
+    }
+    .dark-drawer.dark-mode .mud-nav-link .mud-nav-link-icon,
+    .dark-drawer.dark-mode .mud-nav-group-header .mud-nav-link-icon,
+    .dark-drawer.dark-mode .mud-nav-group-header .mud-nav-group-sign {
+        color: #A3AED0 !important;
+    }
+    /* Hover state */
+    .dark-drawer .mud-nav-link:hover,
+    .dark-drawer .mud-nav-group-header:hover {
+        background-color: #E8ECFF !important;
+        color: #4318FF !important;
+    }
+    .dark-drawer.dark-mode .mud-nav-link:hover,
+    .dark-drawer.dark-mode .mud-nav-group-header:hover {
+        background-color: #1B2559 !important;
+        color: #FFFFFF !important;
+    }
+    .dark-drawer .mud-nav-link:hover .mud-nav-link-icon,
+    .dark-drawer .mud-nav-group-header:hover .mud-nav-link-icon,
+    .dark-drawer .mud-nav-group-header:hover .mud-nav-group-sign {
+        color: #4318FF !important;
+    }
+    .dark-drawer.dark-mode .mud-nav-link:hover .mud-nav-link-icon,
+    .dark-drawer.dark-mode .mud-nav-group-header:hover .mud-nav-link-icon,
+    .dark-drawer.dark-mode .mud-nav-group-header:hover .mud-nav-group-sign {
+        color: var(--mud-palette-primary) !important;
+    }
+    /* Active Link */
+    .dark-drawer .mud-nav-link.active {
+        background-color: transparent !important;
+        color: #4318FF !important;
+        font-weight: 700 !important;
+        border-right: 4px solid #4318FF !important;
+    }
+    .dark-drawer.dark-mode .mud-nav-link.active {
+        color: #FFFFFF !important;
+        border-right: 4px solid var(--mud-palette-primary) !important;
+    }
+    .dark-drawer .mud-nav-link.active .mud-nav-link-icon {
+        color: #4318FF !important;
+    }
+    .dark-drawer.dark-mode .mud-nav-link.active .mud-nav-link-icon {
+        color: var(--mud-palette-primary) !important;
+    }
+    .dark-drawer .brand-title {
+        color: #1B2559 !important;
+    }
+    .dark-drawer.dark-mode .brand-title {
+        color: #FFFFFF !important;
+    }
+    .dark-drawer .brand-subtitle {
+        color: #A3AED0 !important;
+    }
+    .dark-drawer.dark-mode .brand-subtitle {
+        color: #A3AED0 !important;
+    }
+
+    /* Main Content Area */
+    .mud-main-content {
+        flex: 1;
+        max-width: 100%;
+        /* No hardcoded background — let MudBlazor theme control it */
+    }
+
+    .content-fill {
+        /* Remove double-height stack that caused scroll fill */
+        border-radius: 0 !important;
+        background-color: transparent !important;
+    }
+
+    /* Light mode explicit background */
+    :not(.dark-mode-layout) .mud-main-content {
+        background-color: #F4F7FE !important;
+    }
+
+    /* Dark mode content background */
+    .dark-mode-layout .mud-main-content {
+        background-color: #0B1139 !important;
+    }
+
+    /* Force MudBlazor component surfaces to follow dark mode */
+    .dark-mode-layout .mud-paper,
+    .dark-mode-layout .mud-card,
+    .dark-mode-layout .mud-sheet,
+    .dark-mode-layout .mud-container,
+    .dark-mode-layout .card {
+        background-color: #0B1139 !important;
+        color: #E6EEF8 !important;
+        box-shadow: none !important;
+        border: 0 !important;
+    }
+
+    /* Keep small contrasting panels slightly lighter for separation if desired */
+    .dark-mode-layout .mud-paper.elevation-1,
+    .dark-mode-layout .mud-card.elevation-1 {
+        background-color: #0E1330 !important;
+    }
+
+    /* Ensure headings, text and links are readable in dark mode */
+    .dark-mode-layout .mud-typography,
+    .dark-mode-layout h1,
+    .dark-mode-layout h2,
+    .dark-mode-layout h3,
+    .dark-mode-layout h4,
+    .dark-mode-layout h5,
+    .dark-mode-layout p,
+    .dark-mode-layout a,
+    .dark-mode-layout .mud-text {
+        color: #E6EEF8 !important;
+    }
+
+    /* Remove strong white rounded card look that was causing the large white areas */
+    .dark-mode-layout .dashboard-card,
+    .dark-mode-layout .overview-card {
+        background-color: #0B1139 !important;
+        box-shadow: none !important;
+    }
+
+    /* If some components still use explicit inline bg, reduce their contrast */
+    .dark-mode-layout [style*="background-color: #ffffff"],
+    .dark-mode-layout [style*="background-color:#fff"],
+    .dark-mode-layout [style*="background-color: white"] {
+        background-color: transparent !important;
+    }
+
+    /* Typography Overrides */
+    .brand-title {
+        font-weight: 900;
+        line-height: 1.1;
+        font-family: 'Century Gothic';
+        transition: color 0.3s ease;
+    }
+
+    .brand-subtitle {
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 1px;
+        transition: color 0.3s ease;
+    }
+
+    /* Transparent Appbar Icon Color Synchronization */
+    .mud-appbar .mud-icon-button {
+        color: var(--mud-palette-text-primary) !important;
+        transition: color 0.3s ease;
+    }
+</style>
+
+<MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
+    @* Top AppBar *@
+    @* <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
+        <MudSpacer />
+        
+        <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+        
+        <MudIconButton
+            Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+            Color="Color.Default"
+            OnClick="ToggleTheme" />
+
+        @if (UserContext.IsAuthenticated)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-4">
+                <ActivatorContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="cursor-pointer">
+                        <MudAvatar Color="Color.Primary" Size="Size.Small" Style="font-weight: bold;">
+                        </MudAvatar>
+
+                        <div class="d-none d-md-flex flex-column">
+                            <MudText Typo="Typo.body2" Style="@($"line-height: 1.1; font-weight: 800; font-size: 1.05rem; color: {(_isDarkMode ? "#FFFFFF" : "#1B2559")};")">
+                                @UserContext.FullName
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Primary" Style="line-height: 1.1; font-size: 0.9rem;">
+                                @UserContext.Email
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Medium" Color="Color.Primary" />
+                    </MudStack>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }
+    </MudAppBar> *@
+    <MudAppBar Elevation="2" Dense="false" Color="Color.Transparent" Fixed="true" Class="@(_isDarkMode ? "dark-mode" : "")">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@DrawerToggle"
+                       aria-label="Toggle navigation" />
+
+        <MudSpacer />
+
+        <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+
+        <MudIconButton
+            Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+            Color="Color.Default"
+            OnClick="ToggleTheme" />
+
+         @if (UserContext.IsAuthenticated)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-4">
+                <ActivatorContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="cursor-pointer">
+                        <MudAvatar Color="Color.Primary" Size="Size.Small" Style="font-weight: bold;">
+                        </MudAvatar>
+
+                        <div class="d-none d-md-flex flex-column">
+                            <MudText Typo="Typo.body2" Style="@($"line-height: 1.1; font-weight: 800; font-size: 1.05rem; color: {(_isDarkMode ? "#FFFFFF" : "#1B2559")};")">
+                                @UserContext.FullName
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Primary" Style="line-height: 1.1; font-size: 0.9rem;">
+                                @UserContext.Email
+                            </MudText>
+                        </div>
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Medium" Color="Color.Primary" />
+                    </MudStack>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }       
+    </MudAppBar>
+
+    @* Side Navigation Drawer *@
+    <MudDrawer @bind-Open="_drawerOpen" 
+               Variant="DrawerVariant.Mini" 
+               OpenMiniOnHover="false" 
+               Elevation="0" 
+               Class="@("py-4 dark-drawer " + (_isDarkMode ? "dark-mode" : ""))">
+               
+        
+        <div class="d-flex align-center justify-center mb-10 mt-2 px-4">
+            <MudIcon Icon="@Icons.Material.Filled.Home" Color="Color.Primary" Size="Size.Large" />
+            @if (_drawerOpen)
+            {
+                <div class="d-flex flex-column ml-3">
+                    <MudText Typo="Typo.h6" Class="brand-title">DIGITAL LOAN</MudText>
+                    <MudText Class="brand-subtitle">PLATFORM</MudText>
+                </div>
+            }
+        </div>
+
+        <MudNavMenu>
+            <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
+                @(_drawerOpen ? "Dashboard" : "")
+            </MudNavLink>
+
+
+            <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
+                @(_drawerOpen ? "Account" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Paid">
+                @(_drawerOpen ? "LoanProducts" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
+                @(_drawerOpen ? "Borrowers" : "")
+            </MudNavLink>
+
+            <MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
+                <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment"> Loan Application</MudNavLink>
+                <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">Guarantors</MudNavLink>
+                <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">Collateral</MudNavLink>
+                <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">Documents</MudNavLink>
+            </MudNavGroup>
+
+            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Process Fee" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Disbursement" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Payments" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.Money">
+                @(_drawerOpen ? "Penality" : "")
+            </MudNavLink>
+
+            <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
+                  @(_drawerOpen ? "Waivers" : "")
+            </MudNavLink>
+            
+            <MudNavLink href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+                @(_drawerOpen ? "Reports" : "")
+            </MudNavLink>
+
+            <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+                <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+                <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                @if (!UserContext.IsSubUser)
+                {
+                    <MudNavLink Href="/MyTeam" Icon="@Icons.Material.Outlined.Group">
+                        @(_drawerOpen ? "My Team" : "")
+                    </MudNavLink>
+                }
+            </MudNavGroup>
+        </MudNavMenu>
+    </MudDrawer>
+@* 
+    <MudMainContent Class="pa-0">
+        <div class="content-fill">
+            @Body
+        </div>
+    </MudMainContent> *@
+    <MudMainContent Class="app-main-with-footer px-0">
+        <div class="app-main-body content-fill">
+            @Body
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+    bool _isDarkMode = false;
+  
+    private MudTheme _theme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#4318FF",
+            Background = "#F4F7FE",
+            AppbarBackground = "rgba(255,255,255,0)",
+            DrawerBackground = "#FFFFFF",
+            TextPrimary = "#1B2559",
+            ActionDefault = "#A3AED0"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#6366F1",
+            Background = "#0B1139", 
+            Surface = "#111C44",    
+            AppbarBackground = "#0B1139",
+            DrawerBackground = "#111C44",
+            TextPrimary = "#FFFFFF",
+            ActionDefault = "#FFFFFF"
+        }
+    };
+
+    protected override void OnInitialized()
+    {
+        _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+    }
+
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
+    void ToggleTheme() => _isDarkMode = !_isDarkMode;
+    void Logout() => NavigationManager.NavigateTo("/account/login");
+}

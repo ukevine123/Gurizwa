@@ -1,0 +1,206 @@
+@page "/Borrower"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.Borrowers
+@using Domain.ValueObjects
+
+@inject IBorrowerService BorrowerService
+
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<PageTitle>Borrowers</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudGrid Class="mb-4" Spacing="2">
+
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+     
+        </MudItem>
+    </MudGrid>
+
+    @* 3. BORROWER TYPE SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="2">
+        @if (_borrowerTypeCounts != null && _borrowerTypeCounts.Any())
+        {
+            @foreach (var typeCount in _borrowerTypeCounts)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@typeCount.BorrowerType</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@typeCount.Count</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Borrowers</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
+    <MudDataGrid T="Borrower" Items="@_borrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText>
+            <MudSpacer />
+
+            <MudMenu Label="Add Borrowe"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    Import
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            @* <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText> *@
+            <MudSpacer />
+            <MudMenu Label="Add Borrower" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="Borrower" />
+            @* <HierarchyColumn T="Borrower" />
+            <PropertyColumn Property="x => x.Id" Title="ID" /> *@
+            <TemplateColumn >
+                <CellTemplate>
+                   
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
+            <PropertyColumn Property="x => x.LastName" Title="LastName" />
+            <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
+            <PropertyColumn Property="x => x.sex" Title="Sex" />
+            @* <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" /> *@
+            @* <PropertyColumn Property="x => x.KinPhoneNumber" Title="KinPhoneNumber" /> *@
+            <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
+            <PropertyColumn Property="x => x.Email" Title="Email" />
+            <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
+            @* <PropertyColumn Property="x => x.SpouceIdNumber" Title="SpouceIdNumber" /> *@
+            @* <PropertyColumn Property="x => x.SpouceName" Title="SpouceName" /> *@
+            <PropertyColumn Property="x => x.Province" Title="Province" />
+            <PropertyColumn Property="x => x.District" Title="District" />
+            @* <PropertyColumn Property="x => x.Sector" Title="Sector" /> *@
+            @* <PropertyColumn Property="x => x.Cell" Title="Cell" />
+            <PropertyColumn Property="x => x.Village" Title="Village" /> *@
+            
+
+        </Columns>
+        
+        <PagerContent>
+            <MudDataGridPager T="Borrower" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+       List<Borrower> _borrowers = new();
+    private HashSet<Borrower> _selectedItems = new();
+
+    private IEnumerable<Borrower> FilteredBorrowers => _borrowers
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                    x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                    x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+
+    private List<BorrowerTypeCount> _borrowerTypeCounts = new();
+
+    private class BorrowerTypeCount
+    {
+        public string? BorrowerType { get; set; }
+        public int Count { get; set; }
+    }
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadBorrower();
+         
+    }
+    
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var dialog = await DialogService.ShowAsync<BorrowerCreateDialog>("Add Borrower", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+             await LoadBorrower();
+        }
+    }
+     private async Task LoadBorrower()
+    {
+        _borrowers = await BorrowerService.GetAllBorrowersAsync();
+        
+        // Calculate borrower type counts
+        _borrowerTypeCounts = _borrowers
+            .Where(b => b.BorrowerType != null)
+            .GroupBy(b => b.BorrowerType.Type)
+            .Select(g => new BorrowerTypeCount
+            {
+                BorrowerType = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+        
+        StateHasChanged();
+    }
+        private Color GetStatusColor(LoanStatus status)
+        {
+        return status.ToString() switch
+        {
+            "Dormant" => Color. Warning,
+            "Active" => Color.Success,
+            "Closed" => Color.Error,
+            _ => Color.Default
+        };
+       }
+
+    private async Task OpenDetailDialog(int id)
+    {
+        var parameters = new DialogParameters<BorrowerDetailDialog> { { x => x.Id, id } };
+        await DialogService.ShowAsync<BorrowerDetailDialog>("View Details", parameters);
+    }
+
+     private async Task OpenEditDialog(int id)
+    {
+        var parameters = new DialogParameters<EditBorrowerDialog> { { x => x.Id, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<EditBorrowerDialog>("Edit Borrower", parameters, options);
+        var result = await dialog.Result;
+    }
+
+
+}

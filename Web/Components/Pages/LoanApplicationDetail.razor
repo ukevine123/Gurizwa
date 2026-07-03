@@ -1,0 +1,355 @@
+@page "/loan-details/{LoanId:int}"
+
+@using Application.Interfaces
+@using Application.Services.LoanApplications
+@using Application.DTO
+@using MudBlazor
+@using Domain.Entities
+@using Domain.ValueObjects
+@inject IBorrower BorrowerRepo
+@inject IGuarantor GuarantorRepo
+@inject ICollateral CollateralRepo
+@inject ILoanProduct ProductRepo
+@inject IProvidedDocument DocumentRepo
+@inject ILoanProductSetting ProductSettingRepo
+@inject ILoanApplicationService LoanService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+@inject IUserContext UserContext
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Manager")]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+  
+    @* --- STATUS ACTION BAR --- *@
+<div class="d-flex align-center justify-space-between pa-4 mb-4 mt-2 rounded shadow-sm bg-white">
+    <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight:bold">Loan Application Details</MudText>
+
+    <AuthorizeView Roles="Manager">
+        @if (application?.Status != LoanStatus.Paid)
+        {
+            <div class="d-flex gap-4">
+                @* Reject Button *@
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Error" 
+                           OnClick="@(() => HandleStatusUpdate(LoanStatus.Rejected))">
+                    Reject
+                </MudButton>
+                
+                @* Approved Button *@
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Info" 
+                           OnClick="@(() => HandleStatusUpdate(LoanStatus.Approved))">
+                    Approved
+                </MudButton>
+            </div>
+        }
+    </AuthorizeView>
+</div>
+        @* <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Loan Application Details</MudText> *@
+    
+
+    <MudGrid>
+        @* 1. LOAN PRODUCT INFORMATION *@
+        <MudItem xs="12">
+            <MudCard Elevation="2" Class="rounded-lg border-l-4 border-blue-500">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Loan Product Information</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Primary" Class="ma-2" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (loanProductSetting != null)
+                    {
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Product Name</MudText>
+                                <MudText Typo="Typo.body1"><b>@loanProductSetting.LoanProduct.ProductName</b></MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Interest Rate</MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Success"><b>@loanProductSetting.InterestRate%</b></MudText>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">Description</MudText>
+                                <MudText Typo="Typo.body1">@loanProductSetting.LoanProduct.Description</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    }
+                    else
+                    {
+                        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        @* 2. BORROWER DETAILS *@
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="2" Class="rounded-lg" Style="height: 100%;">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Borrower Profile</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (borrower != null)
+                    {
+                        <div class="d-flex flex-column gap-2">
+                            <MudText><b>Full Name:</b> @borrower.FirstName @borrower.LastName</MudText>
+                            <MudText><b>ID Number:</b> @borrower.IdentificationNumber</MudText>
+                            <MudText><b>Email:</b> @borrower.Email</MudText>
+                            <MudText><b>Phone:</b> @borrower.PhoneNumber</MudText>
+                            
+                            <MudDivider Class="my-2" />
+                            
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">Location Details</MudText>
+                            <MudText Typo="Typo.body2">@borrower.Province, @borrower.District, @borrower.Sector</MudText>
+                            
+                            @if (borrower.Maritalstatus == Maritalstatus.Married)
+                            {
+                                <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+                                    Spouse: @borrower.SpouceName (@borrower.SpouceIdNumber)
+                                </MudAlert>
+                            }
+                        </div>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        @* 3. GUARANTORS TABLE *@
+        <MudItem xs="12" md="6">
+            <MudTable Items="@guarantors" Dense="true" Hover="true" Elevation="2" Class="rounded-lg" Style="height: 100%;">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Guarantors</MudText>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>ID Number</MudTh>
+                    <MudTh>Phone</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">@context.FirstName @context.LastName</MudTd>
+                    <MudTd DataLabel="ID Number">@context.Identification</MudTd>
+                    <MudTd DataLabel="Phone">@context.PhoneNumber</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudItem>
+
+<MudItem xs="12" md="6">
+    <MudTable Items="@collaterals" Dense="true" Hover="true" Elevation="2" Class="rounded-lg" Style="height: 100%;">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Collateral Assets</MudText>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Asset Name</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Estimated Value</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Asset Name">@context.AssetName</MudTd>
+            <MudTd DataLabel="Type">@context.AssetType</MudTd>
+            <MudTd DataLabel="Value">@context.EstimatedValue.ToString("N0") RWF</MudTd>
+            <MudTd DataLabel="ID Number">@context.IdentificationNumber</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2" Class="pa-4">No collateral registered for this application.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudItem>
+
+        @* 4. UPLOADED DOCUMENTS *@
+        <MudItem xs="12">
+            <MudCard Elevation="2" Class="rounded-lg">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Class="mb-4">Supporting Documents</MudText>
+                    <MudList T="string">
+                        @foreach (var doc in documents)
+                        {
+                            <MudListItem Icon="@Icons.Material.Filled.AttachFile">
+                                <div class="d-flex align-center justify-space-between">
+                                    <MudText>@doc.DocumentName</MudText>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ViewDocument(doc))">View</MudButton>
+                                </div>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        @if (application?.Status == LoanStatus.Paid)
+        {
+            <MudItem xs="12">
+                <MudCard Elevation="2" Class="rounded-lg">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-4">Transaction Details</MudText>
+
+                        @if (transactions == null || !transactions.Any())
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No transactions found for this application.</MudText>
+                        }
+                        else
+                        {
+                            <MudTable Items="@transactions" Dense="true" Hover="true" Striped="true">
+                                <HeaderContent>
+                                    <MudTh>Date</MudTh>
+                                    <MudTh>Type</MudTh>
+                                    <MudTh>Description</MudTh>
+                                    <MudTh>Amount</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Date">@context.TransactionDate.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                                    <MudTd DataLabel="Type">
+                                        <MudChip T="string" Size="Size.Small" Color="@GetTransactionColor(context.TransactionType)">
+                                            @context.TransactionType
+                                        </MudChip>
+                                    </MudTd>
+                                    <MudTd DataLabel="Description">@context.Description</MudTd>
+                                    <MudTd DataLabel="Amount">@context.Amount.ToString("N2")</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    [Parameter] 
+    public int LoanId { get; set; }
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    public int collateralId { get; set; }
+    
+    private LoanApplication application;
+    private Borrower borrower;
+    private List<Guarantor> guarantors = new();
+    @* private List<Collateral> collaterals = new(); *@
+    private List<Domain.Entities.Collateral> collaterals = new();
+    private LoanProduct loanProduct;
+    private LoanProductSetting loanProductSetting;
+    private List<ProvidedDocument> documents = new();
+    private List<TransactionHistoryDTO> transactions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        application = await LoanService.GetLoanApplicationById(LoanId);
+
+        if (application != null)
+        {
+            // 2. Fetch Borrower linked to this specific application
+            borrower = await BorrowerRepo.GetBorrowerById(application.BorrowerId);
+
+            // 3. Fetch Product linked to this application
+            loanProductSetting = await ProductSettingRepo.GetLoanProductSettingById(application.LoanProductSettingId);
+
+            // 4. Fetch Guarantors and Documents (filter by LoanApplicationId)
+            // Note: Ensure your repositories have methods to filter by LoanApplicationId
+            var allGuarantors = await GuarantorRepo.GetAllGuarantorsAsync();
+            guarantors = allGuarantors.Where(g => g.LoanApplicationId == LoanId).ToList();
+
+            // Depending on how your Documents are stored, you might need a similar filter:
+            documents = await DocumentRepo.GetAllProvidedDocumentAsync(); 
+
+            var allCollaterals = await CollateralRepo.GetAllCollateralsAsync();
+            collaterals = allCollaterals
+                .Where(c => c.LoanApplicationId == LoanId) 
+                .ToList();
+
+            transactions = application.Status == LoanStatus.Paid
+                ? await LoanService.GetTransactionHistoryAsync(application.Id)
+                : new List<TransactionHistoryDTO>();
+        }
+    }
+
+    private async Task HandleStatusUpdate(LoanStatus newStatus)
+    {
+        if (application == null) return;
+
+        var updateDto = new UpdateApplicationDTO
+        {
+            Status = newStatus,
+            AmountRequested = application.AmountRequested,
+            ApprovedBy = UserContext.FullName ?? "Manager", 
+            PreferredDate = application.PreferredDate,
+            DateofApplication = application.DateofApplication,
+            PaymentModalityId = application.PaymentModalityId
+        };
+
+        try
+        {
+            await LoanService.UpdateLoanApplication(application.Id, updateDto);
+            Snackbar.Add($"Application successfully {newStatus.ToString()}!", Severity.Success);
+            
+            // Refresh this view, then notify the parent grid to reload.
+            await LoadData();
+            MudDialog?.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private Color GetStatusColor(LoanStatus status) => status switch
+    {
+        LoanStatus.Approved => Color.Success,
+        LoanStatus.Rejected => Color.Error,
+        LoanStatus.Applied => Color.Warning,
+        _ => Color.Default
+    };
+
+    private Color GetTransactionColor(string type) => type switch
+    {
+        "Process Fee" => Color.Warning,
+        "Disbursement" => Color.Info,
+        "Payment" => Color.Success,
+        _ => Color.Default
+    };
+
+    @* private async Task ViewDocument(ProvidedDocument doc)
+    {
+        if (doc.DocumentFile == null || doc.DocumentFile.Length == 0) return;
+        var base64 = Convert.ToBase64String(doc.DocumentFile);
+        var url = $"data:application/pdf;base64,{base64}"; 
+        await JS.InvokeVoidAsync("open", url, "_blank");
+    } *@
+   private async Task ViewDocument(ProvidedDocument doc)
+{
+    if (doc.DocumentFile == null || doc.DocumentFile.Length == 0)
+    {
+        Snackbar.Add("File is empty.", Severity.Error);
+        return;
+    }
+
+    byte[] fileData = doc.DocumentFile;
+
+    // Check if the file is accidentally saved as a Base64 string inside the byte array
+    // (Common if you used a JS uploader previously)
+    string possibleBase64 = System.Text.Encoding.UTF8.GetString(fileData);
+    if (possibleBase64.Contains("base64,"))
+    {
+        // Strip the header (e.g., "data:application/pdf;base64,") and convert
+        var base64Data = possibleBase64.Split(',')[1];
+        fileData = Convert.FromBase64String(base64Data);
+    }
+
+    using var stream = new MemoryStream(fileData);
+    using var streamRef = new DotNetStreamReference(stream);
+
+    await JS.InvokeVoidAsync("downloadFileFromStream", doc.DocumentName, streamRef);
+}
+}

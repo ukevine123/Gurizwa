@@ -1,0 +1,119 @@
+
+@using  Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Application.Services.AccountTypes
+@using Domain.Entities
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize] *@
+@inject NavigationManager Navigation
+@inject IAccountTypeService AccountTypeService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MudDialog Style="overflow:hidden;" >
+
+    <DialogContent>
+
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF);
+                         padding:14px 18px; margin-bottom:16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+
+                <MudIcon Icon="@Icons.Material.Filled.Home"
+                         Style="color:white; font-size:1.6rem;" />
+
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Create AccountType
+                    </MudText>
+
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new AccountType
+                    </MudText>
+                </MudStack>
+
+            </MudStack>
+        </MudPaper>
+
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateAccountTypeForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            @* <MudStack Spacing="2"> *@
+
+                <!-- Section -->
+                @* <MudText Typo="Typo.caption"
+                         Style="color:#9E9E9E; font-weight:600; letter-spacing:.08em;
+                                text-transform:uppercase;">
+                    AccountType Type
+                </MudText> *@
+                <MudGrid Spacing="1" Class="align-items-center">
+                    
+                <MudItem  xs="12">
+                <MudTextField Label="AccountTypeName"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.AccountTypeName"
+                              For="@(() => Model.AccountTypeName)" />
+                </MudItem>
+                
+                                        
+                <MudItem xs="12">
+                <MudButton Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        FullWidth="true"
+                        ButtonType="ButtonType.Submit"
+                        Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                    Add AccountType
+                </MudButton>
+                </MudItem>
+
+
+
+            </MudGrid>
+
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code{
+    [CascadingParameter]
+    
+    private IMudDialogInstance MudDialog { get; set; }
+    private bool _fullWidth;
+    private bool _fitContent;
+    [SupplyParameterFromForm(Name = "CreateAccountTypeForm")]
+    private AccountTypeCreateDTO Model {get;set;} = new ();
+    private string ErrorMessage{get;set;}
+
+      
+
+
+    private async Task onValidSubmit()
+    {
+        try
+        {
+            await AccountTypeService.CreateAccountTypeAsync(Model);
+            Snackbar.Add("AccountType created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+        catch(Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+   
+    
+
+}

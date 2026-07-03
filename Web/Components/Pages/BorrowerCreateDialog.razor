@@ -1,0 +1,409 @@
+@using  Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Application.Services.BorrowerTypes
+@using Application.Services.Borrowers
+@using Domain.ValueObjects
+@using Domain.Entities
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize] *@
+@inject NavigationManager Navigation
+@inject IBorrowerService BorrowerService
+@inject IBorrowerTypeService BorrowerTypeService
+@inject ILocationService LocationService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MudDialog Style="overflow:hidden;" >
+
+    <DialogContent>
+
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF );
+                         padding:14px 18px; margin-bottom:16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalance"
+                         Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Create Borrower
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new Borrower
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateBorrowerForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            @* <MudStack Spacing="2"> *@
+
+                <!-- Section -->
+                @* <MudText Typo="Typo.caption"
+                         Style="color:#9E9E9E; font-weight:600; letter-spacing:.08em;
+                                text-transform:uppercase;">
+                    Account Type
+                </MudText> *@
+                <MudGrid Spacing="1" Class="align-items-center">
+                    <MudItem xs="12">
+                        <MudSelect T="int"
+                                   Label="Borrower Type"
+                                   Placeholder="--Select Borrower Type--"
+                                   @bind-Value="Model.BorrowerTypeId"
+                                   Variant="Variant.Outlined"
+                                   Dense="true"
+                                   Margin="Margin.Dense"
+                                   AdornmentIcon="@Icons.Material.Filled.Category"
+                                   AdornmentColor="Color.Primary">
+
+                            <MudSelectItem Value="0">--Select Borrower Type--</MudSelectItem>
+
+                            @if (acctype != null)
+                            {
+                                foreach (var type in acctype)
+                                {
+                                    <MudSelectItem T="int" Value="@type.Id">@type.Type</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                <MudItem  xs="6">
+                <MudTextField Label="FirstName"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.FirstName"
+                              For="@(() => Model.FirstName)" />
+                </MudItem>
+                <MudItem  xs="6">
+                <MudTextField Label="LastName"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.LastName"
+                              For="@(() => Model.LastName)" />
+                </MudItem>
+
+          
+
+                  <MudItem xs="6">
+    <MudSelect T="Maritalstatus"
+               Label="Maritalstatus"
+               @bind-Value="Model.Maritalstatus"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Transgender"
+               AdornmentColor="Color.Primary">
+        
+        <MudSelectItem T="Maritalstatus" Disabled="true">-- Select Maritalstatus --</MudSelectItem>
+        @foreach (Maritalstatus item in Enum.GetValues(typeof(Maritalstatus)))
+        {
+            <MudSelectItem T="Maritalstatus" Value="item">@item.ToString()</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+                <MudItem xs="6">
+    <MudSelect T="Sex"
+               Label="Sex"
+               @bind-Value="Model.sex"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Transgender"
+               AdornmentColor="Color.Primary">
+    
+        <MudSelectItem T="Sex" Disabled="true">-- Select Sex --</MudSelectItem>
+
+        @foreach (Sex item in Enum.GetValues(typeof(Sex)))
+        {
+            <MudSelectItem T="Sex" Value="item">@item.ToString()</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+                <MudItem  xs="6"> 
+                      <MudDatePicker Label="Date Of Birth"
+                       @bind-Value="Model.DateOfBirth"
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Adornment="Adornment.Start" 
+                        AdornmentColor="Color.Primary" />
+                </MudItem>
+
+                  <MudItem  xs="6">
+                <MudTextField Label="IdentificationNumber"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.IdentificationNumber"
+                              For="@(() => Model.IdentificationNumber)" 
+                              Immediate="true"
+                               MaxLength="16"
+                               Counter="16"/>
+                </MudItem>
+                  <MudItem  xs="6">
+                <MudTextField Label="Email"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.Email"
+                              For="@(() => Model.Email)" />
+                </MudItem>
+                  <MudItem  xs="6">
+
+                <MudTextField Label="PhoneNumber"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.PhoneNumber"
+                              For="@(() => Model.PhoneNumber)" />
+                </MudItem>
+                 
+                @if (Model.Maritalstatus == Maritalstatus.Married)
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="Spouse ID Number"
+                                    Variant="Variant.Outlined"
+                                    Margin="Margin.Dense"
+                                    @bind-Value="Model.SpouceIdNumber"
+                                    For="@(() => Model.SpouceIdNumber)" />
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <MudTextField Label="Spouse Name"
+                                    Variant="Variant.Outlined"
+                                    Margin="Margin.Dense"
+                                    @bind-Value="Model.SpouceName"
+                                    For="@(() => Model.SpouceName)" />
+                    </MudItem>
+                }
+
+  <MudItem xs="6">
+            <MudTextField Label="Next Of Kin"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          @bind-Value="Model.NextOfKin"
+                          For="@(() => Model.NextOfKin)" />
+        </MudItem>
+
+        <MudItem xs="6">
+            <MudTextField Label="Kin PhoneNumber"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          @bind-Value="Model.KinPhoneNumber"
+                          For="@(() => Model.KinPhoneNumber)" />
+        </MudItem>
+
+<MudItem xs="6">
+    <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
+               ReadOnly="IsReadOnly" Required="true" Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Public" AdornmentColor="Color.Primary">
+        @foreach (var p in _provinces)
+        {
+            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- DISTRICT --- *@
+<MudItem xs="6">
+    <MudSelect T="string" Value="Model.District" Label="District" ValueChanged="OnDistrictChanged"
+               ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Province))"
+               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Category" AdornmentColor="Color.Primary">
+        @foreach (var d in _districts)
+        {
+            <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- SECTOR --- *@
+<MudItem xs="6">
+    <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged"
+               ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))"
+               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Map" AdornmentColor="Color.Primary">
+        @foreach (var s in _sectors)
+        {
+            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- CELL --- *@
+<MudItem xs="6">
+    <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged"
+               ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Sector))"
+               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Layers" AdornmentColor="Color.Primary">
+        @foreach (var c in _cells)
+        {
+            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- VILLAGE --- *@
+<MudItem xs="6">
+    <MudSelect T="string" @bind-Value="Model.Village" Label="Village"
+               ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Cell))"
+               Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary">
+        @foreach (var v in _villages)
+        {
+            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+                <MudItem xs="12">
+                <MudButton Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        FullWidth="true"
+                        ButtonType="ButtonType.Submit"
+                        Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                    Add Borrower
+                </MudButton>
+                </MudItem>
+            </MudGrid>
+
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+    private bool _fullWidth;
+    private bool _fitContent;
+
+    [SupplyParameterFromForm(Name = "CreateBorrowerForm")]
+    private CreateBorrowerDTO Model { get; set; } = new();
+    private string ErrorMessage { get; set; }
+
+    [Parameter] public bool IsReadOnly { get; set; } = false;
+
+    public Sex sex { get; set; }
+    public Maritalstatus maritalstatus { get; set; }
+
+    private List<Province> _provinces = new();
+    private List<District> _districts = new();
+    private List<Sector> _sectors = new();
+    private List<Cell> _cells = new();
+    private List<Village> _villages = new();
+    private List<BorrowerType> acctype = new List<BorrowerType>();
+
+    // COMBINED INITIALIZATION
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // 1. Load Borrower Types
+            var types = await BorrowerTypeService.GetAllBorrowerTypeAsync();
+            if (types != null)
+            {
+                acctype = types;
+            }
+
+            // 2. Load Location Data
+            _provinces = await LocationService.GetAllLocationsAsync();
+
+            // 3. Handle Pre-selected data (Edit mode)
+            if (!string.IsNullOrEmpty(Model.Province))
+            {
+                var province = _provinces.FirstOrDefault(p => p.Name == Model.Province);
+                if (province != null)
+                {
+                    _districts = province.Districts;
+                    var district = _districts.FirstOrDefault(d => d.Name == Model.District);
+                    if (district != null)
+                    {
+                        _sectors = district.Sectors;
+                        var sector = _sectors.FirstOrDefault(s => s.Name == Model.Sector);
+                        if (sector != null)
+                        {
+                            _cells = sector.Cells;
+                            var cell = _cells.FirstOrDefault(c => c.Name == Model.Cell);
+                            if (cell != null)
+                            {
+                                _villages = cell.Villages;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading initial data", Severity.Error);
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    // --- Address Change Handlers ---
+    private void OnProvinceChanged(string value)
+    {
+        Model.Province = value;
+        Model.District = string.Empty;
+        Model.Sector = string.Empty;
+        Model.Cell = string.Empty;
+        Model.Village = string.Empty;
+
+        _districts = _provinces.FirstOrDefault(p => p.Name == value)?.Districts ?? new();
+        _sectors = new();
+        _cells = new();
+        _villages = new();
+    }
+
+    private void OnDistrictChanged(string value)
+    {
+        Model.District = value;
+        Model.Sector = string.Empty;
+        Model.Cell = string.Empty;
+        Model.Village = string.Empty;
+
+        _sectors = _districts.FirstOrDefault(d => d.Name == value)?.Sectors ?? new();
+        _cells = new();
+        _villages = new();
+    }
+
+    private void OnSectorChanged(string value)
+    {
+        Model.Sector = value;
+        Model.Cell = string.Empty;
+        Model.Village = string.Empty;
+
+        _cells = _sectors.FirstOrDefault(s => s.Name == value)?.Cells ?? new();
+        _villages = new();
+    }
+
+    private void OnCellChanged(string value)
+    {
+        Model.Cell = value;
+        Model.Village = string.Empty;
+
+        _villages = _cells.FirstOrDefault(c => c.Name == value)?.Villages ?? new();
+    }
+
+    private async Task onValidSubmit()
+    {
+        try
+        {
+            await BorrowerService.CreateBorrower(Model);
+            Snackbar.Add("Borrower created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+}

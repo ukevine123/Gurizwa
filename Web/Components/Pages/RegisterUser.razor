@@ -1,0 +1,355 @@
+@page "/RegisterUser"
+@* fromLogin=true is appended by the Login page's "Register Now" link.
+   When present, the "Back to Users" link is always hidden — even if the browser
+   somehow has a stale auth cookie — so new self-registering users can never
+   accidentally navigate into the admin user list. *@
+@layout AuthLayout
+@using Application.DTO
+@using Domain.ValueObjects
+@rendermode InteractiveServer
+@using Application.Interfaces
+@using Application.Services.Users
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IIdentityService IdentityService
+@inject NavigationManager NavigationManager
+
+<style>
+    /* Force the page to fill the screen and remove scrolling */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Removes scrollbars */
+    }
+
+    .success-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    .success-card {
+        background: white;
+        border-radius: 20px;
+        padding: 48px 40px;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    }
+
+    .success-icon-ring {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #02086b, #3b5bdb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+    }
+</style>
+
+<PageTitle>Register | Digital Loan</PageTitle>
+
+@* ── Success overlay shown when registration completes ── *@
+@if (_registrationSuccess)
+{
+    <div class="success-overlay">
+        <div class="success-card">
+            <div class="success-icon-ring">
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:white; font-size: 2.5rem;" />
+            </div>
+
+            <MudText Typo="Typo.h5" Style="font-weight: 800; margin-bottom: 8px;">Account Created!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Style="margin-bottom: 32px;">
+                The new user has been registered successfully.
+            </MudText>
+
+            @if (CanSeeBackToUsers)
+            {
+                @* Authenticated admins/managers who didn't come from the login page *@
+                <MudButton Variant="Variant.Filled"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.PeopleAlt"
+                           Style="background: #02086b; color: white; border-radius: 25px; text-transform: none; font-weight: 700;"
+                           OnClick="GoToUsers">
+                    Back to Users Page
+                </MudButton>
+
+                <MudButton Variant="Variant.Text"
+                           FullWidth="true"
+                           Class="mt-3"
+                           Style="color: #02086b; text-transform: none; font-weight: 600;"
+                           OnClick="RegisterAnother">
+                    Register Another User
+                </MudButton>
+            }
+            else
+            {
+                @* Unauthenticated visitors are sent to login *@
+                <MudButton Variant="Variant.Filled"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Login"
+                           Style="background: #02086b; color: white; border-radius: 25px; text-transform: none; font-weight: 700;"
+                           OnClick="GoToLogin">
+                    Go to Login
+                </MudButton>
+            }
+        </div>
+    </div>
+}
+
+@* The Container centers everything on the screen with the same light background *@
+<MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center pa-0" Style="height: 100vh; background-color: #f5f5f5;">
+    
+    @* Main Small Card - Fixed size to match Login *@
+    <MudPaper Elevation="4" Class="d-flex" Style="width: 900px; height: 680px; border-radius: 24px; overflow: hidden;">
+        
+        <MudGrid Spacing="0">
+            @* Left Side: Dark Marketing (Matches Login exactly) *@
+            <MudItem md="5" Class="d-none d-md-flex flex-column align-center justify-center pa-8" Style="background-color: #1a1512; color: white;">
+                <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
+                    Register <br /> For Login
+                </MudText>
+                
+                <MudPaper Elevation="0" Style="width: 140px; height: 260px; background: #c9e7ea; border: 4px solid #02086b; border-radius: 20px;" Class="pa-3">
+                    <MudPaper Style="height: 8px; width: 40px; background: #12013e; margin: 0 auto 15px auto;" Elevation="0" />
+                    <MudPaper Style="height: 30px; width: 100%; background: #0918e5; border-radius: 4px;" Elevation="0" Class="mb-2" />
+                    <MudPaper Style="height: 90px; width: 100%; background: #02086b; border-radius: 4px;" Elevation="0" />
+                </MudPaper>
+                
+                <MudText Typo="Typo.caption" Class="mt-8" Style="opacity: 0.5;">© 2026 DIGITAL LOAN</MudText>
+            </MudItem>
+
+            @* Right Side: Registration Form *@
+            <MudItem xs="12" md="7" Class="pa-8 d-flex flex-column" Style="background-color: white; height: 100%;">
+                
+                @* Top Branding Bar *@
+                <div class="d-flex align-center mb-6">
+                    <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color: #02086b;" Size="Size.Small" Class="mr-2" />
+                    <MudText Typo="Typo.h6" Style="font-weight: 800;">Digital Loan Platform</MudText>
+                    <MudSpacer />
+                    @if (CanSeeBackToUsers)
+                    {
+                        @* Only authenticated users who did NOT arrive from the Login page get this link *@
+                        <MudLink href="/Users" Underline="Underline.None" Color="Color.Primary" Style="font-size: 0.85rem; font-weight: 600;">
+                            <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" Class="mr-1" />Back to Users
+                        </MudLink>
+                    }
+                    else
+                    {
+                        <MudLink href="/account/login" Underline="Underline.None" Color="Color.Primary" Style="font-size: 0.85rem; font-weight: 600;">Sign In</MudLink>
+                    }
+                </div>
+
+                <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Create Account</MudText>
+
+                <EditForm Model="@Model" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Variant="Variant.Outlined">@ErrorMessage</MudAlert>
+                    }
+
+                    @* Compact Name Row *@
+                    <MudGrid Spacing="2" Class="mb-4">
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.FirstName" Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.FirstName)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.LastName)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudSelect T="Sex"
+                                       Label="Sex"
+                                       @bind-Value="Model.Sex"
+                                       Variant="Variant.Outlined"
+                                       Dense="true"
+                                       Margin="Margin.Dense"
+                                       For="@(() => Model.Sex)">
+                                @foreach (Sex item in Enum.GetValues(typeof(Sex)))
+                                {
+                                    <MudSelectItem T="Sex" Value="item">@item.ToString()</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.DateOfBirth)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.Country" Label="Country" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Country)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.City" Label="City" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.City)" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.Street" Label="Street" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Street)" />
+                        </MudItem>
+                         <MudItem  xs="6">
+                           <MudTextField @bind-Value="Model.PhoneNumber"  Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Placeholder="+079 456 7890" For="@(() => Model.PhoneNumber)" />
+                         </MudItem>
+                    </MudGrid>
+
+                    <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" For="@(() => Model.Email)" />
+
+                    <MudTextField @bind-Value="Model.Password" Label="Password" Variant="Variant.Outlined" Margin="Margin.Dense"  InputType="@_passwordInput" Adornment="Adornment.End" AdornmentIcon="@_passwordInputIcon"  OnAdornmentClick="TogglePasswordVisibility" For="@(() => Model.Password)" />
+
+                    @* Action Button - Same Gradient Style *@
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               FullWidth="true" 
+                               Disabled="@_isProcessing"
+                               Class="py-3 shadow-none mt-6"
+                               Style="background: #02086b; color: white; border-radius: 25px; text-transform: none; font-weight: 700;">
+                        @if (_isProcessing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        <span>Create Account</span>
+                    </MudButton>
+                </EditForm>
+
+                @* Footer Context *@
+                <MudSpacer />
+                <div class="d-flex justify-space-between align-center" style="opacity: 0.5;">
+                    <MudText Typo="Typo.caption">English</MudText>
+                    <MudText Typo="Typo.caption">Contact Us</MudText>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    /// <summary>
+    /// Cascaded by CascadingAuthenticationState in Routes.razor.
+    /// Using [CascadingParameter] guarantees the auth state is available
+    /// on every render — including the initial pre-render pass — so the
+    /// "Back to Users" link only shows for authenticated users.
+    /// </summary>
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    /// <summary>
+    /// Set to <c>true</c> by the Login page's "Register Now" link via ?fromLogin=true.
+    /// When true, the "Back to Users" link is suppressed for the entire session on this page,
+    /// even if a stale auth cookie is present — new self-registering users must never
+    /// be able to navigate into the admin Users list.
+    /// </summary>
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "fromLogin")]
+    public bool FromLogin { get; set; }
+
+    private RegisterUserDTO Model { get; set; } = new();
+    private string ErrorMessage { get; set; } = string.Empty;
+    private bool _isProcessing = false;
+    private bool _isPasswordVisible = false;
+    private InputType _passwordInput = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    /// <summary>True when a user is already authenticated (e.g. admin registering another user).</summary>
+    private bool _isLoggedIn = false;
+
+    /// <summary>Shown after a successful registration to let the user choose what to do next.</summary>
+    private bool _registrationSuccess = false;
+
+    /// <summary>
+    /// True only when the visitor is both authenticated AND did NOT arrive from the
+    /// public login page. This is the single gate that controls whether the
+    /// "Back to Users" link (and button) is rendered anywhere on this page.
+    /// </summary>
+    private bool CanSeeBackToUsers => _isLoggedIn && !FromLogin;
+
+    /// <summary>
+    /// Resolves the auth state on the very first render so the correct link
+    /// ("Back to Users" vs "Sign In") is shown immediately — not just after
+    /// a parameter change triggers OnParametersSetAsync.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        _isLoggedIn = authState.User.Identity?.IsAuthenticated == true;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Re-evaluate every time parameters (including the cascaded auth state) change.
+        var authState = await AuthenticationStateTask;
+        _isLoggedIn = authState.User.Identity?.IsAuthenticated == true;
+    }
+
+    public void TogglePasswordVisibility()
+    {
+        if (_isPasswordVisible)
+        {
+            _isPasswordVisible = false;
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInput = InputType.Password;
+        }
+        else
+        {
+            _isPasswordVisible = true;
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInput = InputType.Text;
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        if (_isProcessing) return;
+        _isProcessing = true;
+        try
+        {
+            await IdentityService.RegisterUser(Model);
+
+            if (_isLoggedIn)
+            {
+                // Show the success overlay so the logged-in user can choose what to do next.
+                _registrationSuccess = true;
+            }
+            else
+            {
+                // Unauthenticated visitor: redirect straight to login.
+                NavigationManager.NavigateTo("/account/login");
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally { _isProcessing = false; }
+    }
+
+    /// <summary>Called when the logged-in user clicks "Back to Users Page".</summary>
+    private void GoToUsers()
+    {
+        NavigationManager.NavigateTo("/Users");
+    }
+
+    /// <summary>Called when the logged-in user clicks "Register Another User".</summary>
+    private void RegisterAnother()
+    {
+        // Reset state so the form is fresh
+        _registrationSuccess = false;
+        Model = new RegisterUserDTO();
+        ErrorMessage = string.Empty;
+    }
+
+    /// <summary>Called when the unauthenticated visitor clicks "Go to Login" (fallback).</summary>
+    private void GoToLogin()
+    {
+        NavigationManager.NavigateTo("/account/login");
+    }
+}

@@ -1,0 +1,413 @@
+@using  Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Application.Services.LoanApplications
+@using Application.Services.Borrowers
+@using Application.Services.LoanProductSettings
+@using Application.Services.LoanProducts
+@using Application.Services.PaymentModalities
+@using Application.Services.ProvidedDocuments
+@using Application.Services.Requirements
+@using Domain.ValueObjects
+
+@using Domain.Entities
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize] *@
+@inject NavigationManager Navigation
+@inject ILoanApplicationService LoanApplicationService
+@inject NavigationManager Navigation
+@inject ILoanProductSettingService LoanProductSettingService
+@inject IProvidedDocumentService ProvidedDocumentService
+@inject IBorrowerService BorrowerService
+@inject IPaymentModalityService PaymentModalityService
+@inject ILoanProductService LoanProductService
+@inject IRequirementService RequirementService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MudDialog Style="overflow:hidden;">
+
+    <DialogContent>
+
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF );
+                         padding:14px 18px; margin-bottom:16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalance"
+                         Style="color:white; font-size:1.6rem;" />
+
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Create Loan Application
+                    </MudText>
+
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new Application
+                    </MudText>
+                </MudStack>
+
+            </MudStack>
+        </MudPaper>
+
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateLoanApplicationForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+           
+
+                <MudGrid Spacing="1" Class="align-items-center">
+
+                    <MudItem xs="6">
+
+                        <MudItem xs="12">
+    <MudSelect T="int"
+               Label="Borrower (ID - Name)"
+               Value="Model.BorrowerId"
+               ValueChanged="@OnBorrowerSelected"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Dense="true"
+               Placeholder="--Select Borrower--"
+               AdornmentIcon="@Icons.Material.Filled.Person"
+               AdornmentColor="Color.Primary">
+        <MudSelectItem T="int" Value="0">--Select Borrower--</MudSelectItem>
+        @if (_borrowers != null && _borrowers.Count > 0)
+        {
+            @foreach (var borrower in _borrowers)
+            {
+                <MudSelectItem T="int" Value="@borrower.Id">
+                    @borrower.IdentificationNumber - @borrower.FirstName @borrower.LastName
+                </MudSelectItem>
+            }
+        }
+    </MudSelect>
+</MudItem>
+
+        @if (SelectedBorrower != null)
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-n2">
+                    <MudText Typo="Typo.body2"><b>Borrower:</b> @SelectedBorrower.FirstName @SelectedBorrower.LastName</MudText>
+                    <MudText Typo="Typo.caption"><b>Contact:</b> @SelectedBorrower.PhoneNumber | @SelectedBorrower.Email</MudText>
+                    <MudText Typo="Typo.caption" Class="d-block"><b>Location:</b> @SelectedBorrower.District, @SelectedBorrower.Sector</MudText>
+                </MudAlert>
+            </MudItem>
+        }
+    </MudItem>
+
+    <MudItem xs="6">
+        <MudSelect T="int"
+                   Label="Product"
+                   Value="Model.LoanProductSettingId"
+                   ValueChanged="@((int i) => OnProductChanged(i))"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Dense="true"
+                   AdornmentIcon="@Icons.Material.Filled.Info"
+                   Placeholder="--Select Product--"
+                   Adornment="Adornment.End"
+                   AdornmentColor="Color.Info"
+                    OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
+                   
+            
+            <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
+
+            @if (_loanProductSettings != null && _loanProductSettings.Count > 0)
+            {
+                foreach (var product in _loanProductSettings)
+                {
+                    @* Ensure Value matches the T type (int) *@
+                    <MudSelectItem T="int" Value="@product.Id">@(product.LoanProduct?.ProductName ?? "N/A")</MudSelectItem>
+                }
+            }
+        </MudSelect>
+    </MudItem>
+
+
+     <MudItem xs="6">
+                    <MudSelect T="int"
+            Label="PaymentModality"
+            Placeholder="--Select PaymentModality--"
+            @bind-Value="Model.PaymentModalityId"
+            Variant="Variant.Outlined"
+            Dense="true"
+            Margin="Margin.Dense"
+            AdornmentIcon="@Icons.Material.Filled.Category"
+            AdornmentColor="Color.Primary">
+
+            <MudSelectItem T="int" Value="0">--Select PaymentModality--</MudSelectItem>
+
+    
+        @if (_paymentModalities != null)
+        {
+            @foreach (var item in _paymentModalities)
+            {
+                <MudSelectItem T="int" Value="@item.Id">@item.Mode</MudSelectItem>
+            }
+        }
+    </MudSelect>
+ </MudItem>
+
+
+                <MudItem  xs="6">
+                <MudTextField Label="Amount Requested"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.AmountRequested"
+                              For="@(() => Model.AmountRequested)"
+                              InputType="InputType.Number" />
+                </MudItem>
+                 <MudItem  xs="6"> 
+                      <MudDatePicker Label="Date of Application"
+                       @bind-Value="Model.DateofApplication"
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Adornment="Adornment.Start" 
+                        AdornmentColor="Color.Primary" />
+                </MudItem>
+                 <MudItem  xs="6"> 
+                      <MudDatePicker Label="Preferred Date"
+                       @bind-Value="Model.PreferredDate"
+                        Variant="Variant.Outlined"
+                        Margin="Margin.Dense"
+                        Adornment="Adornment.Start" 
+                        AdornmentColor="Color.Primary"
+                        Editable="true"
+                        Placeholder="Select Date" />
+                </MudItem>
+                <MudItem xs="12">
+                <MudButton Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        FullWidth="true"
+                        ButtonType="ButtonType.Submit"
+                        Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                    Add Application
+                </MudButton>
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code{
+    [CascadingParameter]
+    
+    private IMudDialogInstance MudDialog { get; set; }
+    private bool _fullWidth;
+    private bool _fitContent;
+    [SupplyParameterFromForm(Name = "CreateLoanApplicationForm")]
+    private CreateApplicationDTO Model {get;set;} = new ();
+    private string ErrorMessage{get;set;}
+    private LoanProduct? _selectedProduct;
+
+    private async Task onValidSubmit()
+    {
+        if (Model.LoanProductSettingId <= 0)
+        {
+            Snackbar.Add("Please select a valid Loan Product", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await LoanApplicationService.CreateLoanApplication(Model);
+            Snackbar.Add("Loan Application created successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(Model));
+            return;
+        }
+        catch(Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+
+    private List<PaymentModality> _paymentModalities = new List<PaymentModality>();
+    private List<Borrower> _borrowers = new List<Borrower>();
+    private List<LoanProduct> _loanProducts = new List<LoanProduct>();
+    private List<LoanProductSetting> _loanProductSettings = new List<LoanProductSetting>();
+    private List<ProvidedDocument> _documents = new List<ProvidedDocument>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Load Borrowers
+        try 
+        {
+            var borrowerData = await BorrowerService.GetAllBorrowersAsync();
+            if (borrowerData != null)
+            {
+                _borrowers = borrowerData.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading Borrowers: {ex.Message}", Severity.Error);
+        }
+        try 
+        {
+            var productData = await LoanProductSettingService.GetAllLoanProductSettingsAsync();
+            if (productData != null)
+            {
+                _loanProductSettings = productData.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading Loan Product Settings: {ex.Message}", Severity.Error);
+        }
+
+try 
+    {
+        // Use the injected service instance here
+        var reqData = await RequirementService.GetAllRequirementsAsync();
+        if (reqData != null)
+        {
+            _allRequirements = reqData.ToList();
+        }
+    }
+    catch (Exception ex)
+    {
+        Snackbar.Add($"Error loading Requirements: {ex.Message}", Severity.Error);
+    }
+
+    StateHasChanged(); // Refresh UI once all data is loaded
+
+        // 2. Load Payment Modalities
+        try 
+        {
+            var paymentData = await PaymentModalityService.GetAllPaymentModalitysAsync();
+            if (paymentData != null)
+            {
+                _paymentModalities = paymentData.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading Payment Modalities", Severity.Error);
+        }
+
+        // 3. Load Loan Document (Optional based on your variables
+
+
+        try 
+        {
+            var productData = await LoanProductService.GetAllLoanProductsAsync();
+            if (productData != null)
+            {
+                _loanProducts = productData.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading Loan Products", Severity.Error);
+        }
+
+        StateHasChanged(); // Final UI refresh after all data is loaded
+    }
+   private async Task OpenDetailDialog(int id)
+{
+    // 1. Validation: Ensure a product is actually selected
+    if (id <= 0)
+    {
+        Snackbar.Add("Please select a product first to view details.", Severity.Warning);
+        return;
+    }
+
+    // 2. Find the LoanProductSetting and get the associated LoanProduct
+    var selectedSetting = _loanProductSettings.FirstOrDefault(s => s.Id == id);
+
+    if (selectedSetting == null)
+    {
+        Snackbar.Add("Product setting not found.", Severity.Error);
+        return;
+    }
+
+    if (selectedSetting.LoanProduct == null)
+    {
+        Snackbar.Add("Product details not found.", Severity.Error);
+        return;
+    }
+
+    // 3. Setup parameters (Matching the [Parameter] names in LoanProductDetail.razor)
+    var parameters = new DialogParameters<LoanProductDetail>
+    {
+        { x => x.Product, selectedSetting.LoanProduct },
+        { x => x.Requirements, _allRequirements.Where(r => r.LoanProductId == selectedSetting.LoanProductId).ToList() }
+    };
+
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    // 4. Show the dialog
+    await DialogService.ShowAsync<LoanProductDetail>("Product Details", parameters, options);
+}
+    private void OnProductChanged(int id)
+   {
+    Model.LoanProductSettingId = id;
+    StateHasChanged();
+   }
+
+    private Borrower SelectedBorrower { get; set; }
+
+    private void OnBorrowerSelected(int borrowerId)
+    {
+        Model.BorrowerId = borrowerId;
+
+        if (borrowerId <= 0)
+        {
+            SelectedBorrower = null;
+            return;
+        }
+
+        // Find the selected borrower from the list
+        SelectedBorrower = _borrowers.FirstOrDefault(b => b.Id == borrowerId);
+
+        if (SelectedBorrower != null)
+        {
+            Snackbar.Add($"Selected: {SelectedBorrower.FirstName} {SelectedBorrower.LastName}", Severity.Success);
+        }
+    }
+
+    private List<Requirement> _allRequirements = new(); 
+    
+    // Filtered list to show in the UI
+    private List<Requirement> _filteredRequirements => _allRequirements
+        .Where(r => r.LoanProductId == Model.LoanProductSettingId)
+        .ToList();
+
+    private async Task UploadDocument(IBrowserFile file, Requirement req)
+    {
+        if (file == null) return;
+
+        // Convert the file to byte array for ProvidedDocument
+        using var memoryStream = new MemoryStream();
+        await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(memoryStream);
+
+        var providedDoc = new ProvidedDocument
+        {
+            DocumentName = req.RequiredDocument?.DocumentName ?? "Unknown",
+            DocumentFile = memoryStream.ToArray(),
+            CreatedAt = DateTime.Now,
+            CreatedBy = "CurrentUser" // Replace with actual user logic
+        };
+
+        // TODO: Call your service to save 'providedDoc' to the database
+        Snackbar.Add($"{providedDoc.DocumentName} uploaded successfully!", Severity.Success);
+    }
+}
+
+    
+}

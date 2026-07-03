@@ -1,0 +1,344 @@
+@page "/MyTeam"
+@using Application.DTO
+@using Application.Interfaces
+@using MudBlazor
+@inject IIdentity IdentityService
+@inject IUserContext UserContext
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<style>
+    .team-container {
+        padding: 24px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .team-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+    }
+
+    .team-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #1B2559;
+        letter-spacing: -0.5px;
+    }
+
+    .agent-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px 24px;
+        border: 1px solid #EDF2F7;
+        box-shadow: 0 4px 20px -5px rgba(0,0,0,0.04);
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .agent-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px -8px rgba(67, 24, 255, 0.12);
+        border-color: #4318FF;
+    }
+
+    .agent-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4318FF 0%, #6366F1 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .agent-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .agent-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1B2559;
+        margin-bottom: 2px;
+    }
+
+    .agent-email {
+        font-size: 12px;
+        color: #A3AED0;
+    }
+
+    .agent-phone {
+        font-size: 12px;
+        color: #A3AED0;
+        margin-top: 2px;
+    }
+
+    .status-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        flex-shrink: 0;
+    }
+
+    .status-active {
+        background: rgba(5, 205, 153, 0.12);
+        color: #05CD99;
+    }
+
+    .status-inactive {
+        background: rgba(238, 93, 80, 0.12);
+        color: #EE5D50;
+    }
+
+    .agent-date {
+        font-size: 11px;
+        color: #A3AED0;
+        flex-shrink: 0;
+        text-align: right;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 24px;
+        text-align: center;
+    }
+
+    .add-agent-btn {
+        background: linear-gradient(135deg, #4318FF 0%, #6366F1 100%) !important;
+        color: white !important;
+        border-radius: 14px;
+        text-transform: none;
+        font-weight: 700;
+        padding: 10px 24px !important;
+        box-shadow: 0 8px 20px -5px rgba(67, 24, 255, 0.4);
+    }
+
+    /* Dark mode */
+    .dark-mode-layout .team-title { color: #E6EEF8 !important; }
+    .dark-mode-layout .agent-card { background: #111C44 !important; border-color: #1E293B !important; }
+    .dark-mode-layout .agent-name { color: #E6EEF8 !important; }
+    .dark-mode-layout .agent-date { color: #A3AED0 !important; }
+</style>
+
+<div class="team-container">
+<MudGrid Class="mb-4" Spacing="2">
+
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+        </MudItem>
+    </MudGrid>
+    <!-- Header -->
+    <div class="team-header">
+        <div>
+            <div class="team-title">My Team</div>
+            <MudText Typo="Typo.body2" Style="color:#A3AED0; margin-top:4px;">
+                Agents you have created — @_agents.Count agent(s) total
+            </MudText>
+        </div>
+        <MudButton Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.PersonAdd"
+                   Class="add-agent-btn"
+                   OnClick="OpenAddAgentDialog">
+            Add Agent
+        </MudButton>
+    </div>
+
+    <!-- Summary Cards -->
+    <MudGrid Spacing="3" Class="mb-6">
+        <MudItem xs="12" sm="4">
+            <div style="background: linear-gradient(135deg,#4318FF,#6366F1); border-radius:20px; padding:20px 24px; color:white;">
+                <div style="font-size:12px; font-weight:700; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">Total Agents</div>
+                <div style="font-size:36px; font-weight:800; margin-top:4px;">@_agents.Count</div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <div style="background: linear-gradient(135deg,#05CD99,#04b688); border-radius:20px; padding:20px 24px; color:white;">
+                <div style="font-size:12px; font-weight:700; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">Active</div>
+                <div style="font-size:36px; font-weight:800; margin-top:4px;">@_agents.Count(a => a.IsActive)</div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <div style="background: linear-gradient(135deg,#EE5D50,#d94c3f); border-radius:20px; padding:20px 24px; color:white;">
+                <div style="font-size:12px; font-weight:700; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">Inactive</div>
+                <div style="font-size:36px; font-weight:800; margin-top:4px;">@_agents.Count(a => !a.IsActive)</div>
+            </div>
+        </MudItem>
+    </MudGrid>
+
+    <!-- Agent List -->
+    @if (_isLoading)
+    {
+        <div style="display:flex; justify-content:center; padding:60px;">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        </div>
+    }
+    else if (!_agents.Any())
+    {
+        <div class="empty-state">
+            <MudIcon Icon="@Icons.Material.Outlined.Group" Style="font-size:64px; color:#A3AED0;" />
+            <MudText Typo="Typo.h6" Style="color:#A3AED0; font-weight:700; margin-top:16px;">No agents yet</MudText>
+            <MudText Typo="Typo.body2" Style="color:#A3AED0; max-width:320px; margin-top:8px;">
+                Create your first agent by clicking "Add Agent". Agents can log in and manage loans on your behalf.
+            </MudText>
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.PersonAdd"
+                       Class="add-agent-btn mt-4"
+                       OnClick="OpenAddAgentDialog">
+                Add Your First Agent
+            </MudButton>
+        </div>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var agent in _agents)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <div class="agent-card">
+                        <!-- Avatar -->
+                        <div class="agent-avatar">@agent.Initials</div>
+
+                        <!-- Info -->
+                        <div class="agent-info">
+                            <div class="agent-name">@agent.FullName</div>
+                            <div class="agent-email">@agent.Email</div>
+                            @if (!string.IsNullOrEmpty(agent.PhoneNumber))
+                            {
+                                <div class="agent-phone">@agent.PhoneNumber</div>
+                            }
+                        </div>
+
+                        <!-- Status -->
+                        <div class="@("status-badge " + (agent.IsActive ? "status-active" : "status-inactive"))">
+                            @(agent.IsActive ? "Active" : "Inactive")
+                        </div>
+
+                        <!-- Actions -->
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Dense="true">
+                            @if (agent.IsActive)
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.Block"
+                                             OnClick="@(() => ToggleStatus(agent, false))">
+                                    Deactivate
+                                </MudMenuItem>
+                            }
+                            else
+                            {
+                                <MudMenuItem Icon="@Icons.Material.Outlined.CheckCircle"
+                                             OnClick="@(() => ToggleStatus(agent, true))">
+                                    Activate
+                                </MudMenuItem>
+                            }
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Delete"
+                                         Style="color:#EE5D50;"
+                                         OnClick="@(() => ConfirmDelete(agent))">
+                                Delete
+                            </MudMenuItem>
+                        </MudMenu>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</div>
+
+@code {
+    private List<UserDetailDTO> _agents = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAgents();
+    }
+
+    private async Task LoadAgents()
+    {
+        _isLoading = true;
+        try
+        {
+            if (UserContext.Id.HasValue)
+                _agents = await IdentityService.GetSubUsersAsync(UserContext.Id.Value);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load agents: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenAddAgentDialog()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        var dialog = await DialogService.ShowAsync<CreateAgentDialog>("Add New Agent", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            await LoadAgents();
+    }
+
+    private async Task ToggleStatus(UserDetailDTO agent, bool isActive)
+    {
+        try
+        {
+            await IdentityService.SetSubUserStatusAsync(agent.Id, isActive, UserContext.Id!.Value);
+            agent.IsActive = isActive;
+            Snackbar.Add($"{agent.FullName} has been {(isActive ? "activated" : "deactivated")}.", Severity.Success);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmDelete(UserDetailDTO agent)
+    {
+        var confirmed = await DialogService.ShowMessageBox(
+            "Delete Agent",
+            $"Are you sure you want to permanently delete '{agent.FullName}'? This cannot be undone.",
+            yesText: "Delete",
+            cancelText: "Cancel"
+        );
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await IdentityService.DeleteSubUserAsync(agent.Id, UserContext.Id!.Value);
+                _agents.Remove(agent);
+                Snackbar.Add($"Agent '{agent.FullName}' has been deleted.", Severity.Success);
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

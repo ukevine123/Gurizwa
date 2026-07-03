@@ -1,0 +1,105 @@
+
+<style>
+    .mud-nav-link.active {
+        color: white !important;
+        background-color: transparent !important;
+        font-weight: 700;
+        border-right: 4px solid #4318FF;
+    }
+    .mud-nav-link.active .mud-nav-link-icon {
+        color: #4318FF !important;
+    }
+</style>
+
+
+
+@code {
+    [Parameter] public bool IsMini { get; set; }
+}
+
+<MudNavMenu>
+    <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
+        @(!IsMini ? "Dashboard" : "")
+    </MudNavLink>
+
+     <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
+        @(!IsMini ? "Account" : "")
+    </MudNavLink>
+    
+    @* <MudNavLink href="/loans" Icon="@Icons.Material.Outlined.AccountBalanceWallet">
+        @(!IsMini ? "My Loans" : "")
+    </MudNavLink> *@
+
+<MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Paid">
+        @(!IsMini ? "LoanProducts" : "")
+    </MudNavLink>
+
+    <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
+        @(!IsMini ? "Borrowers" : "")
+    </MudNavLink>
+
+    @* <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
+        @(!IsMini ? "Documents" : "")
+</MudNavLink> *@
+    @* <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
+        @(!IsMini ? "Application" : "")
+    </MudNavLink> *@
+
+<MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
+    <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
+        @(!IsMini ? "Application" : "")
+    </MudNavLink>
+     <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
+        @(!IsMini ? "Guarantors" : "")
+    </MudNavLink>
+    <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Collateral" : "")
+    </MudNavLink>
+    <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
+        @(!IsMini ? "Documents" : "")
+</MudNavLink>
+
+</MudNavGroup>
+
+    <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Process Fee Deposits" : "")
+    </MudNavLink>
+
+    @* <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
+        @(!IsMini ? "Guarantors" : "")
+    </MudNavLink> *@
+     
+
+     <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Disbursement" : "")
+    </MudNavLink>
+
+     @* <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Collateral" : "")
+    </MudNavLink>   *@
+
+     <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Payments" : "")
+    </MudNavLink>
+
+     <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.Money">
+        @(!IsMini ? "Penality" : "")
+    </MudNavLink>
+
+    <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
+        @(!IsMini ? "Waivers" : "")
+    </MudNavLink>
+
+    <MudNavLink Href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+        @(!IsMini ? "Reports" : "")
+    </MudNavLink>
+
+<MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+    <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">
+        @(!IsMini ? "Settings" : "")
+    </MudNavLink>
+    <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
+        @(!IsMini ? "Users" : "")
+    </MudNavLink>
+</MudNavGroup>
+</MudNavMenu>

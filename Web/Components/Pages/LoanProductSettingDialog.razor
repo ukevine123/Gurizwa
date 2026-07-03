@@ -1,0 +1,223 @@
+@using  Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Application.Services.LoanProductSettings
+@using Application.Services.LoanProducts
+@using Domain.Entities
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+
+@* @attribute [Authorize] *@
+@inject NavigationManager Navigation
+@inject ILoanProductSettingService LoanProductSettingService
+@inject ILoanProductService LoanProductService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MudDialog Style="overflow:hidden;" >
+
+    <DialogContent>
+
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF);
+                         padding:14px 18px; margin-bottom:16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+
+                <MudIcon Icon="@Icons.Material.Filled.Money"
+                         Style="color:white; font-size:1.6rem;" />
+
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Create LoanProductSetting
+                    </MudText>
+
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new LoanProductSetting
+                    </MudText>
+                </MudStack>
+
+            </MudStack>
+        </MudPaper>
+
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateLoanProductSettingForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            @* <MudStack Spacing="2"> *@
+
+                <!-- Section -->
+                @* <MudText Typo="Typo.caption"
+                         Style="color:#9E9E9E; font-weight:600; letter-spacing:.08em;
+                                text-transform:uppercase;">
+                    LoanProduct Type
+                </MudText> *@
+                <MudGrid Spacing="1" Class="align-items-center">
+                    
+                 <MudItem xs="12">
+                        <MudSelect T="int"
+                                   Label="Loan Product"
+                                   Placeholder="--Select Loan Product--"
+                                   @bind-Value="Model.LoanProductId"
+                                   Variant="Variant.Outlined"
+                                   Dense="true"
+                                   Margin="Margin.Dense"
+                                   AdornmentIcon="@Icons.Material.Filled.Category"
+                                   AdornmentColor="Color.Primary">
+
+                            <MudSelectItem Value="0">--Select LoanProduct--</MudSelectItem>
+
+                            @if (acctype != null)
+                            {
+                                foreach (var type in acctype)
+                                {
+                                    <MudSelectItem T="int" Value="@type.Id">@type.ProductName</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                <MudItem  xs="6">
+                <MudTextField Label="InterestRate"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              AdornmentText="%"
+                              @bind-Value="Model.InterestRate"
+                              For="@(() => Model.InterestRate)" />
+                </MudItem>
+                <MudItem  xs="6">
+                <MudTextField Label="ProcessingFee"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.ProcessingFee"
+                              For="@(() => Model.ProcessingFee)" />
+               
+                </MudItem>
+                <MudItem  xs="6">
+                <MudTextField Label="GracePeriodDays"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.GracePeriodDays"
+                              For="@(() => Model.GracePeriodDays)" />
+               
+                </MudItem>
+                 <MudItem  xs="6">
+                <MudTextField Label="PenalityRate"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.PenalityRate"
+                              For="@(() => Model.PenalityRate)" />
+               
+                </MudItem>
+                 
+                <MudItem xs="12">
+                <MudButton Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        FullWidth="true"
+                        ButtonType="ButtonType.Submit"
+                        Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                    Add LoanProduct
+                </MudButton>
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code{
+    [CascadingParameter]
+    
+    private IMudDialogInstance MudDialog { get; set; }
+    private bool _fullWidth;
+    private bool _fitContent;
+    [SupplyParameterFromForm(Name = "CreateLoanProductSettingForm")]
+    private CreateLoanProductSettingDTO  Model {get;set;} = new ();
+    private string ErrorMessage{get;set;}
+     private List<LoanProduct> acctype = new List<LoanProduct>();
+
+      
+
+
+    @* private async Task onValidSubmit()
+    {
+        try
+        {
+            await LoanProductService.CreateLoanProductAsync(Model);
+            Snackbar.Add("LoanProduct created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+        catch(Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    } *@
+   
+   private async Task onValidSubmit()
+{
+    try
+    {
+        // 1. Create the Loan Product
+        await LoanProductSettingService.CreateLoanProductSetting(Model);
+        Snackbar.Add("LoanProductSetting created successfully!", Severity.Info);
+
+        // 2. Close this Create Dialog and return 'Ok'
+        // Note: If you want to pass the new ID, ensure your service returns it.
+        // For now, we close this dialog first.
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+    catch (Exception ex)
+    {
+        ErrorMessage = ex.Message;
+        Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+    }
+}
+
+private async Task OpenRequirementDialog()
+{
+    var options = new DialogOptions 
+    { 
+        CloseButton = true, 
+        MaxWidth = MaxWidth.Medium, 
+        FullWidth = true,
+        BackdropClick = false 
+    };
+
+    var selectedProduct = acctype.FirstOrDefault(p => p.Id == Model.LoanProductId);
+
+    // We pass the name so the user knows which product they are adding requirements to
+    var parameters = new DialogParameters 
+    { 
+        { "ProductName", selectedProduct?.ProductName ?? "Product" } 
+    };
+
+    await DialogService.ShowAsync<LoanProductRequirementDialog>("Configure Requirements", parameters, options);
+}
+    protected override async Task OnInitializedAsync()
+    {
+         try
+        {
+            // 1. Load Borrower Types
+            var types = await LoanProductService.GetAllLoanProductsAsync();
+            if (types != null)
+            {
+                acctype = types;
+            }
+             StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading initial data", Severity.Error);
+            ErrorMessage = ex.Message;
+        }
+    }
+
+}

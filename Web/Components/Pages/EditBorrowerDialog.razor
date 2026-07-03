@@ -1,0 +1,112 @@
+@using Application.Services.Borrowers
+@using Application.Services.BorrowerTypes
+
+@using Domain.Entities
+@using Application.DTO
+@using Application.Interfaces
+@using MudBlazor
+@inject IBorrowerService BorrowerService
+@inject IBorrowerTypeService BorrowerTypeService
+@inject ISnackbar Snackbar
+
+@rendermode InteractiveServer
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-2"/> Edit Account Borrower
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_borrowerType == null)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <EditForm Model="@_editModel" OnValidSubmit="OnValidSubmit" FormName="EditAccountForm">
+                <DataAnnotationsValidator />
+                <MudStack Spacing="3">
+                    
+                    <MudTextField Label="FirstName" @bind-Value="_editModel.FirstName" 
+                                  Variant="Variant.Outlined" For="@(() => _editModel.FirstName)" />
+
+                    <MudTextField Label="BorrowerTypeId" @bind-Value="_editModel.BorrowerTypeId" 
+                                  Variant="Variant.Outlined" For="@(() => _editModel.BorrowerTypeId)" />
+
+                    <MudTextField Label="sex" @bind-Value="_editModel.sex" 
+                                     Variant="Variant.Outlined" For="@(() => _editModel.sex)" />
+
+                    <MudTextField Label="DateOfBirth" @bind-Value="_editModel.DateOfBirth" 
+                                     Variant="Variant.Outlined" For="@(() => _editModel.DateOfBirth)" />
+
+                    <MudTextField Label="Maritalstatus" @bind-Value="_editModel.Maritalstatus" 
+                                     Variant="Variant.Outlined" For="@(() => _editModel.Maritalstatus)" />
+
+                    <MudTextField Label="SpouceIdNumber" @bind-Value="_editModel.SpouceIdNumber" 
+                                     Variant="Variant.Outlined" For="@(() => _editModel.SpouceIdNumber)" />
+
+                    <MudTextField Label="SpouceName" @bind-Value="_editModel.SpouceName" 
+                                     Variant="Variant.Outlined" For="@(() => _editModel.SpouceName)" />
+
+                    @* <MudSelect T="string" Label="Status" @bind-Value="_editModel.Status" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
+                    </MudSelect> *@
+
+                </MudStack>
+            </EditForm>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OnValidSubmit">Save Changes</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int Id { get; set; } // The ID of the account to edit
+
+    private UpdateBorrowerDTO _editModel = new();
+    private List<BorrowerType> _borrowerType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Load Categories/Types for the dropdown
+        _borrowerType = await BorrowerTypeService.GetAllBorrowerTypeAsync();
+
+        // 2. Load the existing Account data
+        var _borrower = await BorrowerService.GetBorrowerById(Id);
+        if (_borrower != null)
+        {
+            // Map Entity to DTO
+            _editModel = new UpdateBorrowerDTO
+            {
+                FirstName = _borrower.FirstName,
+                LastName = _borrower.LastName,
+                BorrowerTypeId = _borrower.BorrowerTypeId,
+                sex = _borrower.sex,
+                DateOfBirth = _borrower.DateOfBirth,
+                Maritalstatus = _borrower.Maritalstatus,
+                SpouceIdNumber = _borrower.SpouceIdNumber,
+                SpouceName = _borrower.SpouceName,
+            };
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        try
+        {
+            await BorrowerService.UpdateBorrower(Id, _editModel);
+            Snackbar.Add("Borrower updated successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Update failed: {ex.Message}", Severity.Error);
+        }
+    }
+    private void Cancel() => MudDialog.Cancel();
+}

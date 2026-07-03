@@ -1,0 +1,206 @@
+@using Application.DTO
+@using Application.Interfaces
+@using MudBlazor
+@using Domain.Entities
+@using System.ComponentModel.DataAnnotations
+@using Application.Services.Disbursements
+@using Application.Services.LoanApplications  
+@using Application.Services.PaymentModalities
+@using Application.Services.Accounts
+
+@inject IDisbursementService DisbursementService
+@inject ILoanApplicationService LoanApplicationService
+@inject IPaymentModalityService PaymentModalityService
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 750px;">
+    <DialogContent>
+        @* --- DYNAMIC HEADER --- *@
+        <MudPaper Elevation="0"
+                  Class="pa-5 mb-6"
+                  Style="@HeaderStyle">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                <MudAvatar Style="height:60px; width:60px; background: linear-gradient(135deg, #4318FF );">
+                    <MudIcon Icon="@(IsReschedule ? Icons.Material.Filled.Autorenew : Icons.Material.Filled.AccountBalance)" 
+                             Style="font-size:2.5rem; color: white;" />
+                </MudAvatar>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">
+                        @(IsReschedule ? "Reschedule Loan Balance" : "New Disbursement")
+                    </MudText>
+                    <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.8);">
+                        @(IsReschedule ? "Restructuring remaining debt into a new schedule" : "Assign principal and schedule repayments")
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <EditForm Model="Model">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                
+                @* 1. FIXED DATA (If Rescheduling) *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Loan Application" 
+                                  Value="@LoanApplicationName" 
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Person" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudTextField Label="Source Account" 
+                                  Value="@AccountName" 
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"
+                                  AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet" />
+                </MudItem>
+
+                @* 2. EDITABLE PARAMETERS *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="New Frequency"
+                               @bind-Value="Model.PaymentModalityId"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.Category">
+                        @foreach (var modality in PaymentModalities)
+                        {
+                            <MudSelectItem T="int" Value="@modality.Id">@modality.Mode</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="New Start Date" @bind-Date="StartDateWrapper"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal" Label="Debt Amount" @bind-Value="PrincipalWrapper"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     ReadOnly="IsReschedule" AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal" Label="New Interest (%)" @bind-Value="RateWrapper"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="int" Label="Installments" @bind-Value="InstallmentWrapper"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" />
+                </MudItem>
+
+                @* 3. PREVIEW *@
+                <MudItem xs="12">
+                     <MudNumericField T="decimal" Label="New Total Repayable" @bind-Value="Model.Amount"
+                                      Variant="Variant.Filled" Margin="Margin.Dense" ReadOnly="true"
+                                      Format="N2" Style="background-color: #f8f9fa; font-weight: 700;" />
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudStack Row="true" Class="px-4 pb-4" Style="width: 100%;">
+            <MudButton Variant="Variant.Filled"
+                       OnClick="OnValidSubmit"
+                       Disabled="@(_isProcessing)"
+                       StartIcon="@(IsReschedule ? Icons.Material.Filled.Update : Icons.Material.Filled.Save)"
+                       FullWidth="true"
+                       Style="@ButtonStyle">
+                @(_isProcessing ? "PROCESSING..." : (IsReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM DISBURSEMENT"))
+            </MudButton>
+        </MudStack>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public decimal? TotalDebt { get; set; }
+    [Parameter] public int? OldDisbursementId { get; set; }
+    
+    private CreateDisbursementDTO Model { get; set; } = new();
+    private List<PaymentModality> PaymentModalities = new();
+    private string LoanApplicationName = "Select Application";
+    private string AccountName = "Select Account";
+    private bool _isProcessing;
+
+    private bool IsReschedule => OldDisbursementId.HasValue && OldDisbursementId.Value > 0;
+
+    private string HeaderStyle => IsReschedule 
+        ? "background: linear-gradient(90deg, #b02a37 0%, #dc3545 100%); border-radius:12px; color:white; position:relative;" 
+        : "background: linear-gradient(90deg, #1B2559 0%, #3F51B5 100%); border-radius:12px; color:white; position:relative;";
+
+    private string ButtonStyle => IsReschedule 
+        ? "background-color: #dc3545; color: white; border-radius: 8px; font-weight: 700;" 
+        : "background-color: #1B2559; color: white; border-radius: 8px; font-weight: 700;";
+
+    private decimal PrincipalWrapper { get => Model.PrincipalOffered; set { Model.PrincipalOffered = value; Calculate(); } }
+    private decimal RateWrapper { get => Model.InterestRate; set { Model.InterestRate = value; Calculate(); } }
+    private int InstallmentWrapper { get => Model.TotalInstallments; set { Model.TotalInstallments = value; Calculate(); } }
+    private DateTime? StartDateWrapper { get => Model.StartDate; set { Model.StartDate = value; StateHasChanged(); } }
+
+    private void Calculate()
+    {
+        decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
+        Model.Amount = Model.PrincipalOffered + totalInterest;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        PaymentModalities = (await PaymentModalityService.GetAllPaymentModalitysAsync()).ToList();
+
+        if (IsReschedule && TotalDebt.HasValue)
+        {
+            var oldDisb = await DisbursementService.GetDisbursementByIdAsync(OldDisbursementId!.Value);
+            if (oldDisb != null)
+            {
+                Model.LoanApplicationId = oldDisb.LoanApplicationId;
+                Model.AccountId = oldDisb.AccountId;
+                Model.PrincipalOffered = TotalDebt.Value;
+                Model.PaymentModalityId = oldDisb.PaymentModalityId;
+                Model.InterestRate = 0; // Defaulting to 0 for rescheduling unless edited
+                Model.StartDate = DateTime.Today;
+                Model.TotalInstallments = oldDisb.TotalInstallments;
+
+                LoanApplicationName = oldDisb.LoanApplication?.Borrower != null 
+                    ? $"{oldDisb.LoanApplication.Borrower.FirstName} {oldDisb.LoanApplication.Borrower.LastName}" 
+                    : $"Loan #{oldDisb.LoanApplicationId}";
+                AccountName = oldDisb.Account?.Name ?? "Original Account";
+            }
+            Calculate();
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        _isProcessing = true;
+        try
+        {
+            if (IsReschedule)
+            {
+                // Calls the specific Reschedule logic in your service
+                await DisbursementService.RescheduleLoanAsync(
+                    OldDisbursementId!.Value, 
+                    Model.Amount, 
+                    Model.PaymentModalityId, 
+                    Model.TotalInstallments, 
+                    Model.StartDate ?? DateTime.Today);
+                
+                Snackbar.Add("Loan Rescheduled successfully!", Severity.Success);
+            }
+            else
+            {
+                await DisbursementService.CreateDisbursementAsync(Model);
+                Snackbar.Add("Loan disbursed successfully!", Severity.Success);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally { _isProcessing = false; }
+    }
+}

@@ -1,0 +1,182 @@
+@page "/accounts"
+@using Application.Interfaces
+@using MudBlazor
+@using Domain.Entities
+@using Application.Services.Accounts
+
+
+@inject IAccountService AccountService
+
+@inject IDialogService DialogService
+
+<PageTitle>Accounts</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* 1. TOP TITLE AND SEARCH BAR *@
+    <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Accounts</MudText>
+        @* <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="text-transform:none;">
+            Add Account
+        </MudButton> *@
+    </div>
+
+    @* 2. SEARCH AND FILTER ROW *@
+    <MudGrid Class="mb-4" Spacing="2">
+        
+        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @* 3. BALANCE SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="6">
+        @if (_accountTypeTotals != null && _accountTypeTotals.Any())
+        {
+            @foreach (var total in _accountTypeTotals)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="1" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@total.AccountTypeName</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@total.TotalBalance.ToString("C")</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Total Balance</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
+    <MudDataGrid T="Account" Items="@_accounts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+
+                  <ToolBarContent>
+            <!-- <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText> -->
+            <MudSpacer />
+
+            <MudMenu Label="Add Account"
+                     Variant="Variant.Filled"
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
+                     Color="Color.Primary">
+
+                <MudMenuItem Icon="@Icons.Material.Filled.Add"
+                             OnClick="OpenDialog">
+                    Single
+                </MudMenuItem>
+
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
+                    print
+                </MudMenuItem>
+
+            </MudMenu>
+        </ToolBarContent>
+
+          <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText>
+            <MudSpacer />
+            <MudMenu Label="Add Account" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">print</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="Account" />
+            <HierarchyColumn T="Account" />
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <TemplateColumn>
+                <CellTemplate>
+                    @* <MudStack Row="true" AlignItems="AlignItems.Center">
+                        <MudAvatar Size="Size.Small"><MudImage Src="@context.Item.AvatarUrl" /></MudAvatar>
+                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.FirstName</MudText>
+                    </MudStack> *@
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Name" Title="Name" />
+            <PropertyColumn Property="x => x.Provider" Title="Provider" />
+            <PropertyColumn Property="x => x.AccountType.AccountTypeName" Title="AccountType" />
+             <PropertyColumn Property="x => x.AccountNumber" Title="AccountNumber" />
+              <PropertyColumn Property="x => x.Balance" Title="Balance" />
+              <PropertyColumn Property="x => x.Currency" Title="Currency" />
+          </Columns>
+           
+      
+        <PagerContent>
+            <MudDataGridPager T="Account" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+     private string _searchString = "";
+
+       List<Account> _accounts = new();
+
+           private HashSet<Account> _selectedItems = new();
+
+           private List<AccountTypeTotal> _accountTypeTotals = new();
+
+           private class AccountTypeTotal
+           {
+               public string? AccountTypeName { get; set; }
+               public decimal TotalBalance { get; set; }
+           }
+
+      protected override async Task OnInitializedAsync()
+    {
+         await LoadAccount();
+         
+    }
+    
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<AccountDialog>("Add Account", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+          
+             await LoadAccount();
+        }
+    }
+     private async Task LoadAccount()
+    {
+        _accounts = await AccountService.GetAllAccountsAsync();
+        
+        // Calculate totals by account type
+        _accountTypeTotals = _accounts
+            .Where(a => a.AccountType != null)
+            .GroupBy(a => a.AccountType.AccountTypeName)
+            .Select(g => new AccountTypeTotal
+            {
+                AccountTypeName = g.Key,
+                TotalBalance = g.Sum(a => a.Balance)
+            })
+            .ToList();
+        
+        StateHasChanged();
+    }
+       private async Task OpenDetailDialog(int id)
+    {
+        var parameters = new DialogParameters<AccountDetailDialog> { { x => x.Id, id } };
+        await DialogService.ShowAsync<AccountDetailDialog>("View Details", parameters);
+    }
+
+
+
+
+}

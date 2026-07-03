@@ -1,0 +1,347 @@
+@using Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Application.Services.GuarantorTypes
+@using Application.Services.Guarantors
+@using Application.Services.LoanApplications
+@using Domain.ValueObjects
+@using Domain.Entities
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+
+@inject NavigationManager Navigation
+@inject IGuarantorService GuarantorService
+@inject ILoanApplicationService LoanApplicationService
+@inject IGuarantorTypeService GuarantorTypeService
+@inject ILocationService LocationService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudDialog Style="overflow:hidden;">
+    <DialogContent>
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF ); padding:14px 18px; margin-bottom:16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:700; line-height:1.2;">
+                        Create Guarantor
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new Guarantor
+                    </MudText> 
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateGuarantorForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudGrid Spacing="1" Class="align-items-center">
+                <MudItem xs="12">
+                    <MudSelect T="int"
+                               Label="Guarantor Type"
+                               Placeholder="--Select Guarantor Type--"
+                               @bind-Value="Model.GuarantorTypeId"
+                               Variant="Variant.Outlined"
+                               Dense="true"
+                               Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Category"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem Value="0">--Select Guarantor Type--</MudSelectItem>
+                        @if (guarantorType != null)
+                        {
+                            foreach (var type in guarantorType)
+                            {
+                                <MudSelectItem T="int" Value="@type.Id">@type.Name</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                    
+                    <MudSelect T="int"
+                               Label="LoanApplication"
+                               Placeholder="--Select Loan Type--"
+                               @bind-Value="Model.LoanApplicationId"
+                               Variant="Variant.Outlined"
+                               Dense="true"
+                               Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Category"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem Value="0">--Select Loan --</MudSelectItem>
+                       @if (loanApplications != null)
+                        {
+                            foreach (var app in loanApplications)
+                            {
+             
+                                 <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudTextField Label="FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="LastName" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.LastName" For="@(() => Model.LastName)" />
+                </MudItem>
+
+                <MudItem xs="6"> 
+                    <MudDatePicker Label="Date Of Birth" @bind-Value="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudTextField Label="IdentificationNumber" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Identification" For="@(() => Model.Identification)"  Immediate="true" MaxLength="16"Counter="16"/> 
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Email" For="@(() => Model.Email)" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.PhoneNumber" For="@(() => Model.PhoneNumber)" />
+                </MudItem>
+                                    
+                <MudItem xs="6">
+    <MudSelect T="string"
+               Value="Model.Province" 
+               Label="Province" 
+               ValueChanged="OnProvinceChanged"
+               ReadOnly="IsReadOnly" 
+               Required="true"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Public"
+               AdornmentColor="Color.Primary">
+        @foreach (var p in _provinces)
+        {
+            <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+
+
+                <MudItem xs="6">
+                    <MudSelect T="string"
+                     Value="Model.District" Label="District" 
+                     ValueChanged="OnDistrictChanged"
+                      ReadOnly="IsReadOnly" Required="true"
+                       Disabled="@(string.IsNullOrEmpty(Model.Province))"
+                       Variant="Variant.Outlined"
+                        Dense="true"
+                        Margin="Margin.Dense"
+                        AdornmentIcon="@Icons.Material.Filled.Category"
+                        AdornmentColor="Color.Primary">
+                        @foreach (var d in _districts)
+                        {
+                            <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+               
+<MudItem xs="6">
+    <MudSelect T="string" 
+               Value="Model.Sector" 
+               Label="Sector" 
+               ValueChanged="OnSectorChanged" 
+               ReadOnly="IsReadOnly" 
+               Required="true" 
+               Disabled="@(string.IsNullOrEmpty(Model.District))"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Map"
+               AdornmentColor="Color.Primary">
+        @foreach (var s in _sectors)
+        {
+            <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- CELL SELECT --- *@
+<MudItem xs="6">
+    <MudSelect T="string" 
+               Value="Model.Cell" 
+               Label="Cell" 
+               ValueChanged="OnCellChanged" 
+               ReadOnly="IsReadOnly" 
+               Required="true" 
+               Disabled="@(string.IsNullOrEmpty(Model.Sector))"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Layers"
+               AdornmentColor="Color.Primary">
+        @foreach (var c in _cells)
+        {
+            <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+@* --- VILLAGE SELECT --- *@
+<MudItem xs="6">
+    <MudSelect T="string" 
+               @bind-Value="Model.Village" 
+               Label="Village" 
+               ReadOnly="IsReadOnly" 
+               Required="true" 
+               Disabled="@(string.IsNullOrEmpty(Model.Cell))"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.HomeWork"
+               AdornmentColor="Color.Primary">
+        @foreach (var v in _villages)
+        {
+            <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
+
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" FullWidth="true" ButtonType="ButtonType.Submit" Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                        Add Guarantor
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    [SupplyParameterFromForm(Name = "CreateGuarantorForm")]
+    private CreateGuarantorDTO Model { get; set; } = new();
+    private string ErrorMessage { get; set; }
+
+    [Parameter] public bool IsReadOnly { get; set; } = false;
+
+    public Sex sex { get; set; }
+   
+    private List<Province> _provinces = new();
+    private List<District> _districts = new();
+    private List<Sector> _sectors = new();
+    private List<Cell> _cells = new();
+    private List<Village> _villages = new();
+    private List<GuarantorType> guarantorType = new();
+    private List<LoanApplication> loanApplications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // 1. Load Loan Application
+            var loans = await LoanApplicationService.GetAllLoanApplicationsAsync();
+            if (loans != null)
+            {
+                loanApplications = loans;
+            }
+
+            // 2. Load Guarantor Types
+            var guarantorstype = await GuarantorTypeService.GetAllGuarantorTypesAsync();
+            if (guarantorstype != null)
+            {
+                guarantorType = guarantorstype;
+            }
+
+            // 3. Load Location Data
+            _provinces = await LocationService.GetAllLocationsAsync();
+
+            // 4. Handle Pre-selected data
+            if (!string.IsNullOrEmpty(Model.Province))
+            {
+                var province = _provinces.FirstOrDefault(p => p.Name == Model.Province);
+                if (province != null)
+                {
+                    _districts = province.Districts;
+                    var district = _districts.FirstOrDefault(d => d.Name == Model.District);
+                    if (district != null)
+                    {
+                        _sectors = district.Sectors;
+                        var sector = _sectors.FirstOrDefault(s => s.Name == Model.Sector);
+                        if (sector != null)
+                        {
+                            _cells = sector.Cells;
+                            var cell = _cells.FirstOrDefault(c => c.Name == Model.Cell);
+                            if (cell != null)
+                            {
+                                _villages = cell.Villages;
+                            }
+                        }
+                    }
+                }
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading initial data", Severity.Error);
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    private void OnProvinceChanged(string value)
+    {
+        Model.Province = value;
+        Model.District = string.Empty;
+        Model.Sector = string.Empty;
+        Model.Cell = string.Empty;
+        Model.Village = string.Empty;
+
+        _districts = _provinces.FirstOrDefault(p => p.Name == value)?.Districts ?? new();
+        _sectors = new();
+        _cells = new();
+        _villages = new();
+    }
+
+    private void OnDistrictChanged(string value)
+    {
+        Model.District = value;
+        Model.Sector = string.Empty;
+        Model.Cell = string.Empty;
+        Model.Village = string.Empty;
+
+        _sectors = _districts.FirstOrDefault(d => d.Name == value)?.Sectors ?? new();
+        _cells = new();
+        _villages = new();
+    }
+
+    private void OnSectorChanged(string value)
+    {
+        Model.Sector = value;
+        Model.Cell = string.Empty;
+        Model.Village = string.Empty;
+
+        _cells = _sectors.FirstOrDefault(s => s.Name == value)?.Cells ?? new();
+        _villages = new();
+    }
+
+    private void OnCellChanged(string value)
+    {
+        Model.Cell = value;
+        Model.Village = string.Empty;
+
+        _villages = _cells.FirstOrDefault(c => c.Name == value)?.Villages ?? new();
+    }
+
+    private async Task onValidSubmit()
+    {
+        try
+        {
+            await GuarantorService.CreateGuarantor(Model);
+            Snackbar.Add("Guarantor created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+}

@@ -1,0 +1,273 @@
+@using Application.DTO
+@using Application.Interfaces
+@using MudBlazor
+@using Domain.Entities
+@using System.ComponentModel.DataAnnotations
+@using Application.Services.Payments
+@using Application.Services.Disbursements
+@using Application.Services.PaymentTypes
+@using Application.Services.Accounts
+@using Domain.ValueObjects
+@inject IDialogService DialogService
+@inject IPaymentService PaymentService
+@inject IDisbursementService DisbursementService
+@inject IPaymentTypeService PaymentTypeService
+@inject IAccountService AccountService
+@inject ISnackbar Snackbar
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 750px;">
+    <DialogContent>
+        @* --- HEADER SECTION --- *@
+        <MudPaper Elevation="0" Class="pa-5 mb-6"
+                  Style="background: linear-gradient(135deg, #4318FF); border-radius:12px; color:white; position:relative; overflow:hidden;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                <MudAvatar Style="height:60px; width:60px; background: rgba(255,255,255,0.2);">
+                    <MudIcon Icon="@Icons.Material.Filled.Payments" Style="font-size:2.5rem; color: white;" />
+                </MudAvatar>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">Record Transaction</MudText>
+                    <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.8);">Manage scheduled loan repayments and penalties.</MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <EditForm Model="Model">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                
+                @* --- LOAN SELECTION --- *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Target Disbursement" 
+                               Value="Model.DisbursementId"
+                               ValueChanged="OnDisbursementChanged"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.AccountTree" Adornment="Adornment.Start"
+                               AdornmentColor="Color.Primary" Required="true">
+                        <MudSelectItem T="int" Value="0">Select Disbursement</MudSelectItem>
+                        @foreach (var d in Disbursements)
+                        {
+                            var installmentAmount = d.TotalInstallments > 0 ? (d.Amount / d.TotalInstallments) : d.Amount;
+                            <MudSelectItem T="int" Value="@d.Id">
+                                <div class="d-flex justify-space-between" style="width: 100%;">
+                                    <MudText Typo="Typo.body2">
+                                        <b>@(d.LoanApplication?.Borrower != null ? $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}" : $"Ref #{d.Id}")</b>
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Success" Style="font-weight:700" Class="ml-4">
+                                        @installmentAmount.ToString("N2")
+                                    </MudText>
+                                </div>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* --- ACCOUNT SELECTION --- *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Receiving Account" 
+                               Value="Model.AccountId"
+                               ValueChanged="OnAccountChanged"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet" Adornment="Adornment.Start"
+                               AdornmentColor="Color.Primary" Required="true">
+                        <MudSelectItem T="int" Value="0">Select Account</MudSelectItem>
+                        @foreach (var acc in Accounts)
+                        {
+                            <MudSelectItem T="int" Value="@acc.Id">
+                                @acc.Name <span style="color:gray; font-size: 0.8rem;">(@(acc.Balance.ToString("n") ?? "0.00"))</span>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* --- AMOUNT INPUT --- *@
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" Label="Payment Amount" 
+                                     @bind-Value="Model.Amount"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     AdornmentColor="Color.Primary" Immediate="true" Format="N2" 
+                                     Disabled="@IsPaymentRestricted()"/>
+                </MudItem>
+
+                @* --- DUE DATE --- *@
+                <MudItem xs="12" sm="6">
+                    <MudTextField T="string" Label="Scheduled Due Date" 
+                                  Value="@(ExpectedDueDate == DateTime.MinValue ? "Select a loan" : ExpectedDueDate.ToString("MMMM dd, yyyy"))"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Event"
+                                  ReadOnly="true" HelperText="Determined by payment schedule" />
+                </MudItem>
+
+                @* --- PAYMENT TYPE --- *@
+                <MudItem xs="12">
+                    <MudSelect T="int" Label="Payment Type" @bind-Value="Model.PaymentTypeId"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.Class" Adornment="Adornment.Start"
+                               AdornmentColor="Color.Primary" Required="true">
+                        <MudSelectItem T="int" Value="0">Select Payment Type</MudSelectItem>
+                        @foreach (var type in PaymentTypes)
+                        {
+                            <MudSelectItem T="int" Value="@type.Id">@type.PaymentTypeName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* --- DYNAMIC STATUS ALERTS --- *@
+                <MudItem xs="12">
+                    @if (Model.DisbursementId > 0)
+                    {
+                        var selectedDisbursement = Disbursements.FirstOrDefault(d => d.Id == Model.DisbursementId);
+                        
+                        @if (selectedDisbursement != null && DateTime.Today < selectedDisbursement.StartDate.Date)
+                        {
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Style="border-radius: 8px;">
+                                <b>WAITING FOR START DATE:</b> Cycle begins on <b>@selectedDisbursement.StartDate.ToString("MMM dd, yyyy")</b>.
+                            </MudAlert>
+                        }
+                        else if (ExpectedAmount <= 0)
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Style="border-radius: 8px;">
+                                <b>INSTALLMENT SETTLED:</b> The current installment is already fully paid. Please wait until <b>@ExpectedDueDate.ToString("MMM dd, yyyy")</b> to make the next payment.
+                            </MudAlert>
+                        }
+                        else if (CalculatedPenalty > 0)
+                        {
+                            var rate = selectedDisbursement?.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0;
+                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Style="border-radius: 8px;">
+                                <b>LATE PENALTY (@rate%):</b> @CalculatedPenalty.ToString("n") will be added due to late payment/shortfall.
+                            </MudAlert>
+                        }
+                    }
+                </MudItem>
+
+                @* --- SUBMIT ACTION --- *@
+                <MudItem xs="12" Class="mt-2">
+                    <MudButton OnClick="OnValidSubmit" Variant="Variant.Filled" 
+                               Disabled="@(_isProcessing || IsPaymentRestricted())"
+                               StartIcon="@Icons.Material.Filled.CheckCircle" FullWidth="true"
+                               Style="background: linear-gradient(135deg, #4318FF); color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;">
+                        @(_isProcessing ? "PROCESSING..." : "CONFIRM TRANSACTION")
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    private CreatePaymentDTO Model { get; set; } = new() { PaymentDate = DateTime.Today };
+    private List<Disbursement> Disbursements = new();
+    private List<Account> Accounts = new(); 
+    private List<PaymentType> PaymentTypes = new(); 
+    private bool _isProcessing;
+
+    private decimal ExpectedAmount;
+    private DateTime ExpectedDueDate;
+
+    private decimal Shortfall => (ExpectedAmount > Model.Amount) ? ExpectedAmount - Model.Amount : 0;
+    
+    private decimal CalculatedPenalty 
+    {
+        get
+        {
+            if (Model.DisbursementId <= 0 || ExpectedDueDate == DateTime.MinValue) return 0;
+
+            var selected = Disbursements.FirstOrDefault(d => d.Id == Model.DisbursementId);
+            var rate = selected?.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0;
+            
+            if (DateTime.Today > ExpectedDueDate || Shortfall > 0)
+            {
+                return Shortfall * (rate / 100m);
+            }
+            return 0;
+        }
+    }
+
+    protected override async Task OnInitializedAsync() {
+        var dTask = DisbursementService.GetAllDisbursementsAsync();
+        var tTask = PaymentTypeService.GetAllPaymentTypesAsync();
+        var aTask = AccountService.GetAllAccountsAsync(); 
+        
+        await Task.WhenAll(dTask, tTask, aTask);
+        
+        // Includes both Disbursed and Rescheduled status
+        Disbursements = (dTask.Result ?? new())
+            .Where(d => d.LoanApplication?.Status == LoanStatus.Disbursed || 
+                        d.LoanApplication?.Status == LoanStatus.Rescheduled)
+            .ToList();
+            
+        PaymentTypes = tTask.Result ?? new();
+        Accounts = aTask.Result ?? new(); 
+    }
+
+    private async Task OnDisbursementChanged(int id) {
+        Model.DisbursementId = id;
+        if (id > 0) {
+            var nextStep = await PaymentService.GetNextScheduledPaymentAsync(id);
+            ExpectedAmount = nextStep.Amount;
+            ExpectedDueDate = nextStep.Date;
+            Model.Amount = ExpectedAmount > 0 ? ExpectedAmount : 0;
+        } else {
+            ResetFormFields();
+        }
+    }
+
+    private bool IsPaymentRestricted() {
+        if (Model.DisbursementId == 0) return false;
+        
+        var selected = Disbursements.FirstOrDefault(d => d.Id == Model.DisbursementId);
+        bool beforeStart = selected != null && DateTime.Today < selected.StartDate.Date;
+        bool alreadyPaid = ExpectedAmount <= 0;
+
+        return beforeStart || alreadyPaid;
+    }
+
+    private void OnAccountChanged(int id) {
+        Model.AccountId = id;
+        StateHasChanged();
+    }
+
+    private void ResetFormFields() {
+        ExpectedAmount = 0;
+        ExpectedDueDate = DateTime.MinValue;
+        Model.Amount = 0;
+    }
+
+    private async Task OnValidSubmit() {
+        if (Model.DisbursementId == 0 || Model.AccountId == 0 || Model.PaymentTypeId == 0) {
+            Snackbar.Add("Please fill all required fields.", Severity.Warning);
+            return;
+        }
+
+        _isProcessing = true;
+        
+        try {
+            if (CalculatedPenalty > 0) 
+            {
+                var selected = Disbursements.FirstOrDefault(d => d.Id == Model.DisbursementId);
+                var rate = selected?.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0;
+                
+                Snackbar.Add($"Late payment/Shortfall detected. {rate}% Penalty ({CalculatedPenalty:n}) added to loan balance.", Severity.Warning);
+                await PaymentService.CreatePaymentWithPenaltyAsync(Model, Shortfall, CalculatedPenalty);
+            } 
+            else 
+            {
+                await PaymentService.CreatePaymentAsync(Model);
+                Snackbar.Add("Payment recorded successfully.", Severity.Success);
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        } 
+        catch (InvalidOperationException ex) {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        catch (Exception ex) {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        } 
+        finally { 
+            _isProcessing = false; 
+        }
+    }
+}

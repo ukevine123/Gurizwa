@@ -1,0 +1,259 @@
+@page "/waivers"
+
+@using Application.DTO
+@using Application.Services.Waivers
+@using MudBlazor
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize(Roles = "Manager")]  *@
+
+@inject IWaiverService WaiverService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <!-- ════════════ HEADER ════════════ -->
+    <MudPaper Elevation="0" Class="pa-4 mb-4 rounded shadow-sm" Style="background: linear-gradient(135deg, #4318FF );">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+            <MudIcon Icon="@Icons.Material.Filled.GppGood" Style="color:white; font-size:2.5rem;" />
+            <MudStack Spacing="1">
+                <MudText Typo="Typo.h5" Style="color:white; font-weight:bold;">Waiver Management</MudText>
+                <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.85);">Manage loan and fee waivers</MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+    <MudStack Row="true" Class="mb-4">
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenCreateDialog"
+                   Style="color: white; background: linear-gradient(135deg, #4318FF );">
+            New Waiver
+        </MudButton>
+    </MudStack>
+
+    <!-- ════════════ TABS ════════════ -->
+    <MudTabs Elevation="2" ApplyEffectsToContainer="true" PanelClass="pa-4">
+        <!-- ALL WAIVERS TAB -->
+        <MudTabPanel Text="All Waivers" Icon="@Icons.Material.Filled.ViewList">
+            <MudDataGrid Items="@AllWaivers" Hover="true" Loading="@_isLoading" Dense="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.Id" Title="ID" />
+                    <PropertyColumn Property="x => x.DisbursementId" Title="Disbursement ID" />
+                    <PropertyColumn Property="x => x.WaiverType" Title="Type">
+                        <CellTemplate>
+                            <MudChip T="string"
+                                     Color="@(context.Item.WaiverType == "Penalty Waiver" ? Color.Error : context.Item.WaiverType == "Interest Waiver" ? Color.Warning : Color.Success)"
+                                     Size="Size.Small"
+                                     Variant="Variant.Filled">
+                                @context.Item.WaiverType
+                            </MudChip>
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                    <PropertyColumn Property="x => x.Reason" Title="Reason" />
+                    <PropertyColumn Property="x => x.Status" Title="Status">
+                        <CellTemplate>
+                            <MudChip T="string"
+                                     Color="@GetStatusColor(context.Item.Status)"
+                                     Size="Size.Small"
+                                     Variant="Variant.Filled">
+                                @context.Item.Status
+                            </MudChip>
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="G" />
+                    <TemplateColumn Title="Actions" Sortable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="1">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Size="Size.Small"
+                                               Color="Color.Primary"
+                                               OnClick="@(() => EditWaiver(context.Item))" />
+                                @if (context.Item.Status == "Pending")
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.CheckCircle"
+                                                   Size="Size.Small"
+                                                   Color="Color.Success"
+                                                   OnClick="@(() => ApproveWaiver(context.Item.Id))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Cancel"
+                                                   Size="Size.Small"
+                                                   Color="Color.Error"
+                                                   OnClick="@(() => RejectWaiver(context.Item.Id))" />
+                                }
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               OnClick="@(() => DeleteWaiver(context.Item.Id))" />
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudTabPanel>
+
+        <!-- PENDING WAIVERS TAB -->
+        <MudTabPanel Text="Pending" Icon="@Icons.Material.Filled.HourglassBottom">
+            <MudDataGrid Items="@PendingWaivers" Hover="true" Loading="@_isLoading" Dense="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.Id" Title="ID" />
+                    <PropertyColumn Property="x => x.DisbursementId" Title="Disbursement ID" />
+                    <PropertyColumn Property="x => x.WaiverType" Title="Type" />
+                    <PropertyColumn Property="x => x.Amount" Title="Amount (Rwf)" Format="N2" />
+                    <PropertyColumn Property="x => x.Reason" Title="Reason" />
+                    <PropertyColumn Property="x => x.CreatedAt" Title="Requested" Format="g" />
+                    <TemplateColumn Title="Actions" Sortable="false">
+                        <CellTemplate>
+                            <MudStack Row="true" Spacing="1">
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Success"
+                                           Size="Size.Small"
+                                           OnClick="@(() => ApproveWaiver(context.Item.Id))">
+                                    Approve
+                                </MudButton>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           OnClick="@(() => RejectWaiver(context.Item.Id))">
+                                    Reject
+                                </MudButton>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudTabPanel>
+
+        <!-- APPROVED WAIVERS TAB -->
+        <MudTabPanel Text="Approved" Icon="@Icons.Material.Filled.CheckCircle">
+            <MudDataGrid Items="@ApprovedWaivers" Hover="true" Loading="@_isLoading" Dense="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.Id" Title="ID" />
+                    <PropertyColumn Property="x => x.DisbursementId" Title="Disbursement ID" />
+                    <PropertyColumn Property="x => x.WaiverType" Title="Type" />
+                    <PropertyColumn Property="x => x.Amount" Title="Amount (Rwf)" Format="N2" />
+                    <PropertyColumn Property="x => x.ApprovedBy" Title="Approved By" />
+                    <PropertyColumn Property="x => x.ApprovedDate" Title="Approved Date" Format="g" />
+                </Columns>
+            </MudDataGrid>
+        </MudTabPanel>
+    </MudTabs>
+</MudContainer>
+
+@code {
+    private List<WaiverDTO> AllWaivers = new();
+    private List<WaiverDTO> PendingWaivers = new();
+    private List<WaiverDTO> ApprovedWaivers = new();
+    private bool _isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWaivers();
+    }
+
+    private async Task LoadWaivers()
+    {
+        try
+        {
+            _isLoading = true;
+            var waivers = await WaiverService.GetAllWaiversAsync();
+            AllWaivers = waivers.ToList();
+
+            PendingWaivers = (await WaiverService.GetPendingWaiversAsync()).ToList();
+            ApprovedWaivers = (await WaiverService.GetApprovedWaiversAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading waivers: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<WaiverCreateDialog>("Create Waiver", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadWaivers();
+        }
+    }
+
+    private async Task ApproveWaiver(int waiverID)
+    {
+        var parameters = new DialogParameters<WaiverApprovalDialog>
+        {
+            { x => x.WaiverId, waiverID }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<WaiverApprovalDialog>("Approve Waiver", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadWaivers();
+        }
+    }
+
+    private async Task RejectWaiver(int waiverId)
+    {
+        var confirm = await DialogService.ShowMessageBox(
+            "Reject Waiver",
+            "Are you sure you want to reject this waiver?",
+            yesText: "Yes", cancelText: "No");
+
+        if (confirm == true)
+        {
+            try
+            {
+                await WaiverService.RejectWaiverAsync(waiverId);
+                Snackbar.Add("Waiver rejected successfully!", Severity.Success);
+                await LoadWaivers();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error rejecting waiver: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private async Task EditWaiver(WaiverDTO waiver)
+    {
+        Snackbar.Add("Edit functionality coming soon", Severity.Info);
+    }
+
+    private async Task DeleteWaiver(int waiverId)
+    {
+        var confirm = await DialogService.ShowMessageBox(
+            "Delete Waiver",
+            "Are you sure you want to delete this waiver?",
+            yesText: "Yes", cancelText: "No");
+
+        if (confirm == true)
+        {
+            try
+            {
+                await WaiverService.DeleteWaiverAsync(waiverId);
+                Snackbar.Add("Waiver deleted successfully!", Severity.Success);
+                await LoadWaivers();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting waiver: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Pending" => Color.Warning,
+        "Approved" => Color.Success,
+        "Rejected" => Color.Error,
+        _ => Color.Default
+    };
+}

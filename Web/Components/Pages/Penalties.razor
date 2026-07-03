@@ -1,0 +1,113 @@
+@page "/Penality"
+@using Domain.Entities
+@using Application.Services.Penalities   
+@using MudBlazor
+@inject IPenalityService PenalityService
+@inject IDialogService DialogService
+
+<PageTitle>Penalty</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    @* --- DESIGN ADDITION: HEADER AREA --- *@
+    @* <div class="d-flex align-center justify-space-between mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Penalty Management</MudText>
+    </div> *@
+
+    @* --- DESIGN ADDITION: ACTION BAR --- *@
+    <MudGrid Class="mb-4" Spacing="2">
+        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @* --- DATA GRID WITH UPDATED STYLING --- *@
+    <MudDataGrid T="Penality" 
+                 Items="@_penalties" 
+                 Hover="true" 
+                 Bordered="false" 
+                 Elevation="0" 
+                 MultiSelection="true"
+                 @bind-SelectedItems="_selectedItems"
+                 Class="rounded-xl border-none shadow-sm">   
+
+        <ToolBarContent>
+            <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Penalties List</MudText>
+            <MudSpacer />
+            <MudMenu Label="Add Penalty" 
+                     Variant="Variant.Filled" 
+                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
+                     Color="Color.Primary"
+                     Class="rounded-lg">
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreatePenality())">Single</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="Penality" />
+
+            <PropertyColumn Property="x => x.Id" Title="ID" />
+            <PropertyColumn Property="x => x.LoanApplication.AmountRequested" Title="Loan Application" Format="C" />
+            <PropertyColumn Property="x => x.Amount" Format="C" Title="Penalty Amount" />
+            <PropertyColumn Property="x => x.Date" Title="Issue Date" Format="d" />       
+            <PropertyColumn Property="x => x.Reason.Name" Title="Reason" />
+            <PropertyColumn Property="x => x.Description" Title="Description" />
+            
+            <TemplateColumn Title="Status">
+                <CellTemplate>
+                    <MudChip T="string" 
+                             Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
+                             Size="Size.Small" 
+                             Variant="Variant.Text"
+                             Style="font-weight: 600;">
+                        @(context.Item.IsActive ? "Active" : "Inactive")
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+
+        <PagerContent>
+            <MudDataGridPager T="Penality" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code{
+    private List<Penality> _penalties = new();
+    private HashSet<Penality> _selectedItems = new(); 
+   
+    private readonly DialogOptions _closeButton = new() { CloseButton = true };
+    
+    protected override async Task OnInitializedAsync()
+    {
+      await LoadPenalties();
+    }
+
+    private async Task LoadPenalties()
+    {
+        _penalties = await PenalityService.GetAllPenalitiesAsync();
+        StateHasChanged();
+    }
+
+    private async Task GoToCreatePenality()
+    {
+        // Keeping logic consistent with your other pages
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = await DialogService.ShowAsync<CreatePenality>("Add Penalty", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await Task.Delay(50);
+            await LoadPenalties();
+        }
+    }
+}

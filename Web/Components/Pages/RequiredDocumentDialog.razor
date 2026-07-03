@@ -1,0 +1,115 @@
+@using  Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Application.Services.RequiredDocuments
+@using Domain.Entities
+@using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@using Microsoft.AspNetCore.Authorization
+@* @attribute [Authorize] *@
+@inject NavigationManager Navigation
+@inject IRequiredDocumentService RequiredDocumentService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MudDialog Style="overflow:hidden;" >
+
+    <DialogContent>
+
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #5a55e6 0%, #f7f9f8 100%);
+                         padding:14px 18px; margin-bottom:16px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+
+                <MudIcon Icon="@Icons.Material.Filled.Home"
+                         Style="color:white; font-size:1.6rem;" />
+
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Create RequiredDocument
+                    </MudText>
+
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new RequiredDocument
+                    </MudText>
+                </MudStack>
+
+            </MudStack>
+        </MudPaper>
+
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateRequiredDocumentForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+           
+                <MudGrid Spacing="1" Class="align-items-center">
+                    
+                <MudItem  xs="6">
+                <MudTextField Label="DocumentName"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.DocumentName"
+                              For="@(() => Model.DocumentName)" />
+                </MudItem>
+                <MudItem  xs="6">
+                <MudTextField Label="DocumentType"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.DocumentType"
+                              For="@(() => Model.DocumentType)" />
+                </MudItem>
+                              
+                                       
+                <MudItem xs="12">
+                <MudButton Variant="Variant.Filled"
+                        Color="Color.Primary"
+                        Size="Size.Small"
+                        FullWidth="true"
+                        ButtonType="ButtonType.Submit"
+                        Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                    Add RequiredDocument
+                </MudButton>
+                </MudItem>
+
+            </MudGrid>
+
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code{
+    [CascadingParameter]
+    
+    private IMudDialogInstance MudDialog { get; set; }
+    private bool _fullWidth;
+    private bool _fitContent;
+    [SupplyParameterFromForm(Name = "CreateRequiredDocumentForm")]
+    private RequiredDocumentCreateDTO Model {get;set;} = new ();
+    private string ErrorMessage{get;set;}
+     
+
+
+    private async Task onValidSubmit()
+    {
+        try
+        {
+            await RequiredDocumentService.CreateRequiredDocumentAsync(Model);
+            Snackbar.Add("RequiredDocument created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
+        }
+        catch(Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+   
+    
+
+}

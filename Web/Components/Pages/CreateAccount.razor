@@ -1,0 +1,99 @@
+@page "/accounts/create"
+@rendermode InteractiveServer
+
+@using Application.DTO
+@using System.ComponentModel.DataAnnotations
+@using Application.Interfaces
+@using Domain.Entities
+@using Application.Services.Accounts
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
+@inject NavigationManager Navigation
+@inject IAccountService AccountService
+@inject IAccountTypeService AccountTypeService
+
+<PageTitle>Create Account</PageTitle>
+
+<div class="container">
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>Create Account</h3>
+            <a href="/accounts" class="btn btn-outline-secondary btn-sm">Back to List</a>
+    </div>
+
+       <div class="card">
+                    <div class="card-body">
+                        <EditForm Model="Model" OnValidSubmit="onValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger py-2 mb-3" />
+
+                        <MudStack Spacing="2">
+                            <MudTextField Label="Name" @bind-Value="Model.Name" For="@(() => Model.Name)" />
+                            <MudTextField Label="Provider" @bind-Value="Model.Provider" For="@(() => Model.Provider)" />
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Account type" @bind-Value="Model.AccountTypeId"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.Category" Adornment="Adornment.Start"
+                               AdornmentColor="Color.Primary">
+                        <MudSelectItem Value="0">Select Account Type</MudSelectItem>
+                        @foreach (var account in AccountTypes)
+                        {
+                            <MudSelectItem Value="@account.Id">@account.AccountTypeName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                            <MudTextField Label="Account Number" @bind-Value="Model.AccountNumber" For="@(() => Model.AccountNumber)" />
+                            <MudNumericField Label="Balance" @bind-Value="Model.Balance" For="@(() => Model.Balance)" Format="N2" />
+                            <MudSelect T="string"
+                                       Label="Currency"
+                                       @bind-Value="Model.Currency"
+                                       Variant="Variant.Outlined"
+                                       Margin="Margin.Dense"
+                                       Dense="true"
+                                       AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                       Adornment="Adornment.Start"
+                                       AdornmentColor="Color.Primary"
+                                       Required="true"
+                                       For="@(() => Model.Currency)">
+                                <MudSelectItem T="string" Value="@string.Empty">Select Currency</MudSelectItem>
+                                @foreach (var currency in Currencies)
+                                {
+                                    <MudSelectItem T="string" Value="@currency.Code">@currency.Label</MudSelectItem>
+                                }
+                            </MudSelect>
+                            
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Add Account</MudButton>
+                        </MudStack>
+                       </EditForm>
+                    </div>
+        </div>
+    </div>
+</div>
+</div>
+@code {
+
+    private AccountCreateDTO Model { get; set; } = new();
+
+    private List<AccountType> AccountTypes = new();
+
+    private readonly List<(string Code, string Label)> Currencies = new()
+    {
+        ("RWF", "🇷🇼 RWF — Rwandan Franc"),
+        ("USD", "🇺🇸 USD — US Dollar"),
+        ("EUR", "🇪🇺 EUR — Euro"),
+        ("GBP", "🇬🇧 GBP — British Pound"),
+        ("CAD", "🇨🇦 CAD — Canadian Dollar"),
+        ("AUD", "🇦🇺 AUD — Australian Dollar"),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        AccountTypes = await AccountTypeService.GetAllAccountTypesAsync();
+    }
+
+    private void onValidSubmit()
+    {
+        AccountService.CreateAccountAsync(Model);
+        Navigation.NavigateTo("/accounts");
+    }
+}
