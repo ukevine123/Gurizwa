@@ -27,7 +27,7 @@ namespace Infrastructure.Repositories
             }
         return await dbContext.ProvidedDocuments
          .Include(a => a.LoanApplication)
-           .Where(a => a.PersonId == _userContext.Id)
+           .Where(a => a.PersonId == _userContext.PersonId)
            .ToListAsync(); 
         }
         public async Task <ProvidedDocument> GetProvidedDocumentById(int Id)
@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
                 return null;
             }
             return await dbContext.ProvidedDocuments
-            .Where(a => a.PersonId == _userContext.Id) 
+            .Where(a => a.PersonId == _userContext.PersonId) 
             .Include(d => d.LoanApplication)
             .FirstOrDefaultAsync(t => t.Id == Id);
         }

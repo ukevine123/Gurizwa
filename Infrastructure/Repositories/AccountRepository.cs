@@ -55,7 +55,7 @@ namespace Infrastructure.Repositories
     // 2. Fetch the account ONLY if it belongs to the logged-in user
     return await dbContext.Accounts
         .Include(a => a.AccountType)
-        .Where(a => a.PersonId == _userContext.Id) // Ensure ownership
+        .Where(a => a.PersonId == _userContext.PersonId) // Ensure ownership
         .FirstOrDefaultAsync(a => a.Id == id);    // Find the specific item
         }
 

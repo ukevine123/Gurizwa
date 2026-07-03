@@ -29,5 +29,10 @@ namespace  Application.Services.Guarantors
         {
             await _guarantor.UpdateGuarantor(Id, guarantorDTO);
         }
+
+        public async Task DeleteGuarantor(int id)
+        {
+            await _guarantor.DeleteGuarantor(id);
+        }
     }
 }

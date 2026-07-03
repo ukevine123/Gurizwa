@@ -36,22 +36,28 @@
             <MudGrid Spacing="1">
 
                 @* 1. LOAN SELECTION *@
-                <MudItem xs="12">
-                    <MudSelect T="int"
-                               Label="Linked Loan Application"
-                               @bind-Value="Model.LoanApplicationId"
-                               Variant="Variant.Outlined"
-                               Dense="true"
-                               Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Link"
-                               AdornmentColor="Color.Warning">
-                        <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
-                        @foreach (var app in _loanApplications)
-                        {
-                            <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
+              @* 1. LOAN SELECTION *@
+<MudItem xs="12">
+    @* Change T to string to match your DTO *@
+    <MudSelect T="int"
+               Label="Linked Loan Application"
+               @bind-Value="Model.LoanApplicationId"
+               Variant="Variant.Outlined"
+               Dense="true"
+               Margin="Margin.Dense"
+               AdornmentIcon="@Icons.Material.Filled.Link"
+               AdornmentColor="Color.Warning">
+        
+       <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
+        
+        @foreach (var app in _loanApplications)
+        {
+            
+            @* Convert app.Id to string using .ToString() *@
+            <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
+        }
+    </MudSelect>
+</MudItem>
 
                 @* 2. ASSET DETAILS *@
                 <MudItem xs="6">

@@ -4,11 +4,24 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 
+@using Application.Interfaces
+@inject IUserContext UserContext
 @inject IIdentityService IdentityService
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 <PageTitle>Users</PageTitle>
 
+@if (UserContext.PrimaryRole != "Tenant")
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4">
+            You do not have permission to access the Users Management page. Only the primary Tenant can view and manage staff.
+        </MudAlert>
+    </MudContainer>
+}
+else
+{
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
     <MudCard>
         <MudCardHeader>
@@ -18,11 +31,18 @@
                     <MudText Typo="Typo.body2" Color="Color.Secondary">View and manage all users</MudText>
                 </div>
                 <div>
-                    <MudButton Href="/RegisterUser" 
+                    <MudButton OnClick="OpenRoleManagementDialog" 
+                               Variant="Variant.Outlined" 
+                               Color="Color.Secondary" 
+                               StartIcon="@Icons.Material.Filled.Settings"
+                               Class="mr-3">
+                        Manage Roles
+                    </MudButton>
+                    <MudButton OnClick="OpenCreateDialog" 
                                Variant="Variant.Filled" 
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.PersonAdd">
-                        Add New User
+                               Color="Color.Primary" 
+                               StartIcon="@Icons.Material.Filled.Add">
+                        Create User
                     </MudButton>
                 </div>
             </div>
@@ -136,6 +156,7 @@
         </MudCardContent>
     </MudCard>
 </MudContainer>
+}
 
 @code {
     private List<UserDetailDTO>? users;
@@ -148,6 +169,25 @@
         await LoadUsers();
     }
 
+    private async Task OpenRoleManagementDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<RoleManagementDialog>("Manage Organization Roles", options);
+        await dialog.Result;
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CreateSubUserDialog>("Add New User", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadUsers();
+        }
+    }
+
     private async Task LoadUsers()
     {
         try
@@ -157,7 +197,14 @@
 
             Console.WriteLine("[Users] Loading users list...");
 
-            users = await IdentityService.GetAllUsers();
+            if (UserContext.PersonId.HasValue)
+            {
+                users = await IdentityService.GetSubUsers(UserContext.PersonId.Value);
+            }
+            else 
+            {
+                users = new List<UserDetailDTO>();
+            }
 
             Console.WriteLine($"[Users] Loaded {users?.Count ?? 0} users");
         }

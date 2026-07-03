@@ -140,6 +140,119 @@ namespace Infrastructure.Identity
             }
         }
 
+        public async Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId)
+        {
+            try
+            {
+                var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+                if (existingUser != null)
+                {
+                    throw new InvalidOperationException($"A user with email '{dto.Email}' already exists.");
+                }
+
+                var newUser = new User
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    Email = dto.Email,
+                    UserName = dto.Email,
+                    PersonId = parentPersonId,
+                    PhoneNumber = dto.PhoneNumber,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(newUser, dto.Password);
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to register sub-user: {errors}");
+                }
+
+                // Ensure a role exists and assign it
+                var defaultRoles = new[] { "Staff", "Manager", "Viewer" };
+                var roleToAssign = string.IsNullOrWhiteSpace(dto.Role) ? "Staff" : dto.Role;
+                var internalRoleName = defaultRoles.Contains(roleToAssign) ? roleToAssign : $"{parentPersonId}_{roleToAssign}";
+
+                if (!await _roleManager.RoleExistsAsync(internalRoleName))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole<int>(internalRoleName));
+                }
+                await _userManager.AddToRoleAsync(newUser, internalRoleName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RegisterSubUser] Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId)
+        {
+            var users = await _userManager.Users
+                .Where(u => u.PersonId == parentPersonId)
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
+                .ToListAsync();
+
+            return users.Select(u => new UserDetailDTO
+            {
+                Id = u.Id,
+                FirstName = u.FirstName ?? "",
+                LastName = u.LastName ?? "",
+                Email = u.Email ?? "",
+                PhoneNumber = u.PhoneNumber,
+                EmailConfirmed = u.EmailConfirmed,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
+            }).ToList();
+        }
+
+        public async Task<List<string>> GetRolesAsync(int parentPersonId)
+        {
+            var prefix = $"{parentPersonId}_";
+            var dbRoles = await _roleManager.Roles
+                .Where(r => r.Name != "Tenant") // Hide Tenant role
+                .Select(r => r.Name)
+                .ToListAsync();
+            
+            var resultRoles = new List<string> { "Staff", "Manager", "Viewer" };
+            
+            foreach (var r in dbRoles)
+            {
+                if (r != null && r.StartsWith(prefix))
+                {
+                    resultRoles.Add(r.Substring(prefix.Length));
+                }
+            }
+            
+            return resultRoles.Distinct().OrderBy(r => r).ToList();
+        }
+
+        public async Task CreateRoleAsync(string roleName, int parentPersonId)
+        {
+            if (string.IsNullOrWhiteSpace(roleName))
+                throw new ArgumentException("Role name cannot be empty.");
+
+            var internalRoleName = $"{parentPersonId}_{roleName}";
+
+            if (!await _roleManager.RoleExistsAsync(internalRoleName))
+            {
+                var result = await _roleManager.CreateAsync(new IdentityRole<int>(internalRoleName));
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to create role: {errors}");
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Role '{roleName}' already exists.");
+            }
+        }
+
         public async Task<List<UserDetailDTO>> GetAllUsers()
         {
             try

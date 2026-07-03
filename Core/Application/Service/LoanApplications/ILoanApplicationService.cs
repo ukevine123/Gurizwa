@@ -12,5 +12,6 @@ namespace Application.Services.LoanApplications
         Task UpdateLoanApplication(int id, UpdateApplicationDTO loanApplicationDTO);
         Task UpdateStatusAsync(int id, LoanStatus newStatus);
         Task<List<TransactionHistoryDTO>> GetTransactionHistoryAsync(int loanApplicationId);
+        Task DeleteLoanApplicationAsync(int id);
     }
 }

@@ -26,6 +26,42 @@ namespace Application.Services.Users
         {
             await _identity.RegisterUser(dto);
         }
+        
+        public async Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId)
+        {
+            await _identity.RegisterSubUser(dto, parentPersonId);
+        }
+        
+        public async Task CreateSubUserAsync(CreateSubUserDTO dto, int parentUserId)
+        {
+            await _identity.CreateSubUserAsync(dto, parentUserId);
+        }
+        public async Task<List<UserDetailDTO>> GetSubUsersAsync(int parentUserId)
+        {
+            return await _identity.GetSubUsersAsync(parentUserId);
+        }
+        public async Task SetSubUserStatusAsync(int subUserId, bool isActive, int parentUserId)
+        {
+            await _identity.SetSubUserStatusAsync(subUserId, isActive, parentUserId);
+        }
+        public async Task DeleteSubUserAsync(int subUserId, int parentUserId)
+        {
+            await _identity.DeleteSubUserAsync(subUserId, parentUserId);
+        }
+        public async Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId)
+        {
+            return await _identity.GetSubUsers(parentPersonId);
+        }
+
+        public async Task<List<string>> GetRolesAsync(int parentPersonId)
+        {
+            return await _identity.GetRolesAsync(parentPersonId);
+        }
+
+        public async Task CreateRoleAsync(string roleName, int parentPersonId)
+        {
+            await _identity.CreateRoleAsync(roleName, parentPersonId);
+        }
         public async Task<List<UserDetailDTO>> GetAllUsers()
         {
             return await _identity.GetAllUsers();

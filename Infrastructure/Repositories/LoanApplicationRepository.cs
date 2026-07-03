@@ -25,45 +25,25 @@ namespace Infrastructure.Repositories
             {
                 return new List<LoanApplication>();
             }
-            var personId = await dbContext.Users
-                .Where(u => u.Id == _userContext.Id.Value)
-                .Select(u => (int?)u.PersonId)
-                .FirstOrDefaultAsync();
-
-            if (personId == null)
-            {
-                return new List<LoanApplication>();
-            }
-
             return await dbContext.LoanApplications
                 .Include(a => a.LoanProductSetting)
                 .Include(a => a.Borrower)
                 .Include(a => a.PaymentModality)
-                .Where(a => a.PersonId == personId.Value)
+                .Where(a => a.PersonId == _userContext.PersonId)
                 .ToListAsync();
         }
-        public async Task <LoanApplication?> GetLoanApplicationById(int Id)
+        public async Task <LoanApplication> GetLoanApplicationById(int Id)
         {
             if (_userContext.Id == null)
             {
                 return null;
             }
             using var dbContext = await _contextFactory.CreateDbContextAsync();
-            var personId = await dbContext.Users
-                .Where(u => u.Id == _userContext.Id.Value)
-                .Select(u => (int?)u.PersonId)
-                .FirstOrDefaultAsync();
-
-            if (personId == null)
-            {
-                return null;
-            }
-
             return await dbContext.LoanApplications
                 .Include(a => a.LoanProductSetting)
                 .Include(a => a.Borrower)
                 .Include(a => a.PaymentModality)
-                .Where(a => a.PersonId == personId.Value)
+                .Where(a => a.PersonId == _userContext.PersonId)
                 .FirstOrDefaultAsync(a => a.Id == Id); 
         }
          public async Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)
@@ -269,9 +249,35 @@ public async Task<List<TransactionHistoryDTO>> GetTransactionHistoryAsync(int lo
 
     return history.OrderByDescending(t => t.TransactionDate).ToList();
 }
+
+        public async Task DeleteLoanApplicationAsync(int id)
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var loanApplication = await dbContext.LoanApplications.FindAsync(id);
+            if (loanApplication == null)
+            {
+                throw new KeyNotFoundException("Loan application not found.");
+            }
+
+            // Validate status: only Applied or Rejected applications can be deleted
+            if (loanApplication.Status == LoanStatus.Disbursed ||
+                loanApplication.Status == LoanStatus.Approved ||
+                loanApplication.Status == LoanStatus.Paid ||
+                loanApplication.Status == LoanStatus.Rescheduled)
+            {
+                throw new InvalidOperationException($"Cannot delete loan application {loanApplication.ApplicationCode} because its status is {loanApplication.Status}. Only Applied or Rejected applications can be deleted.");
+            }
+
+            dbContext.LoanApplications.Remove(loanApplication);
+            dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
+                _userContext,
+                "Loan Application Deleted",
+                nameof(LoanApplication),
+                loanApplication.ApplicationCode,
+                $"Deleted loan application {loanApplication.ApplicationCode} for amount {loanApplication.AmountRequested:N2}."
+            ));
+
+            await dbContext.SaveChangesAsync();
+        }
     }
-    }
-    
-    
-    
-        
+}

@@ -26,38 +26,73 @@
         {
             <MudGrid Spacing="2">
                 <MudItem xs="6">
-                    <MudTextField Label="Account ID" Value="@_borrowers.Id" ReadOnly Variant="Variant.Outlined" />
+                    <MudTextField Label="Borrower ID" Value="@_borrowers.Id" ReadOnly Variant="Variant.Outlined" />
                 </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Account Number" Value="@_borrowers.FirstName" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Balance" Value="@_borrowers.LastName" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Balance" Value="@_borrowers.sex" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Balance" Value="@_borrowers.Maritalstatus" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Balance" Value="@_borrowers.DateOfBirth" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Balance" Value="@_borrowers.IdentificationNumber" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
+                
+                @if (string.IsNullOrEmpty(_borrowers.CompanyName))
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="First Name" Value="@_borrowers.FirstName" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Last Name" Value="@_borrowers.LastName" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Gender" Value="@_borrowers.sex" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Marital Status" Value="@_borrowers.Maritalstatus" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Date of Birth" Value="@_borrowers.DateOfBirth" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Identification Number" Value="@_borrowers.IdentificationNumber" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                }
+                else
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="Company Name" Value="@_borrowers.CompanyName" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="TIN / Registration No" Value="@_borrowers.TIN" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Contact Person" Value="@_borrowers.ContactPersonName" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Contact Person Phone" Value="@_borrowers.ContactPersonPhone" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                }
+
                 <MudItem xs="6">
                     <MudTextField Label="Email" Value="@_borrowers.Email" ReadOnly Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="PhoneNumber" Value="@_borrowers.PhoneNumber" ReadOnly Variant="Variant.Outlined" />
+                    <MudTextField Label="Phone Number" Value="@_borrowers.PhoneNumber" ReadOnly Variant="Variant.Outlined" />
                 </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="SpouceIdNumber" Value="@_borrowers.SpouceIdNumber" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="SpouceName" Value="@_borrowers.SpouceName" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
+
+                @if (string.IsNullOrEmpty(_borrowers.CompanyName))
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="Next of Kin" Value="@_borrowers.NextOfKin" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Kin Phone Number" Value="@_borrowers.KinPhoneNumber" ReadOnly Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    @if (_borrowers.Maritalstatus == Domain.ValueObjects.Maritalstatus.Married)
+                    {
+                        <MudItem xs="6">
+                            <MudTextField Label="Spouse ID Number" Value="@_borrowers.SpouceIdNumber" ReadOnly Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField Label="Spouse Name" Value="@_borrowers.SpouceName" ReadOnly Variant="Variant.Outlined" />
+                        </MudItem>
+                    }
+                }
+
                 <MudItem xs="6">
                     <MudTextField Label="Province" Value="@_borrowers.Province" ReadOnly Variant="Variant.Outlined" />
                 </MudItem>
@@ -69,18 +104,6 @@
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="Cell" Value="@_borrowers.Cell" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Village" Value="@_borrowers.Village" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                @* <MudItem xs="6">
-                    <MudTextField Label="BorrowerType" Value="@BorrowerType.BorrowerType" ReadOnly Variant="Variant.Outlined" />
-                </MudItem> *@
-                <MudItem xs="6">
-                    <MudTextField Label="Maritalstatus" Value="@_borrowers.Maritalstatus" ReadOnly Variant="Variant.Outlined" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="KinPhoneNumber" Value="@_borrowers.KinPhoneNumber" ReadOnly Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="Village" Value="@_borrowers.Village" ReadOnly Variant="Variant.Outlined" />
