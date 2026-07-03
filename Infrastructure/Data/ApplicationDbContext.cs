@@ -43,7 +43,8 @@ namespace Infrastructure.Data
         public DbSet<ProcessFeeDeposit> ProcessFeeDeposits { get; set; }
         public DbSet<LoanProductSetting> LoanProductSettings { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
-
+        public DbSet<Waiver> Waivers { get; set; }
+        public DbSet<WaiverType> WaiverTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

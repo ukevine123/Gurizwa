@@ -12,6 +12,10 @@ namespace Application.Services.Users
             Task LogoutAsync();
             Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId);
             Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId);
+    Task CreateSubUserAsync(CreateSubUserDTO dto, int parentUserId);
+    Task<List<UserDetailDTO>> GetSubUsersAsync(int parentUserId);
+    Task SetSubUserStatusAsync(int subUserId, bool isActive, int parentUserId);
+    Task DeleteSubUserAsync(int subUserId, int parentUserId);
             Task<List<string>> GetRolesAsync(int parentPersonId);
             Task CreateRoleAsync(string roleName, int parentPersonId);
    

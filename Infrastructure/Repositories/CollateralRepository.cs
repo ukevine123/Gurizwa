@@ -122,7 +122,7 @@ namespace Infrastructure.Repositories
                 _collateral.IdentificationNumber = collateralDTO.IdentificationNumber;
                 _collateral.Description = collateralDTO.Description;
                 _collateral.ValuerName = collateralDTO.ValuerName;
-                _collateral.ValuationDate = collateralDTO.ValuationDate;
+                _collateral.ValuationDate = collateralDTO.ValuationDate ?? _collateral.ValuationDate;
 
                 dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
                     _userContext,

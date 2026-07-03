@@ -190,7 +190,7 @@ private static string GetLoanStatusAction(LoanStatus status)
 {
     return status switch
     {
-        LoanStatus.Confirmed => "Loan Approval",
+        LoanStatus.Approved => "Loan Approval",
         LoanStatus.Rejected => "Loan Rejection",
         LoanStatus.Disbursed => "Loan Disbursed",
         LoanStatus.Paid => "Loan Paid",
@@ -261,7 +261,7 @@ public async Task<List<TransactionHistoryDTO>> GetTransactionHistoryAsync(int lo
 
             // Validate status: only Applied or Rejected applications can be deleted
             if (loanApplication.Status == LoanStatus.Disbursed ||
-                loanApplication.Status == LoanStatus.Confirmed ||
+                loanApplication.Status == LoanStatus.Approved ||
                 loanApplication.Status == LoanStatus.Paid ||
                 loanApplication.Status == LoanStatus.Rescheduled)
             {

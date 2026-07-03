@@ -32,6 +32,22 @@ namespace Application.Services.Users
             await _identity.RegisterSubUser(dto, parentPersonId);
         }
         
+        public async Task CreateSubUserAsync(CreateSubUserDTO dto, int parentUserId)
+        {
+            await _identity.CreateSubUserAsync(dto, parentUserId);
+        }
+        public async Task<List<UserDetailDTO>> GetSubUsersAsync(int parentUserId)
+        {
+            return await _identity.GetSubUsersAsync(parentUserId);
+        }
+        public async Task SetSubUserStatusAsync(int subUserId, bool isActive, int parentUserId)
+        {
+            await _identity.SetSubUserStatusAsync(subUserId, isActive, parentUserId);
+        }
+        public async Task DeleteSubUserAsync(int subUserId, int parentUserId)
+        {
+            await _identity.DeleteSubUserAsync(subUserId, parentUserId);
+        }
         public async Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId)
         {
             return await _identity.GetSubUsers(parentPersonId);
