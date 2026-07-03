@@ -191,14 +191,15 @@ private async Task OpenRequirementDialog()
         CloseButton = true, 
         MaxWidth = MaxWidth.Medium, 
         FullWidth = true,
-        // The correct property name is BackdropClick
         BackdropClick = false 
     };
 
-    // We pass the name so the user knows which product they are adding requirements to
+    var selectedProduct = acctype.FirstOrDefault(p => p.Id == Model.LoanProductId);
+    string productName = selectedProduct?.ProductName ?? "Unknown Product";
+
     var parameters = new DialogParameters 
     { 
-        { "ProductName", Model.LoanProduct.ProductName } 
+        { "ProductName", productName } 
     };
 
     await DialogService.ShowAsync<LoanProductRequirementDialog>("Configure Requirements", parameters, options);

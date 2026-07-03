@@ -12,5 +12,25 @@ namespace Application.Interfaces
         Task<List<LoanMaturityReportDTO>> GetLoanMaturityReportAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<List<UserActivityReportDTO>> GetUserActivityReportAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task LogActivityAsync(string action, string entityName, string entityId, string description);
+
+        // Repayment & Collection
+        Task<List<RepaymentScheduleReportDTO>> GetRepaymentScheduleReportAsync();
+        Task<List<OverdueReportDTO>> GetOverdueReportAsync();
+        Task<List<CollectionEfficiencyReportDTO>> GetCollectionEfficiencyReportAsync();
+
+        // Financial Performance
+        Task<List<InterestIncomeReportDTO>> GetInterestIncomeReportAsync(DateTime startDate, DateTime endDate);
+        Task<List<PenaltyChargesReportDTO>> GetPenaltyChargesReportAsync(DateTime startDate, DateTime endDate);
+        Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync();
+
+        // Risk & Compliance
+        Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync();
+        Task<List<NPLReportDTO>> GetNPLReportAsync();
+        Task<List<RegulatoryComplianceReportDTO>> GetRegulatoryComplianceReportAsync();
+
+        // Customer Reports
+        Task<List<CustomerPortfolioReportDTO>> GetCustomerPortfolioReportAsync();
+        Task<List<LoanApplicationStatusReportDTO>> GetLoanApplicationStatusReportAsync();
+        Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync();
     }
 }

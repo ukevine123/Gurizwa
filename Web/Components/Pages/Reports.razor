@@ -6,147 +6,499 @@
 @inject IReportService ReportService
 @inject ISnackbar Snackbar
 
-<PageTitle>Portfolio Reports</PageTitle>
+<PageTitle>Management Reports</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-6">Portfolio Reports</MudText>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8 mb-12">
+    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-2 font-weight-bold">System Reports</MudText>
+    <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-6">Generate, filter, and analyze operational, risk, financial, and client data.</MudText>
 
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabs Elevation="4" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" Color="Color.Primary" Variant="Variant.Filled">
         
-        @* 1. ACTIVE LOANS SUMMARY *@
-        <MudTabPanel Text="Active Loans" Icon="@Icons.Material.Filled.Assignment">
-            <MudDataGrid T="ActiveLoanSummaryDTO" Items="@_activeLoans" Hover="true" Bordered="false" Striped="true" QuickFilter="@_activeLoanFilter">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">Active Loans Summary</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
-                    <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
-                    <PropertyColumn Property="x => x.PrincipalBalance" Title="Balance" Format="N2" />
-                    <PropertyColumn Property="x => x.InterestRate" Title="Rate (%)" />
-                    <PropertyColumn Property="x => x.TenureMonths" Title="Tenure (Months)" />
-                    <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="yyyy-MM-dd" />
-                    <PropertyColumn Property="x => x.EndDate" Title="Maturity Date" Format="yyyy-MM-dd" />
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="ActiveLoanSummaryDTO" />
-                </PagerContent>
-            </MudDataGrid>
+        @* CATEGORY 1: LOAN PORTFOLIO REPORTS *@
+        <MudTabPanel Text="Loan Portfolio" Icon="@Icons.Material.Filled.PieChart">
+            <MudTabs Elevation="0" Outlined="true" PanelClass="pa-4 mt-2">
+                <MudTabPanel Text="Active Loans" Icon="@Icons.Material.Filled.AssignmentTurnedIn">
+                    <MudDataGrid T="ActiveLoanSummaryDTO" Items="@_activeLoans" Hover="true" Striped="true" QuickFilter="@_activeLoanFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Active Loans Summary</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.PrincipalBalance" Title="Principal Balance" Format="N2" />
+                            <PropertyColumn Property="x => x.InterestRate" Title="Rate (%)" />
+                            <PropertyColumn Property="x => x.TenureMonths" Title="Tenure (Months)" />
+                            <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.EndDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="ActiveLoanSummaryDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Disbursements" Icon="@Icons.Material.Filled.Outbox">
+                    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+                        <MudGrid>
+                            <MudItem xs="12" sm="4">
+                                <MudDateRangePicker Label="Disbursement Period" @bind-DateRange="_disbursementRange" />
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudTextField @bind-Value="_loanTypeFilter" Label="Loan Type" Placeholder="e.g. Business" />
+                            </MudItem>
+                            <MudItem xs="12" sm="4" Class="d-flex align-end">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+
+                    <MudDataGrid T="LoanDisbursementReportDTO" Items="@_disbursements" Hover="true" Striped="true" QuickFilter="@_disbursementFilter">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Loan Disbursement Report</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.AmountDisbursed" Title="Amount Disbursed" Format="N2" />
+                            <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                            <PropertyColumn Property="x => x.Branch" Title="Branch" />
+                            <PropertyColumn Property="x => x.Officer" Title="Officer" />
+                            <PropertyColumn Property="x => x.DisbursementDate" Title="Date" Format="yyyy-MM-dd" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="LoanDisbursementReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Maturity" Icon="@Icons.Material.Filled.HourglassBottom">
+                    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+                        <MudGrid>
+                            <MudItem xs="12" sm="4">
+                                <MudDateRangePicker Label="Maturity Period" @bind-DateRange="_maturityRange" />
+                            </MudItem>
+                            <MudItem xs="12" sm="4" Class="d-flex align-end">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadMaturityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+
+                    <MudDataGrid T="LoanMaturityReportDTO" Items="@_maturities" Hover="true" Striped="true">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Loan Maturity Report</MudText>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.MaturityDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.RemainingBalance" Title="Remaining Balance" Format="N2" />
+                            <TemplateColumn Title="Status">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@(context.Item.Status == "Matured" ? Color.Error : Color.Info)" Size="Size.Small">@context.Item.Status</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="LoanMaturityReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="User Activity" Icon="@Icons.Material.Filled.History">
+                    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+                        <MudGrid>
+                            <MudItem xs="12" sm="4">
+                                <MudDateRangePicker Label="Activity Period" @bind-DateRange="_activityRange" />
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudTextField @bind-Value="_activityUserSearch" Label="User Name" Placeholder="Search by user..." Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" sm="4" Class="d-flex align-end">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadActivityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+
+                    <MudDataGrid T="UserActivityReportDTO" Items="@_activities" Hover="true" Striped="true" QuickFilter="@_activityFilter">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">User Activity Log</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_activitySearch" Placeholder="Search action or details..." Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.Timestamp" Title="Created At" Format="yyyy-MM-dd HH:mm" />
+                            <PropertyColumn Property="x => x.UserName" Title="Created By" />
+                            <PropertyColumn Property="x => x.Action" Title="Action" />
+                            <PropertyColumn Property="x => x.EntityName" Title="Entity" />
+                            <PropertyColumn Property="x => x.Description" Title="Details" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="UserActivityReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+            </MudTabs>
         </MudTabPanel>
 
-        @* 2. LOAN DISBURSEMENT REPORT *@
-        <MudTabPanel Text="Disbursements" Icon="@Icons.Material.Filled.Payments">
-            <MudPaper Class="pa-4 mb-4" Elevation="0">
-                <MudGrid>
-                    <MudItem xs="12" sm="4">
-                        <MudDateRangePicker Label="Disbursement Period" @bind-DateRange="_disbursementRange" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4">
-                        <MudTextField @bind-Value="_loanTypeFilter" Label="Loan Type" Placeholder="e.g. Personal" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+        @* CATEGORY 2: REPAYMENT AND COLLECTION REPORTS *@
+        <MudTabPanel Text="Repayments & Collections" Icon="@Icons.Material.Filled.PriceCheck">
+            <MudTabs Elevation="0" Outlined="true" PanelClass="pa-4 mt-2">
+                <MudTabPanel Text="Repayment Schedule" Icon="@Icons.Material.Filled.CalendarMonth">
+                    <MudDataGrid T="RepaymentScheduleReportDTO" Items="@_repayments" Hover="true" Striped="true" QuickFilter="@_repaymentFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Repayment Schedule Report</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_repaymentSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                            <PropertyColumn Property="x => x.InstallmentNumber" Title="No." />
+                            <PropertyColumn Property="x => x.DueDate" Title="Due Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.InstallmentAmount" Title="Expected" Format="N2" />
+                            <PropertyColumn Property="x => x.AmountPaid" Title="Paid" Format="N2" />
+                            <PropertyColumn Property="x => x.Balance" Title="Outstanding" Format="N2" />
+                            <TemplateColumn Title="Status">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetRepaymentStatusColor(context.Item.Status)" Size="Size.Small">@context.Item.Status</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="RepaymentScheduleReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
 
-            <MudDataGrid T="LoanDisbursementReportDTO" Items="@_disbursements" Hover="true" Striped="true" QuickFilter="@_disbursementFilter">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">Loan Disbursement Report</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
-                    <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
-                    <PropertyColumn Property="x => x.AmountDisbursed" Title="Amount" Format="N2" />
-                    <PropertyColumn Property="x => x.LoanType" Title="Type" />
-                    <PropertyColumn Property="x => x.Branch" Title="Branch" />
-                    <PropertyColumn Property="x => x.Officer" Title="Officer" />
-                    <PropertyColumn Property="x => x.DisbursementDate" Title="Date" Format="yyyy-MM-dd" />
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="LoanDisbursementReportDTO" />
-                </PagerContent>
-            </MudDataGrid>
+                <MudTabPanel Text="Overdue / Delinquency" Icon="@Icons.Material.Filled.PriorityHigh">
+                    <MudDataGrid T="OverdueReportDTO" Items="@_overdues" Hover="true" Striped="true" QuickFilter="@_overdueFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Overdue and Delinquency Report</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_overdueSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                            <PropertyColumn Property="x => x.OutstandingBalance" Title="Outstanding Balance" Format="N2" />
+                            <PropertyColumn Property="x => x.DueDate" Title="Missed Due Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.DaysPastDue" Title="Days Past Due" />
+                            <PropertyColumn Property="x => x.OverdueAmount" Title="Overdue Amount" Format="N2" />
+                            <TemplateColumn Title="Risk Category">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetRiskCategoryColor(context.Item.RiskCategory)" Size="Size.Small">@context.Item.RiskCategory</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="OverdueReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Collection Efficiency" Icon="@Icons.Material.Filled.TrendingUp">
+                    <MudDataGrid T="CollectionEfficiencyReportDTO" Items="@_efficiencies" Hover="true" Striped="true" QuickFilter="@_efficiencyFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Collection Efficiency Report</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_efficiencySearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                            <PropertyColumn Property="x => x.TotalDue" Title="Total Due" Format="N2" />
+                            <PropertyColumn Property="x => x.TotalCollected" Title="Total Collected" Format="N2" />
+                            <PropertyColumn Property="x => x.OutstandingBalance" Title="Outstanding" Format="N2" />
+                            <PropertyColumn Property="x => x.CollectionRate" Title="Collection Rate" Format="0.0'%'" />
+                            <TemplateColumn Title="Category">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetEfficiencyColor(context.Item.EfficiencyCategory)" Size="Size.Small">@context.Item.EfficiencyCategory</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="CollectionEfficiencyReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+            </MudTabs>
         </MudTabPanel>
 
-        @* 3. LOAN MATURITY REPORT *@
-        <MudTabPanel Text="Maturity" Icon="@Icons.Material.Filled.Event">
-             <MudPaper Class="pa-4 mb-4" Elevation="0">
-                <MudGrid>
-                    <MudItem xs="12" sm="4">
-                        <MudDateRangePicker Label="Maturity Period" @bind-DateRange="_maturityRange" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadMaturityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+        @* CATEGORY 3: FINANCIAL PERFORMANCE REPORTS *@
+        <MudTabPanel Text="Financial Performance" Icon="@Icons.Material.Filled.AccountBalanceWallet">
+            <MudTabs Elevation="0" Outlined="true" PanelClass="pa-4 mt-2">
+                <MudTabPanel Text="Interest Income" Icon="@Icons.Material.Filled.MonetizationOn">
+                    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudDateRangePicker Label="Interest Date Range" @bind-DateRange="_interestRange" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6" Class="d-flex align-end">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadInterestReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
 
-            <MudDataGrid T="LoanMaturityReportDTO" Items="@_maturities" Hover="true" Striped="true">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">Loan Maturity Report</MudText>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
-                    <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
-                    <PropertyColumn Property="x => x.MaturityDate" Title="Maturity Date" Format="yyyy-MM-dd" />
-                    <PropertyColumn Property="x => x.RemainingBalance" Title="Remaining Balance" Format="N2" />
-                    <TemplateColumn Title="Status">
-                        <CellTemplate>
-                            <MudChip T="string" Color="@(context.Item.Status == "Matured" ? Color.Error : Color.Info)" Size="Size.Small">@context.Item.Status</MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="LoanMaturityReportDTO" />
-                </PagerContent>
-            </MudDataGrid>
+                    <MudDataGrid T="InterestIncomeReportDTO" Items="@_interests" Hover="true" Striped="true" QuickFilter="@_interestFilter">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Interest Income Report</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_interestSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                            <PropertyColumn Property="x => x.InterestRate" Title="Rate (%)" />
+                            <PropertyColumn Property="x => x.TotalInterestExpected" Title="Expected Interest" Format="N2" />
+                            <PropertyColumn Property="x => x.InterestCollected" Title="Collected Interest" Format="N2" />
+                            <PropertyColumn Property="x => x.InterestOutstanding" Title="Outstanding Interest" Format="N2" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="InterestIncomeReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Penalties & Charges" Icon="@Icons.Material.Filled.Gavel">
+                    <MudPaper Class="pa-4 mb-4" Elevation="0" Outlined="true">
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudDateRangePicker Label="Levy Period" @bind-DateRange="_penaltyRange" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6" Class="d-flex align-end">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadPenaltyReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+
+                    <MudDataGrid T="PenaltyChargesReportDTO" Items="@_penalties" Hover="true" Striped="true" QuickFilter="@_penaltyFilter">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Penalty / Charges Report</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_penaltySearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.PenaltyDate" Title="Date Levied" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.PenaltyAmountLevied" Title="Levied Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.PenaltyPaid" Title="Paid Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.PenaltyOutstanding" Title="Outstanding" Format="N2" />
+                            <PropertyColumn Property="x => x.Description" Title="Reason / Description" />
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="PenaltyChargesReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Profitability" Icon="@Icons.Material.Filled.Percent">
+                    <MudDataGrid T="ProfitabilityReportDTO" Items="@_profitability" Hover="true" Striped="true" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Portfolio Profitability Segment Analysis</MudText>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.LoanType" Title="Loan Product Segment" />
+                            <PropertyColumn Property="x => x.TotalLoansDisbursed" Title="Disbursed Loans" />
+                            <PropertyColumn Property="x => x.TotalPrincipalDisbursed" Title="Principal Disbursed" Format="N2" />
+                            <PropertyColumn Property="x => x.InterestIncomeCollected" Title="Interest Income" Format="N2" />
+                            <PropertyColumn Property="x => x.PenaltyIncomeCollected" Title="Penalty Revenue" Format="N2" />
+                            <PropertyColumn Property="x => x.ProcessingFeesCollected" Title="Processing Fees" Format="N2" />
+                            <PropertyColumn Property="x => x.TotalRevenue" Title="Gross Revenue" Format="N2" />
+                            <PropertyColumn Property="x => x.WriteOffAmount" Title="NPL Principal Write-offs" Format="N2" />
+                            <TemplateColumn Title="Net Profit / Loss">
+                                <CellTemplate>
+                                    <MudText Color="@(context.Item.NetProfit >= 0 ? Color.Success : Color.Error)" Style="font-weight: 800;">
+                                        @context.Item.NetProfit.ToString("N2")
+                                    </MudText>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="ProfitabilityReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+            </MudTabs>
         </MudTabPanel>
 
-        @* 4. USER ACTIVITY REPORT *@
-        <MudTabPanel Text="User Activity" Icon="@Icons.Material.Filled.History">
-            <MudPaper Class="pa-4 mb-4" Elevation="0">
-                <MudGrid>
-                    <MudItem xs="12" sm="4">
-                        <MudDateRangePicker Label="Activity Period" @bind-DateRange="_activityRange" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4">
-                        <MudTextField @bind-Value="_activityUserSearch"
-                                      Label="User Name"
-                                      Placeholder="Search by user name"
-                                      Immediate="true"
-                                      Adornment="Adornment.Start"
-                                      AdornmentIcon="@Icons.Material.Filled.PersonSearch" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadActivityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+        @* CATEGORY 4: RISK AND COMPLIANCE REPORTS *@
+        <MudTabPanel Text="Risk & Compliance" Icon="@Icons.Material.Filled.Security">
+            <MudTabs Elevation="0" Outlined="true" PanelClass="pa-4 mt-2">
+                <MudTabPanel Text="Credit Risk" Icon="@Icons.Material.Filled.Report">
+                    <MudDataGrid T="CreditRiskReportDTO" Items="@_creditRisks" Hover="true" Striped="true" QuickFilter="@_creditRiskFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Credit Risk and Collateral Coverage</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_creditRiskSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.OutstandingBalance" Title="Outstanding Balance" Format="N2" />
+                            <PropertyColumn Property="x => x.CollateralValue" Title="Estimated Collateral" Format="N2" />
+                            <PropertyColumn Property="x => x.LoanToValueRatio" Title="LTV Ratio" Format="0.0'%'" />
+                            <TemplateColumn Title="Risk Status">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetLtvRiskColor(context.Item.RiskStatus)" Size="Size.Small">@context.Item.RiskStatus</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="CreditRiskReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
 
-            <MudDataGrid T="UserActivityReportDTO" Items="@_activities" Hover="true" Striped="true" QuickFilter="@_activityFilter">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">User Activity Log</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_activitySearch" Placeholder="Search action or details..." Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.Timestamp" Title="Created At" Format="yyyy-MM-dd HH:mm" />
-                    <PropertyColumn Property="x => x.UserName" Title="Created By" />
-                    <PropertyColumn Property="x => x.Action" Title="Action" />
-                    <PropertyColumn Property="x => x.EntityName" Title="Entity" />
-                    <PropertyColumn Property="x => x.Description" Title="Details" />
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="UserActivityReportDTO" />
-                </PagerContent>
-            </MudDataGrid>
+                <MudTabPanel Text="Non-Performing Loans (NPL)" Icon="@Icons.Material.Filled.ThumbDown">
+                    <MudDataGrid T="NPLReportDTO" Items="@_npls" Hover="true" Striped="true" QuickFilter="@_nplFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Non-Performing Loans (NPL)</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_nplSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.PrincipalAmount" Title="Disbursed Principal" Format="N2" />
+                            <PropertyColumn Property="x => x.OutstandingBalance" Title="Outstanding Balance" Format="N2" />
+                            <PropertyColumn Property="x => x.DaysPastDue" Title="Days Past Due" />
+                            <TemplateColumn Title="NPL Status Classification">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetNplColor(context.Item.NPLStatus)" Size="Size.Small">@context.Item.NPLStatus</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="NPLReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Regulatory Compliance" Icon="@Icons.Material.Filled.VerifiedUser">
+                    <MudDataGrid T="RegulatoryComplianceReportDTO" Items="@_compliance" Hover="true" Striped="true" QuickFilter="@_complianceFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Regulatory Compliance and KYC Integrity</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_complianceSearch" Placeholder="Search Borrower Name..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.IdentificationNumber" Title="KYC Document Number" />
+                            <TemplateColumn Title="KYC Checklist Completeness">
+                                <CellTemplate>
+                                    <div class="d-flex gap-1 align-center py-1">
+                                        <MudChip T="string" Color="@(context.Item.HasId ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Outlined">ID</MudChip>
+                                        <MudChip T="string" Color="@(context.Item.HasPhone ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Outlined">Phone</MudChip>
+                                        <MudChip T="string" Color="@(context.Item.HasEmail ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Outlined">Email</MudChip>
+                                        <MudChip T="string" Color="@(context.Item.HasAddress ? Color.Success : Color.Error)" Size="Size.Small" Variant="Variant.Outlined">Address</MudChip>
+                                    </div>
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Compliance Status">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@(context.Item.KYCStatus == "Compliant" ? Color.Success : Color.Warning)" Size="Size.Small">@context.Item.KYCStatus</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="RegulatoryComplianceReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+            </MudTabs>
         </MudTabPanel>
 
+        @* CATEGORY 5: CUSTOMER REPORTS *@
+        <MudTabPanel Text="Customer Reports" Icon="@Icons.Material.Filled.People">
+            <MudTabs Elevation="0" Outlined="true" PanelClass="pa-4 mt-2">
+                <MudTabPanel Text="Customer Portfolio" Icon="@Icons.Material.Filled.FolderShared">
+                    <MudDataGrid T="CustomerPortfolioReportDTO" Items="@_customerPortfolios" Hover="true" Striped="true" QuickFilter="@_customerPortfolioFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Customer Portfolio History</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_customerPortfolioSearch" Placeholder="Search Borrower..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.TotalLoansCount" Title="Total Loans" />
+                            <PropertyColumn Property="x => x.ActiveLoansCount" Title="Active Loans" />
+                            <PropertyColumn Property="x => x.TotalDisbursed" Title="Total Disbursed" Format="N2" />
+                            <PropertyColumn Property="x => x.TotalPaid" Title="Total Repaid" Format="N2" />
+                            <PropertyColumn Property="x => x.OutstandingBalance" Title="Outstanding Balance" Format="N2" />
+                            <TemplateColumn Title="Payment Credit Rating">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetRatingColor(context.Item.CreditRiskRating)" Size="Size.Small">@context.Item.CreditRiskRating</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="CustomerPortfolioReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Application Status" Icon="@Icons.Material.Filled.ListAlt">
+                    <MudDataGrid T="LoanApplicationStatusReportDTO" Items="@_appStatus" Hover="true" Striped="true" QuickFilter="@_appStatusFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Loan Application Tracking</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_appStatusSearch" Placeholder="Search Borrower, Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                            <PropertyColumn Property="x => x.AmountRequested" Title="Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.DateOfApplication" Title="Date Applied" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.ProcessingDays" Title="Age (Days)" />
+                            <PropertyColumn Property="x => x.ApprovedBy" Title="Officer/Approver" />
+                            <TemplateColumn Title="Status">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetAppStatusColor(context.Item.Status)" Size="Size.Small">@context.Item.Status</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="LoanApplicationStatusReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Customer Risk Profile" Icon="@Icons.Material.Filled.ContactPhone">
+                    <MudDataGrid T="CustomerRiskProfileReportDTO" Items="@_riskProfiles" Hover="true" Striped="true" QuickFilter="@_riskProfileFilter" Class="mt-2">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">Customer Repayment Risk Profiling</MudText>
+                            <MudSpacer />
+                            <MudTextField @bind-Value="_riskProfileSearch" Placeholder="Search Borrower..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Immediate="true"></MudTextField>
+                        </ToolBarContent>
+                        <Columns>
+                            <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                            <PropertyColumn Property="x => x.TotalDisbursed" Title="Total Borrowed" Format="N2" />
+                            <PropertyColumn Property="x => x.OutstandingBalance" Title="Outstanding" Format="N2" />
+                            <PropertyColumn Property="x => x.OnTimePaymentsCount" Title="On-time Installments" />
+                            <PropertyColumn Property="x => x.LatePaymentsCount" Title="Late Installments" />
+                            <TemplateColumn Title="Customer Risk Rating">
+                                <CellTemplate>
+                                    <MudChip T="string" Color="@GetRiskProfileColor(context.Item.RiskRating)" Size="Size.Small">@context.Item.RiskRating</MudChip>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                        <PagerContent>
+                            <MudDataGridPager T="CustomerRiskProfileReportDTO" />
+                        </PagerContent>
+                    </MudDataGrid>
+                </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
     </MudTabs>
 </MudContainer>
 
@@ -156,14 +508,44 @@
     private List<LoanMaturityReportDTO> _maturities = new();
     private List<UserActivityReportDTO> _activities = new();
 
+    // New datasets
+    private List<RepaymentScheduleReportDTO> _repayments = new();
+    private List<OverdueReportDTO> _overdues = new();
+    private List<CollectionEfficiencyReportDTO> _efficiencies = new();
+    private List<InterestIncomeReportDTO> _interests = new();
+    private List<PenaltyChargesReportDTO> _penalties = new();
+    private List<ProfitabilityReportDTO> _profitability = new();
+    private List<CreditRiskReportDTO> _creditRisks = new();
+    private List<NPLReportDTO> _npls = new();
+    private List<RegulatoryComplianceReportDTO> _compliance = new();
+    private List<CustomerPortfolioReportDTO> _customerPortfolios = new();
+    private List<LoanApplicationStatusReportDTO> _appStatus = new();
+    private List<CustomerRiskProfileReportDTO> _riskProfiles = new();
+
+    // Search filters
     private string _activeLoanSearch = "";
     private string _disbursementSearch = "";
     private string _activityUserSearch = "";
     private string _activitySearch = "";
+    private string _repaymentSearch = "";
+    private string _overdueSearch = "";
+    private string _efficiencySearch = "";
+    private string _interestSearch = "";
+    private string _penaltySearch = "";
+    private string _creditRiskSearch = "";
+    private string _nplSearch = "";
+    private string _complianceSearch = "";
+    private string _customerPortfolioSearch = "";
+    private string _appStatusSearch = "";
+    private string _riskProfileSearch = "";
+
+    // Date range pickers
     private DateRange _disbursementRange = new DateRange(DateTime.Now.AddMonths(-1).Date, DateTime.Now.Date);
     private string? _loanTypeFilter;
     private DateRange _maturityRange = new DateRange(DateTime.Now.Date, DateTime.Now.AddMonths(1).Date);
     private DateRange _activityRange = new DateRange(DateTime.Now.Date, DateTime.Now.Date);
+    private DateRange _interestRange = new DateRange(DateTime.Now.AddMonths(-1).Date, DateTime.Now.Date);
+    private DateRange _penaltyRange = new DateRange(DateTime.Now.AddMonths(-1).Date, DateTime.Now.Date);
 
     protected override async Task OnInitializedAsync()
     {
@@ -171,6 +553,12 @@
         await LoadDisbursementReport();
         await LoadMaturityReport();
         await LoadActivityReport();
+        await LoadRepaymentReports();
+        await LoadInterestReport();
+        await LoadPenaltyReport();
+        await LoadProfitabilityReport();
+        await LoadRiskReports();
+        await LoadCustomerReports();
     }
 
     private async Task LoadActiveLoans()
@@ -213,23 +601,86 @@
         catch (Exception ex) { Snackbar.Add($"Error loading activity logs: {ex.Message}", Severity.Error); }
     }
 
+    private async Task LoadRepaymentReports()
+    {
+        try
+        {
+            _repayments = await ReportService.GetRepaymentScheduleReportAsync();
+            _overdues = await ReportService.GetOverdueReportAsync();
+            _efficiencies = await ReportService.GetCollectionEfficiencyReportAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error loading repayments reports: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task LoadInterestReport()
+    {
+        try
+        {
+            _interests = await ReportService.GetInterestIncomeReportAsync(
+                _interestRange.Start ?? DateTime.MinValue,
+                _interestRange.End ?? DateTime.MaxValue);
+        }
+        catch (Exception ex) { Snackbar.Add($"Error loading interest report: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task LoadPenaltyReport()
+    {
+        try
+        {
+            _penalties = await ReportService.GetPenaltyChargesReportAsync(
+                _penaltyRange.Start ?? DateTime.MinValue,
+                _penaltyRange.End ?? DateTime.MaxValue);
+        }
+        catch (Exception ex) { Snackbar.Add($"Error loading penalty report: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task LoadProfitabilityReport()
+    {
+        try
+        {
+            _profitability = await ReportService.GetProfitabilityReportAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error loading profitability report: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task LoadRiskReports()
+    {
+        try
+        {
+            _creditRisks = await ReportService.GetCreditRiskReportAsync();
+            _npls = await ReportService.GetNPLReportAsync();
+            _compliance = await ReportService.GetRegulatoryComplianceReportAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error loading risk reports: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task LoadCustomerReports()
+    {
+        try
+        {
+            _customerPortfolios = await ReportService.GetCustomerPortfolioReportAsync();
+            _appStatus = await ReportService.GetLoanApplicationStatusReportAsync();
+            _riskProfiles = await ReportService.GetCustomerRiskProfileReportAsync();
+        }
+        catch (Exception ex) { Snackbar.Add($"Error loading customer reports: {ex.Message}", Severity.Error); }
+    }
+
+    // ── Search Filters ──
     private Func<ActiveLoanSummaryDTO, bool> _activeLoanFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_activeLoanSearch)) return true;
-        if (x.BorrowerName.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.ApplicationCode.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        return false;
+        return x.BorrowerName.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase);
     };
 
     private Func<LoanDisbursementReportDTO, bool> _disbursementFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_disbursementSearch)) return true;
-        if (x.BorrowerName.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.ApplicationCode.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.LoanType.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.Branch.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.Officer.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        return false;
+        return x.BorrowerName.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.LoanType.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.Branch.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.Officer.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase);
     };
 
     private Func<UserActivityReportDTO, bool> _activityFilter => x =>
@@ -243,5 +694,161 @@
             x.Description.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase);
 
         return userMatches && activityMatches;
+    };
+
+    private Func<RepaymentScheduleReportDTO, bool> _repaymentFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_repaymentSearch)) return true;
+        return x.BorrowerName.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.LoanType.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.Status.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<OverdueReportDTO, bool> _overdueFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_overdueSearch)) return true;
+        return x.BorrowerName.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.LoanType.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.RiskCategory.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<CollectionEfficiencyReportDTO, bool> _efficiencyFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_efficiencySearch)) return true;
+        return x.BorrowerName.Contains(_efficiencySearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_efficiencySearch, StringComparison.OrdinalIgnoreCase) ||
+               x.LoanType.Contains(_efficiencySearch, StringComparison.OrdinalIgnoreCase) ||
+               x.EfficiencyCategory.Contains(_efficiencySearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<InterestIncomeReportDTO, bool> _interestFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_interestSearch)) return true;
+        return x.BorrowerName.Contains(_interestSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_interestSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.LoanType.Contains(_interestSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<PenaltyChargesReportDTO, bool> _penaltyFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_penaltySearch)) return true;
+        return x.BorrowerName.Contains(_penaltySearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_penaltySearch, StringComparison.OrdinalIgnoreCase) ||
+               x.Description.Contains(_penaltySearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<CreditRiskReportDTO, bool> _creditRiskFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_creditRiskSearch)) return true;
+        return x.BorrowerName.Contains(_creditRiskSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_creditRiskSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.RiskStatus.Contains(_creditRiskSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<NPLReportDTO, bool> _nplFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_nplSearch)) return true;
+        return x.BorrowerName.Contains(_nplSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_nplSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.NPLStatus.Contains(_nplSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<RegulatoryComplianceReportDTO, bool> _complianceFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_complianceSearch)) return true;
+        return x.BorrowerName.Contains(_complianceSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.IdentificationNumber.Contains(_complianceSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.KYCStatus.Contains(_complianceSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<CustomerPortfolioReportDTO, bool> _customerPortfolioFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_customerPortfolioSearch)) return true;
+        return x.BorrowerName.Contains(_customerPortfolioSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.CreditRiskRating.Contains(_customerPortfolioSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<LoanApplicationStatusReportDTO, bool> _appStatusFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_appStatusSearch)) return true;
+        return x.BorrowerName.Contains(_appStatusSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.ApplicationCode.Contains(_appStatusSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.LoanType.Contains(_appStatusSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.Status.Contains(_appStatusSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    private Func<CustomerRiskProfileReportDTO, bool> _riskProfileFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_riskProfileSearch)) return true;
+        return x.BorrowerName.Contains(_riskProfileSearch, StringComparison.OrdinalIgnoreCase) ||
+               x.RiskRating.Contains(_riskProfileSearch, StringComparison.OrdinalIgnoreCase);
+    };
+
+    // ── Style Helper Methods ──
+    private Color GetRepaymentStatusColor(string status) => status?.ToLower() switch
+    {
+        "paid" => Color.Success,
+        "partial" => Color.Warning,
+        "overdue" => Color.Error,
+        "pending" => Color.Info,
+        _ => Color.Default
+    };
+
+    private Color GetRiskCategoryColor(string category) => category?.ToLower() switch
+    {
+        "1-30 days" => Color.Info,
+        "31-60 days" => Color.Warning,
+        "61-90 days" => Color.Error,
+        _ => Color.Error
+    };
+
+    private Color GetEfficiencyColor(string efficiency) => efficiency?.ToLower() switch
+    {
+        "excellent" => Color.Success,
+        "good" => Color.Primary,
+        "fair" => Color.Warning,
+        "poor" => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetLtvRiskColor(string status) => status?.ToLower() switch
+    {
+        "low risk" => Color.Success,
+        "medium risk" => Color.Warning,
+        _ => Color.Error
+    };
+
+    private Color GetNplColor(string status) => status?.ToLower() switch
+    {
+        "substandard" => Color.Warning,
+        "doubtful" => Color.Warning,
+        _ => Color.Error
+    };
+
+    private Color GetRatingColor(string rating) => rating?.ToLower() switch
+    {
+        "excellent" => Color.Success,
+        "good" => Color.Primary,
+        "fair" => Color.Warning,
+        "poor" => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetAppStatusColor(string status) => status?.ToLower() switch
+    {
+        "approved" or "disbursed" => Color.Success,
+        "pending" => Color.Info,
+        "rejected" => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetRiskProfileColor(string rating) => rating?.ToLower() switch
+    {
+        "low" => Color.Success,
+        "medium" => Color.Warning,
+        "high" => Color.Error,
+        _ => Color.Default
     };
 }
