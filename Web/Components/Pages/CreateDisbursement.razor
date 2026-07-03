@@ -54,7 +54,7 @@
                                AdornmentIcon="@Icons.Material.Filled.Verified"
                                AdornmentColor="Color.Success">
                         <MudSelectItem T="int" Value="0">Select Application</MudSelectItem>
-                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Confirmed || l.Id == Model.LoanApplicationId))
+                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Approved || l.Id == Model.LoanApplicationId))
                         {
                             <MudSelectItem T="int" Value="@loan.Id">
                                 <div class="d-flex justify-space-between w-100">

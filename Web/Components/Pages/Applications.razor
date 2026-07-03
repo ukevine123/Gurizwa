@@ -25,7 +25,7 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteApplication" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDeleteApplication(_selectedItems.First()))" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
             <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
@@ -109,7 +109,7 @@
         @* Add the Rescheduled check here *@
         @if (context.Item?.Status == LoanStatus.Disbursed || 
              context.Item?.Status == LoanStatus.Paid || 
-             context.Item?.Status == LoanStatus.Confirmed ||
+             context.Item?.Status == LoanStatus.Approved ||
              context.Item?.Status == LoanStatus.Rescheduled) 
         {
             <MudIconButton Icon="@Icons.Material.Filled.History" 
@@ -290,9 +290,8 @@
         }
     }
 
-    private async Task ConfirmDeleteApplication()
+    private async Task ConfirmDeleteApplication(LoanApplication selected)
     {
-        var selected = _selectedItems.FirstOrDefault();
         if (selected == null) return;
 
         var result = await DialogService.ShowMessageBox(

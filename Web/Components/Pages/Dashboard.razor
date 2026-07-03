@@ -405,7 +405,7 @@
     {
         var apps = await LoanApplicationService.GetAllLoanApplicationsAsync() ?? new List<LoanApplication>();
         CountApplied = apps.Count(a => a.Status == LoanStatus.Applied);
-        CountApproved = apps.Count(a => a.Status == LoanStatus.Confirmed);
+        CountApproved = apps.Count(a => a.Status == LoanStatus.Approved);
         CountRejected = apps.Count(a => a.Status == LoanStatus.Rejected);
         CountDisbursed = apps.Count(a => a.Status == LoanStatus.Disbursed);
 

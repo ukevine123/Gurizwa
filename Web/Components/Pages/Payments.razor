@@ -287,19 +287,6 @@
             }
             StateHasChanged();
         }
-
-        return schedule;
-    }
-
-    private List<Payment> GetPaymentsByInstallment(int disbursementId)
-    {
-        return _payments.Where(p => p.DisbursementId == disbursementId && p.IsActive).ToList();
-    }
-
-    private async Task GoToCreatePayment() {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, BackdropClick = false };
-        var dialog = await DialogService.ShowAsync<CreatePayment>("Record Payment", options);
-        if (!(await dialog.Result).Canceled) await LoadPayments();
     }
 
     private string GetStatusDisplay(string status, bool isActive)
@@ -320,18 +307,6 @@
         {
             "Completed" => Color.Success,
             "Partial" => Color.Warning,
-            _ => Color.Default
-        };
-    }
-
-    private Color GetInstallmentStatusColor(string status)
-    {
-        return status switch
-        {
-            "PAID" => Color.Success,
-            "PARTIAL" => Color.Warning,
-            "OVERDUE" => Color.Error,
-            "PENDING" => Color.Info,
             _ => Color.Default
         };
     }

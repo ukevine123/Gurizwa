@@ -1,5 +1,6 @@
 @page "/Reports"
 @using Application.DTO
+@using ApexCharts
 @using Application.Interfaces
 @using MudBlazor
 
@@ -9,7 +10,7 @@
 <PageTitle>Portfolio Reports</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-6">Portfolio Reports</MudText>
+    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Primary" Class="mb-6">Portfolio Reports</MudText>
 
     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" Position="Position.Left">
         
@@ -23,7 +24,7 @@
                 <ToolBarContent>
                     <MudText Typo="Typo.h6">Active Loans Summary</MudText>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
@@ -51,7 +52,7 @@
                         <MudTextField @bind-Value="_loanTypeFilter" Label="Loan Type" Placeholder="e.g. Personal" />
                     </MudItem>
                     <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
                     </MudItem>
                 </MudGrid>
             </MudPaper>
@@ -60,7 +61,7 @@
                 <ToolBarContent>
                     <MudText Typo="Typo.h6">Loan Disbursement Report</MudText>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
@@ -85,7 +86,7 @@
                         <MudDateRangePicker Label="Maturity Period" @bind-DateRange="_maturityRange" />
                     </MudItem>
                     <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadMaturityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadMaturityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
                     </MudItem>
                 </MudGrid>
             </MudPaper>
@@ -101,7 +102,7 @@
                     <PropertyColumn Property="x => x.RemainingBalance" Title="Remaining Balance" Format="N2" />
                     <TemplateColumn Title="Status">
                         <CellTemplate>
-                            <MudChip T="string" Color="@(context.Item.Status == "Matured" ? Color.Error : Color.Info)" Size="Size.Small">@context.Item.Status</MudChip>
+                            <MudChip T="string" Color="@(context.Item.Status == "Matured" ? MudBlazor.Color.Error : MudBlazor.Color.Info)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -127,7 +128,7 @@
                                       AdornmentIcon="@Icons.Material.Filled.PersonSearch" />
                     </MudItem>
                     <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadActivityReport" StartIcon="@Icons.Material.Filled.Refresh" Class="rounded-lg px-6 py-3" Style="text-transform: none; font-weight: 600;">Generate Report</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadActivityReport" StartIcon="@Icons.Material.Filled.Refresh" Class="rounded-lg px-6 py-3" Style="text-transform: none; font-weight: 600;">Generate Report</MudButton>
                     </MudItem>
                 </MudGrid>
             </MudPaper>
@@ -137,10 +138,10 @@
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
                         <div class="pa-3 rounded-lg" style="background: var(--mud-palette-primary-hover); color: var(--mud-palette-primary);">
-                            <MudIcon Icon="@Icons.Material.Filled.Leaderboard" Size="Size.Medium" />
+                            <MudIcon Icon="@Icons.Material.Filled.Leaderboard" Size="MudBlazor.Size.Medium" />
                         </div>
                         <div>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Total Logs</MudText>
+                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Total Logs</MudText>
                             <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count</MudText>
                         </div>
                     </MudPaper>
@@ -148,10 +149,10 @@
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
                         <div class="pa-3 rounded-lg" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
-                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Medium" />
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="MudBlazor.Size.Medium" />
                         </div>
                         <div>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Approvals</MudText>
+                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Approvals</MudText>
                             <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count(a => a.Action.Contains("Approval", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Disbursed", StringComparison.OrdinalIgnoreCase))</MudText>
                         </div>
                     </MudPaper>
@@ -159,10 +160,10 @@
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
                         <div class="pa-3 rounded-lg" style="background: rgba(241, 196, 15, 0.15); color: #f1c40f;">
-                            <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Medium" />
+                            <MudIcon Icon="@Icons.Material.Filled.Edit" Size="MudBlazor.Size.Medium" />
                         </div>
                         <div>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Edits & Updates</MudText>
+                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Edits & Updates</MudText>
                             <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count(a => a.Action.Contains("Edited", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Rescheduled", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Updated", StringComparison.OrdinalIgnoreCase))</MudText>
                         </div>
                     </MudPaper>
@@ -170,10 +171,10 @@
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
                         <div class="pa-3 rounded-lg" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c;">
-                            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Medium" />
+                            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Size="MudBlazor.Size.Medium" />
                         </div>
                         <div>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Deletions</MudText>
+                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Deletions</MudText>
                             <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count(a => a.Action.Contains("Deleted", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Removed", StringComparison.OrdinalIgnoreCase))</MudText>
                         </div>
                     </MudPaper>
@@ -184,14 +185,14 @@
                 <ToolBarContent>
                     <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559;">User Activity Log</MudText>
                     <MudSpacer />
-                    <MudTextField @bind-Value="_activitySearch" Placeholder="Search action or details..." Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="max-width: 300px;"></MudTextField>
+                    <MudTextField @bind-Value="_activitySearch" Placeholder="Search action or details..." Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0" Style="max-width: 300px;"></MudTextField>
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Property="x => x.Timestamp" Title="Created At" Format="yyyy-MM-dd HH:mm" />
                     <TemplateColumn Title="Created By">
                         <CellTemplate>
                             <div class="d-flex align-center gap-2">
-                                <MudAvatar Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
+                                <MudAvatar Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Primary" Variant="Variant.Filled">
                                     @(context.Item.UserName?.Substring(0, Math.Min(2, context.Item.UserName.Length)).ToUpper() ?? "U")
                                 </MudAvatar>
                                 <MudText Typo="Typo.body2" Style="font-weight: 500;">@context.Item.UserName</MudText>
@@ -202,46 +203,46 @@
                         <CellTemplate>
                             @{
                                 var action = context.Item.Action;
-                                var color = Color.Default;
+                                var color = MudBlazor.Color.Default;
                                 var variant = Variant.Text;
                                 
                                 if (action.Contains("Approval", StringComparison.OrdinalIgnoreCase) || 
                                     action.Contains("Disbursed", StringComparison.OrdinalIgnoreCase) || 
                                     action.Contains("Paid", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    color = Color.Success;
+                                    color = MudBlazor.Color.Success;
                                     variant = Variant.Filled;
                                 }
                                 else if (action.Contains("Deleted", StringComparison.OrdinalIgnoreCase) || 
                                          action.Contains("Removed", StringComparison.OrdinalIgnoreCase) || 
                                          action.Contains("Rejection", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    color = Color.Error;
+                                    color = MudBlazor.Color.Error;
                                     variant = Variant.Filled;
                                 }
                                 else if (action.Contains("Edited", StringComparison.OrdinalIgnoreCase) || 
                                          action.Contains("Rescheduled", StringComparison.OrdinalIgnoreCase) || 
                                          action.Contains("Updated", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    color = Color.Warning;
+                                    color = MudBlazor.Color.Warning;
                                     variant = Variant.Filled;
                                 }
                                 else if (action.Contains("Created", StringComparison.OrdinalIgnoreCase) || 
                                          action.Contains("Added", StringComparison.OrdinalIgnoreCase) || 
                                          action.Contains("Deposit", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    color = Color.Info;
+                                    color = MudBlazor.Color.Info;
                                     variant = Variant.Filled;
                                 }
                             }
-                            <MudChip T="string" Color="@color" Size="Size.Small" Variant="@variant" Style="font-weight: 600; font-size: 0.75rem;">
+                            <MudChip T="string" Color="@color" Size="MudBlazor.Size.Small" Variant="@variant" Style="font-weight: 600; font-size: 0.75rem;">
                                 @action
                             </MudChip>
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Title="Entity">
                         <CellTemplate>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Style="font-weight: 500;">
+                            <MudChip T="string" Size="MudBlazor.Size.Small" Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" Style="font-weight: 500;">
                                 @context.Item.EntityName
                             </MudChip>
                         </CellTemplate>
@@ -281,7 +282,7 @@
                                 <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Total Interest Expected</MudText>
                                 <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px;">$124,500.00</MudText>
                                 <MudText Typo="Typo.body2" Class="mt-2" Style="color: #05CD99; font-weight: 600;">
-                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="MudBlazor.Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
                                     +12.5% from last year
                                 </MudText>
                             </MudPaper>
@@ -291,7 +292,7 @@
                                 <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Interest Collected</MudText>
                                 <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px; color: #1B2559;">$89,200.00</MudText>
                                 <MudText Typo="Typo.body2" Class="mt-2" Style="color: #05CD99; font-weight: 600;">
-                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="MudBlazor.Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
                                     71.6% collection rate
                                 </MudText>
                             </MudPaper>
@@ -301,7 +302,7 @@
                                 <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Outstanding Interest</MudText>
                                 <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px; color: #E31A1A;">$35,300.00</MudText>
                                 <MudText Typo="Typo.body2" Class="mt-2" Style="color: #E31A1A; font-weight: 600;">
-                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="MudBlazor.Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
                                     Action required for 12 accounts
                                 </MudText>
                             </MudPaper>

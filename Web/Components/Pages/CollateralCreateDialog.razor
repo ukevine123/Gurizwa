@@ -50,7 +50,7 @@
         
        <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
         
-        @foreach (var app in loanApplications)
+        @foreach (var app in _loanApplications)
         {
             
             @* Convert app.Id to string using .ToString() *@
