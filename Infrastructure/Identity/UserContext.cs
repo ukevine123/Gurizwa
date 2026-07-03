@@ -71,10 +71,41 @@ namespace Infrastructure.Identity
         }
 
         /// <inheritdoc />
+        public int? PersonId
+        {
+            get
+            {
+                var personIdClaim = ClaimsPrincipal?.FindFirst("PersonId")?.Value;
+                if (int.TryParse(personIdClaim, out var personId))
+                {
+                    return personId;
+                }
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
         public bool IsAuthenticated => ClaimsPrincipal?.Identity?.IsAuthenticated ?? false;
 
         /// <inheritdoc />
         public string Email => ClaimsPrincipal?.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+
+        /// <inheritdoc />
+        public IList<string> Roles => ClaimsPrincipal?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList() ?? new List<string>();
+
+        /// <inheritdoc />
+        public string PrimaryRole
+        {
+            get
+            {
+                var role = Roles.FirstOrDefault() ?? "Tenant";
+                if (role.Contains("_"))
+                {
+                    return role.Substring(role.IndexOf("_") + 1);
+                }
+                return role;
+            }
+        }
 
         /// <inheritdoc />
         public string FirstName => ClaimsPrincipal?.FindFirst("FirstName")?.Value ?? string.Empty;

@@ -93,119 +93,90 @@ namespace Application.DTO
         public string EfficiencyCategory { get; set; } = string.Empty; // Excellent | Good | Fair | Poor
     }
 
-    // ── Interest Income Report ──────────────────────────────────────────────
+    // ── Financial Performance Reports ─────────────────────────────────────
     public class InterestIncomeReportDTO
     {
-        public int LoanId { get; set; }
-        public string ApplicationCode { get; set; } = string.Empty;
-        public string BorrowerName { get; set; } = string.Empty;
-        public string LoanType { get; set; } = string.Empty;
-        public decimal InterestRate { get; set; }
+        public string Period { get; set; } = string.Empty;
         public decimal TotalInterestExpected { get; set; }
-        public decimal InterestCollected { get; set; }
-        public decimal InterestOutstanding => Math.Max(0, TotalInterestExpected - InterestCollected);
+        public decimal TotalInterestCollected { get; set; }
     }
 
-    // ── Penalty / Charges Report ────────────────────────────────────────────
-    public class PenaltyChargesReportDTO
+    public class PenaltyIncomeReportDTO
     {
         public int LoanId { get; set; }
         public string ApplicationCode { get; set; } = string.Empty;
         public string BorrowerName { get; set; } = string.Empty;
-        public decimal PenaltyAmountLevied { get; set; }
-        public decimal PenaltyPaid { get; set; }
-        public decimal PenaltyOutstanding => Math.Max(0, PenaltyAmountLevied - PenaltyPaid);
-        public DateTime PenaltyDate { get; set; }
-        public string Description { get; set; } = string.Empty;
+        public decimal TotalPenalties { get; set; }
+        public decimal CollectedPenalties { get; set; }
     }
 
-    // ── Profitability Report ────────────────────────────────────────────────
     public class ProfitabilityReportDTO
     {
         public string LoanType { get; set; } = string.Empty;
-        public int TotalLoansDisbursed { get; set; }
-        public decimal TotalPrincipalDisbursed { get; set; }
-        public decimal InterestIncomeCollected { get; set; }
-        public decimal PenaltyIncomeCollected { get; set; }
-        public decimal ProcessingFeesCollected { get; set; }
-        public decimal TotalRevenue => InterestIncomeCollected + PenaltyIncomeCollected + ProcessingFeesCollected;
-        public decimal WriteOffAmount { get; set; } // Principal of defaulted (NPL Loss) loans
-        public decimal NetProfit => TotalRevenue - WriteOffAmount;
+        public int TotalLoans { get; set; }
+        public decimal TotalPrincipal { get; set; }
+        public decimal TotalInterestEarned { get; set; }
+        public decimal TotalFeesEarned { get; set; }
+        public decimal NetProfit { get; set; }
     }
 
-    // ── Credit Risk Report ──────────────────────────────────────────────────
+    // ── Risk and Compliance Reports ───────────────────────────────────────
     public class CreditRiskReportDTO
     {
-        public int LoanId { get; set; }
-        public string ApplicationCode { get; set; } = string.Empty;
+        public int BorrowerId { get; set; }
         public string BorrowerName { get; set; } = string.Empty;
-        public decimal OutstandingBalance { get; set; }
-        public decimal CollateralValue { get; set; }
-        public decimal LoanToValueRatio { get; set; } // (OutstandingBalance / CollateralValue) * 100
-        public string RiskStatus { get; set; } = string.Empty; // Low Risk | Medium Risk | High Risk
+        public int ActiveLoans { get; set; }
+        public decimal TotalExposure { get; set; }
+        public int MissedPayments { get; set; }
+        public string RiskLevel { get; set; } = string.Empty;
     }
 
-    // ── Non-Performing Loans (NPL) Report ──────────────────────────────────
-    public class NPLReportDTO
+    public class NplReportDTO
     {
         public int LoanId { get; set; }
         public string ApplicationCode { get; set; } = string.Empty;
         public string BorrowerName { get; set; } = string.Empty;
-        public decimal PrincipalAmount { get; set; }
         public decimal OutstandingBalance { get; set; }
         public int DaysPastDue { get; set; }
-        public string NPLStatus { get; set; } = string.Empty; // Substandard (90-180) | Doubtful (181-360) | Loss (360+)
+        public string NplStatus { get; set; } = string.Empty;
     }
 
-    // ── Regulatory Compliance Report ────────────────────────────────────────
     public class RegulatoryComplianceReportDTO
     {
         public int BorrowerId { get; set; }
         public string BorrowerName { get; set; } = string.Empty;
-        public string IdentificationNumber { get; set; } = string.Empty;
-        public bool HasId => !string.IsNullOrWhiteSpace(IdentificationNumber);
-        public bool HasPhone { get; set; }
-        public bool HasEmail { get; set; }
-        public bool HasAddress { get; set; }
-        public string KYCStatus { get; set; } = string.Empty; // Compliant | Pending Verification
+        public bool KycComplete { get; set; }
+        public bool AmlCleared { get; set; }
+        public DateTime LastUpdated { get; set; }
     }
 
-    // ── Customer Portfolio Report ───────────────────────────────────────────
+    // ── Customer Reports ──────────────────────────────────────────────────
     public class CustomerPortfolioReportDTO
     {
         public int BorrowerId { get; set; }
         public string BorrowerName { get; set; } = string.Empty;
-        public int TotalLoansCount { get; set; }
-        public int ActiveLoansCount { get; set; }
-        public decimal TotalDisbursed { get; set; }
+        public int ActiveLoans { get; set; }
+        public int ClosedLoans { get; set; }
+        public decimal TotalOutstanding { get; set; }
         public decimal TotalPaid { get; set; }
-        public decimal OutstandingBalance { get; set; }
-        public string CreditRiskRating { get; set; } = string.Empty; // Excellent | Good | Fair | Poor
     }
 
-    // ── Loan Application Status Report ──────────────────────────────────────
-    public class LoanApplicationStatusReportDTO
+    public class ApplicationStatusReportDTO
     {
         public int ApplicationId { get; set; }
         public string ApplicationCode { get; set; } = string.Empty;
         public string BorrowerName { get; set; } = string.Empty;
-        public string LoanType { get; set; } = string.Empty;
-        public decimal AmountRequested { get; set; }
-        public DateTime DateOfApplication { get; set; }
         public string Status { get; set; } = string.Empty;
-        public string ApprovedBy { get; set; } = string.Empty;
+        public DateTime ApplicationDate { get; set; }
         public int ProcessingDays { get; set; }
     }
 
-    // ── Customer Risk Profile Report ────────────────────────────────────────
     public class CustomerRiskProfileReportDTO
     {
         public int BorrowerId { get; set; }
         public string BorrowerName { get; set; } = string.Empty;
-        public decimal TotalDisbursed { get; set; }
-        public decimal OutstandingBalance { get; set; }
-        public int OnTimePaymentsCount { get; set; }
-        public int LatePaymentsCount { get; set; }
-        public string RiskRating { get; set; } = string.Empty; // Low | Medium | High
+        public string CreditScore { get; set; } = string.Empty;
+        public int DefaultHistory { get; set; }
+        public string RiskRating { get; set; } = string.Empty;
     }
 }

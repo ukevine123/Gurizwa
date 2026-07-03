@@ -30,7 +30,7 @@
                     <MudIcon Icon="@(IsReschedule ? Icons.Material.Filled.Autorenew : Icons.Material.Filled.AccountBalance)" Style="font-size:2.5rem; color: white;" />
                 </MudAvatar>
                 <MudStack Spacing="0">
-                    <MudText Typo="Typo.h6" Style="font-weight:700;">@(IsReschedule ? "Loan Restructuring" : "New Disbursement")</MudText>
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">@(IsReschedule ? "Loan Rescheduling" : "New Disbursement")</MudText>
                     <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.8);">
                         @(IsReschedule ? "Consolidating debt into a new payment plan" : "Assign principal and schedule repayments")
                     </MudText>
@@ -54,7 +54,7 @@
                                AdornmentIcon="@Icons.Material.Filled.Verified"
                                AdornmentColor="Color.Success">
                         <MudSelectItem T="int" Value="0">Select Application</MudSelectItem>
-                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Approved || l.Id == Model.LoanApplicationId))
+                        @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Confirmed || l.Id == Model.LoanApplicationId))
                         {
                             <MudSelectItem T="int" Value="@loan.Id">
                                 <div class="d-flex justify-space-between w-100">
@@ -181,7 +181,7 @@
                        StartIcon="@(IsReschedule ? Icons.Material.Filled.Update : Icons.Material.Filled.Save)"
                        FullWidth="true"
                        Style="@ButtonStyle">
-                @(_isProcessing ? "PROCESSING..." : (IsReschedule ? "CONFIRM RESTRUCTURING" : "CONFIRM DISBURSEMENT"))
+                @(_isProcessing ? "PROCESSING..." : (IsReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM DISBURSEMENT"))
             </MudButton>
         </MudStack>
     </DialogActions>
@@ -352,7 +352,7 @@
                     Model.TotalInstallments, 
                     Model.StartDate ?? DateTime.Today);
                 
-                Snackbar.Add("Loan Restructured successfully!", Severity.Success);
+                Snackbar.Add("Loan Rescheduled successfully!", Severity.Success);
             }
             else
             {

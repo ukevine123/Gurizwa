@@ -36,7 +36,7 @@
                         </MudTd>
                         <MudTd DataLabel="Borrower">@context.Disbursement?.LoanApplication?.Borrower?.FirstName @context.Disbursement?.LoanApplication?.Borrower?.LastName</MudTd>
                         <MudTd DataLabel="Amount">
-                            <div style="font-weight: 800; color: #4318FF;">Rwf @context.Amount.ToString("N2")</div>
+                            <div style="font-weight: 800; color: #4318FF;">$ @context.Amount.ToString("N2")</div>
                         </MudTd>
                         <MudTd DataLabel="Date">
                             <div style="color: #A3AED0; font-size: 12px;">@context.PaymentDate.ToString("MMM dd, yyyy")</div>

@@ -53,7 +53,8 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options => {
     options.Password.RequiredLength = 8;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>();
 
 // Core Services
 builder.Services.AddScoped<UserContext>();

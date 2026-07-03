@@ -31,7 +31,7 @@
     <MudDataGrid T="Entity.Collateral" Items="@_collateralList" Hover="true" Elevation="0" Class="rounded-xl">
         <Columns>
 
-            <PropertyColumn Property="x => x.LoanApplication!.ApplicationCode" Title="Loan Code" />
+            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Asset Name" />
             <PropertyColumn Property="x => x.AssetName" Title="Asset Name" />
             <PropertyColumn Property="x => x.AssetType" Title="Type" />
             <PropertyColumn Property="x => x.IdentificationNumber" Title="Ref/Plate No" />

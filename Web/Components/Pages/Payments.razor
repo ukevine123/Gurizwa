@@ -106,9 +106,6 @@
                     </MudText>
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.PrincipalPaid" Title="Principal Paid" Format="n" />
-            <PropertyColumn Property="x => x.InterestPaid" Title="Interest Paid" Format="n" />
-            <PropertyColumn Property="x => x.PenaltyPaid" Title="Penalty Paid" Format="n" />
             <PropertyColumn Property="x => x.Amount" Title="Total Amount Paid" Format="n" />
             <TemplateColumn Title="Amount Remaining">
                 <CellTemplate>
@@ -128,9 +125,9 @@
             <TemplateColumn Title="Status">
                 <CellTemplate>
                     <MudChip T="string" 
-                             Color="@GetStatusColor(context.Item.Status, context.Item.IsActive)" 
+                             Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
                              Size="Size.Small" Variant="Variant.Filled">
-                        @GetStatusDisplay(context.Item.Status, context.Item.IsActive)
+                        @(context.Item.IsActive ? "ACTIVE" : "VOID")
                     </MudChip>
                 </CellTemplate>
             </TemplateColumn>
@@ -218,6 +215,7 @@
         
         decimal remainingBalance = disbursement.Amount;
         var paymentsByInstallment = GetPaymentsByInstallment(disbursement.Id);
+        decimal totalPaidPool = paymentsByInstallment.Sum(p => p.Amount);
 
         for (int i = 0; i < disbursement.TotalInstallments; i++)
         {
@@ -230,11 +228,18 @@
                 _ => disbursement.StartDate.AddMonths(i + 1)
             };
 
-            var paymentsForInstallment = paymentsByInstallment
-                .Where(p => p.PaymentDate >= disbursement.StartDate.AddMonths(i) && p.PaymentDate < disbursement.StartDate.AddMonths(i + 1))
-                .ToList();
+            decimal amountPaidForInstallment = 0;
+            if (totalPaidPool >= scheduledPayment)
+            {
+                amountPaidForInstallment = scheduledPayment;
+                totalPaidPool -= scheduledPayment;
+            }
+            else if (totalPaidPool > 0)
+            {
+                amountPaidForInstallment = totalPaidPool;
+                totalPaidPool = 0;
+            }
 
-            decimal amountPaidForInstallment = paymentsForInstallment.Sum(p => p.Amount);
             remainingBalance -= amountPaidForInstallment;
             
             string status = amountPaidForInstallment >= scheduledPayment ? "PAID" :
@@ -252,6 +257,35 @@
                 RemainingBalance = remainingBalance > 0 ? remainingBalance : 0,
                 StatusFlag = status
             });
+        }
+
+        return schedule;
+    }
+
+    private List<Payment> GetPaymentsByInstallment(int disbursementId)
+    {
+        return _payments.Where(p => p.DisbursementId == disbursementId && p.IsActive).ToList();
+    }
+
+    private async Task GoToCreatePayment() {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<CreatePayment>("Record Payment", options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled) 
+        {
+            await LoadPayments();
+            await LoadDisbursements();
+            
+            if (SelectedDisbursementId > 0)
+            {
+                var disbursement = _disbursements.FirstOrDefault(d => d.Id == SelectedDisbursementId);
+                if (disbursement != null)
+                {
+                    _amortizationSchedule = GenerateAmortizationSchedule(disbursement);
+                }
+            }
+            StateHasChanged();
         }
 
         return schedule;
@@ -286,6 +320,18 @@
         {
             "Completed" => Color.Success,
             "Partial" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+
+    private Color GetInstallmentStatusColor(string status)
+    {
+        return status switch
+        {
+            "PAID" => Color.Success,
+            "PARTIAL" => Color.Warning,
+            "OVERDUE" => Color.Error,
+            "PENDING" => Color.Info,
             _ => Color.Default
         };
     }

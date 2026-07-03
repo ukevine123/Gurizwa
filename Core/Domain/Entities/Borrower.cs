@@ -20,6 +20,12 @@ namespace Domain.Entities
         public string? SpouceName {get;set;}
         public string? NextOfKin {get;set;}
         public string? KinPhoneNumber{get;set;}
+
+        // Organization specific fields
+        public string? CompanyName {get;set;}
+        public string? TIN {get;set;}
+        public string? ContactPersonName {get;set;}
+        public string? ContactPersonPhone {get;set;}
         public string Province {get;set;}
         public string District {get;set;}
         public string Sector {get;set;}

@@ -9,5 +9,6 @@ namespace Application.Services.Borrowers
         Task <List<Borrower>> GetAllBorrowersAsync();
         Task CreateBorrower(CreateBorrowerDTO borrowerDTO);
         Task UpdateBorrower(int Id, UpdateBorrowerDTO borrowerDTO);
+        Task DeleteBorrowerAsync(int id);
     }
 }

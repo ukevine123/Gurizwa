@@ -28,15 +28,9 @@ namespace Infrastructure.Repositories
         {
             return new List<LoanProductSetting>();
         }
-        var personId = await GetCurrentPersonIdAsync(dbContext);
-        if (personId == null)
-        {
-            return new List<LoanProductSetting>();
-        }
-
         return await dbContext.LoanProductSettings
             .Include(a => a.LoanProduct)
-            .Where(a => a.PersonId == personId.Value)  
+            .Where(a => a.PersonId == _userContext.PersonId)  
             .ToListAsync();
         }
         public async Task <LoanProductSetting?> GetLoanProductSettingById(int Id)
@@ -48,16 +42,9 @@ namespace Infrastructure.Repositories
         {
             return null;
         }
-        var personId = await GetCurrentPersonIdAsync(context);
-        if (personId == null)
-        {
-            
-            return null;
-        }
-
          return await context.LoanProductSettings
         .Include(s => s.LoanProduct)    
-        .Where(a => a.PersonId == personId.Value)
+        .Where(a => a.PersonId == _userContext.PersonId)
         .FirstOrDefaultAsync(s => s.Id == Id);  
         }
          public async Task CreateLoanProductSetting(CreateLoanProductSettingDTO loanProductSettingDTO)

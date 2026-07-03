@@ -1,0 +1,93 @@
+@using Application.Services.Users
+@using Application.Interfaces
+@inject IUserContext UserContext
+@inject IIdentityService IdentityService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-4">Add a new custom role to your organization (e.g., "Accountant", "Loan Officer").</MudText>
+        
+        <div class="d-flex align-center gap-2 mb-4">
+            <MudTextField @bind-Value="newRoleName" Label="New Role Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            <MudButton OnClick="AddRole" Variant="Variant.Filled" Color="Color.Primary" Disabled="isSubmitting || string.IsNullOrWhiteSpace(newRoleName)">
+                @if (isSubmitting)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                }
+                else
+                {
+                    <span>Add</span>
+                }
+            </MudButton>
+        </div>
+
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Available Roles</MudText>
+        <MudList T="string" Dense="true" Class="border rounded">
+            @if (roles == null)
+            {
+                <MudListItem T="string">
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" /> Loading...
+                </MudListItem>
+            }
+            else
+            {
+                @foreach (var role in roles)
+                {
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Badge">@role</MudListItem>
+                }
+            }
+        </MudList>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Default">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    private List<string> roles;
+    private string newRoleName = "";
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoles();
+    }
+
+    private async Task LoadRoles()
+    {
+        if (UserContext.PersonId.HasValue)
+        {
+            roles = await IdentityService.GetRolesAsync(UserContext.PersonId.Value);
+        }
+    }
+
+    private async Task AddRole()
+    {
+        if (string.IsNullOrWhiteSpace(newRoleName) || !UserContext.PersonId.HasValue) return;
+
+        try
+        {
+            isSubmitting = true;
+            await IdentityService.CreateRoleAsync(newRoleName.Trim(), UserContext.PersonId.Value);
+            Snackbar.Add($"Role '{newRoleName}' created successfully!", Severity.Success);
+            newRoleName = "";
+            await LoadRoles();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

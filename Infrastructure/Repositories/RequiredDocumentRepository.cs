@@ -27,7 +27,7 @@ namespace Infrastructure.Repositories
                 return new List<RequiredDocument>();
             }
             return await dbContext.RequiredDocuments
-            .Where(a => a.PersonId == _userContext.Id)
+            .Where(a => a.PersonId == _userContext.PersonId)
             .ToListAsync();
         }
 
@@ -39,7 +39,7 @@ namespace Infrastructure.Repositories
                 return null;
             }
             return await dbContext.RequiredDocuments
-            .Where(a => a.PersonId == _userContext.Id) 
+            .Where(a => a.PersonId == _userContext.PersonId) 
             .FirstOrDefaultAsync(c => c.Id == id);
         }
 

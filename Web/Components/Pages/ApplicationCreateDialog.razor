@@ -71,24 +71,16 @@
 
                         <MudItem xs="12">
     <MudSelect T="int"
-               Label="Borrower (ID - Name)"
-               Value="Model.BorrowerId"
-               ValueChanged="@OnBorrowerSelected"
+               Label="Select Borrower"
                Variant="Variant.Outlined"
                Margin="Margin.Dense"
-               Dense="true"
-               Placeholder="--Select Borrower--"
-               AdornmentIcon="@Icons.Material.Filled.Person"
-               AdornmentColor="Color.Primary">
-        <MudSelectItem T="int" Value="0">--Select Borrower--</MudSelectItem>
-        @if (_borrowers != null && _borrowers.Count > 0)
+               ValueChanged="OnBorrowerSelected"
+               Value="Model.BorrowerId">
+        <MudSelectItem Value="0">-- Select a Borrower --</MudSelectItem>
+        @foreach (var b in _borrowers)
         {
-            @foreach (var borrower in _borrowers)
-            {
-                <MudSelectItem T="int" Value="@borrower.Id">
-                    @borrower.IdentificationNumber - @borrower.FirstName @borrower.LastName
-                </MudSelectItem>
-            }
+            var displayName = string.IsNullOrEmpty(b.CompanyName) ? $"{b.FirstName} {b.LastName}" : b.CompanyName;
+            <MudSelectItem Value="@b.Id">@($"{b.IdentificationNumber} - {displayName}")</MudSelectItem>
         }
     </MudSelect>
 </MudItem>
@@ -97,30 +89,28 @@
         {
             <MudItem xs="12">
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-n2">
-                    <MudText Typo="Typo.body2"><b>Borrower:</b> @SelectedBorrower.FirstName @SelectedBorrower.LastName</MudText>
-                    <MudText Typo="Typo.caption"><b>Contact:</b> @SelectedBorrower.PhoneNumber | @SelectedBorrower.Email</MudText>
+                    <MudText Typo="Typo.body2"><b>Borrower:</b> @(string.IsNullOrEmpty(SelectedBorrower.CompanyName) ? $"{SelectedBorrower.FirstName} {SelectedBorrower.LastName}" : SelectedBorrower.CompanyName)</MudText>
+                    <MudText Typo="Typo.caption"><b>Contact:</b> @(string.IsNullOrEmpty(SelectedBorrower.CompanyName) ? SelectedBorrower.PhoneNumber : SelectedBorrower.ContactPersonPhone) | @SelectedBorrower.Email</MudText>
                     <MudText Typo="Typo.caption" Class="d-block"><b>Location:</b> @SelectedBorrower.District, @SelectedBorrower.Sector</MudText>
                 </MudAlert>
             </MudItem>
         }
     </MudItem>
 
-    <MudItem xs="6">
-        <MudSelect T="int"
-                   Label="Product"
-                   Value="Model.LoanProductSettingId"
-                   ValueChanged="@((int i) => OnProductChanged(i))"
-                   Variant="Variant.Outlined"
-                   Margin="Margin.Dense"
-                   Dense="true"
-                   AdornmentIcon="@Icons.Material.Filled.Info"
-                   Placeholder="--Select Product--"
-                   Adornment="Adornment.End"
-                   AdornmentColor="Color.Info"
-                    OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
-                   
-            
-            <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
+<MudSelect T="int"
+           Label="Product"
+           Value="Model.LoanProductSettingId"
+           ValueChanged="@((int i) => OnProductChanged(i))"
+           Variant="Variant.Outlined"
+           Dense="true"
+           AdornmentIcon="@Icons.Material.Filled.Info"
+           Placeholder="--Select Product--"
+           Adornment="Adornment.End"
+           AdornmentColor="Color.Info"
+            OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
+           
+    
+    <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
 
             @if (_loanProductSettings != null && _loanProductSettings.Count > 0)
             {
@@ -382,23 +372,10 @@ try
 
     private Borrower SelectedBorrower { get; set; }
 
-    private void OnBorrowerSelected(int borrowerId)
+    private void OnBorrowerSelected(int id)
     {
-        Model.BorrowerId = borrowerId;
-
-        if (borrowerId <= 0)
-        {
-            SelectedBorrower = null;
-            return;
-        }
-
-        // Find the selected borrower from the list
-        SelectedBorrower = _borrowers.FirstOrDefault(b => b.Id == borrowerId);
-
-        if (SelectedBorrower != null)
-        {
-            Snackbar.Add($"Selected: {SelectedBorrower.FirstName} {SelectedBorrower.LastName}", Severity.Success);
-        }
+        Model.BorrowerId = id;
+        SelectedBorrower = _borrowers.FirstOrDefault(b => b.Id == id);
     }
 
     private List<Requirement> _allRequirements = new(); 

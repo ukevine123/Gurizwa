@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories
             return await context.Disbursements
                 .Include(i => i.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.PaymentModality)
-                 .Where(a => a.PersonId == _userContext.Id)
+                 .Where(a => a.PersonId == _userContext.PersonId)
                 .Include(i => i.Payments)
                 .Where(d => d.IsActive)
                 .OrderByDescending(d => d.CreatedAt)
@@ -45,7 +45,7 @@ namespace Infrastructure.Repositories
             var data = await context.Disbursements
                 .Include(i => i.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.PaymentModality)
-                .Where(a => a.PersonId == _userContext.Id) 
+                .Where(a => a.PersonId == _userContext.PersonId) 
                 .Include(i => i.Payments)
                 .Where(d => d.IsActive)
                 .ToListAsync();
@@ -70,8 +70,8 @@ namespace Infrastructure.Repositories
             return await context.Disbursements
                 .Include(i => i.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.PaymentModality)
-                .Include(i => i.Payments).ThenInclude(p => p.PaymentType)
-                .Where(a => a.PersonId == _userContext.Id)
+                .Include(i => i.Payments)
+                .Where(a => a.PersonId == _userContext.PersonId)
                 .FirstOrDefaultAsync(i => i.Id == id);
         }
 
@@ -85,7 +85,7 @@ namespace Infrastructure.Repositories
             return await context.Disbursements
                 .Include(i => i.LoanApplication)
                 .Include(i => i.PaymentModality)
-                .Where(a => a.PersonId == _userContext.Id) 
+                .Where(a => a.PersonId == _userContext.PersonId) 
                 .Include(i => i.Payments)
                 .Where(d => d.IsActive)
                 .FirstOrDefaultAsync(d => d.LoanApplicationId == loanApplicationId);
@@ -97,7 +97,7 @@ namespace Infrastructure.Repositories
         
             var app = await context.LoanApplications
                 .Include(l => l.LoanProductSetting)
-                .Where(a => a.PersonId == _userContext.Id) 
+                .Where(a => a.PersonId == _userContext.PersonId) 
                 .FirstOrDefaultAsync(l => l.Id == loanApplicationId);
 
             if (app == null) return new CreateDisbursementDTO();
@@ -163,6 +163,7 @@ namespace Infrastructure.Repositories
                     LoanApplicationId = oldDisb.LoanApplicationId,
                     PaymentModalityId = newModeId,
                     AccountId = oldDisb.AccountId,
+                    PersonId = oldDisb.PersonId,
                     PrincipalOffered = totalDebt, 
                     InterestRate = 0, 
                     TotalInstallments = n,

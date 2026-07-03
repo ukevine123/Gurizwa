@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
         }
         return await dbContext.Collaterals
             .Include(a => a.LoanApplication)
-            .Where(a => a.PersonId == _userContext.Id)
+            .Where(a => a.PersonId == _userContext.PersonId)
             .ToListAsync();
         }
         public async Task <Collateral> GetCollateralByIdAsync(int Id)
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
                 return null;
             }
             return await  dbContext.Collaterals
-            .Where(a => a.PersonId == _userContext.Id) 
+            .Where(a => a.PersonId == _userContext.PersonId) 
             .FirstOrDefaultAsync(t => t.Id == Id);
             
         }
@@ -122,7 +122,7 @@ namespace Infrastructure.Repositories
                 _collateral.IdentificationNumber = collateralDTO.IdentificationNumber;
                 _collateral.Description = collateralDTO.Description;
                 _collateral.ValuerName = collateralDTO.ValuerName;
-                _collateral.ValuationDate = collateralDTO.ValuationDate.GetValueOrDefault(DateTime.Now);
+                _collateral.ValuationDate = collateralDTO.ValuationDate;
 
                 dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
                     _userContext,

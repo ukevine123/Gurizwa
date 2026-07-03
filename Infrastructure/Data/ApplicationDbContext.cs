@@ -43,8 +43,6 @@ namespace Infrastructure.Data
         public DbSet<ProcessFeeDeposit> ProcessFeeDeposits { get; set; }
         public DbSet<LoanProductSetting> LoanProductSettings { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
-        public DbSet<Waiver> Waivers { get; set; }
-        public DbSet<WaiverType> WaiverTypes { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -155,36 +153,6 @@ namespace Infrastructure.Data
                 .WithMany(p => p.Borrowers)
                 .HasForeignKey(b => b.PersonId)
                 .OnDelete(DeleteBehavior.NoAction);
-
-            builder.Entity<Waiver>()
-                .HasOne(w => w.Disbursement)
-                .WithMany()
-                .HasForeignKey(w => w.DisbursementId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Entity<Waiver>()
-                .HasOne(w => w.WaiverType)
-                .WithMany()
-                .HasForeignKey(w => w.WaiverTypeId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.Entity<WaiverType>()
-                .HasOne(wt => wt.LoanProduct)
-                .WithMany()
-                .HasForeignKey(wt => wt.LoanProductId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Waiver used to have a legacy PersonId FK in older migrations.
-            // If that FK still exists in the database, prevent cascade cycles.
-            builder.Entity<Waiver>()
-                .Property<int?>("PersonId")
-                .IsRequired(false);
-
-            // Some schemas generated a second legacy FK column.
-            builder.Entity<Waiver>()
-                .Property<int?>("PersonId1")
-                .IsRequired(false);
-
     // Disable cascade delete between Borrower and ProcessFeeDeposits
        
             // 3. Set Decimal Precision globally
@@ -211,6 +179,12 @@ namespace Infrastructure.Data
             builder.Entity<LoanApplication>()
                 .Property(t => t.Status)
                 .HasConversion<string>();
+
+            builder.Entity<LoanApplication>()
+                .HasOne(la => la.PaymentModality)
+                .WithMany()
+                .HasForeignKey(la => la.PaymentModalityId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // 5. Identity Table Renaming
             builder.Entity<User>().ToTable("Users");

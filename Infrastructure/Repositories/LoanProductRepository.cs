@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories
             }
             // Use ToListAsync() since the method is async
             return await dbContext.LoanProducts
-             .Where(a => a.PersonId == _userContext.Id)
+             .Where(a => a.PersonId == _userContext.PersonId)
             .ToListAsync();
         }
 
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
     }
             // FIX 3: Change 'Id' to 'id' to match the parameter name
             return await dbContext.LoanProducts
-             .Where(a => a.PersonId == _userContext.Id) // Ensure ownership
+             .Where(a => a.PersonId == _userContext.PersonId) // Ensure ownership
              .FirstOrDefaultAsync(a => a.Id == id); 
         }
 
@@ -88,7 +88,7 @@ namespace Infrastructure.Repositories
             }
 
             var LoanProduct = await dbContext.LoanProducts
-                .Where(a => a.PersonId == _userContext.Id) // Ensure ownership
+                .Where(a => a.PersonId == _userContext.PersonId) // Ensure ownership
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (LoanProduct != null)

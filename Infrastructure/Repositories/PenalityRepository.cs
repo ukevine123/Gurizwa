@@ -25,7 +25,7 @@ namespace Infrastructure.Repositories
             return new List<Penality>();
         }
             return await context.Penalties
-                 .Where(a => a.PersonId == _userContext.Id)
+                 .Where(a => a.PersonId == _userContext.PersonId)
                 .Include(i => i.LoanApplication)
                 .ThenInclude(l => l.Borrower)
                 .Include(i => i.Reason)
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
                 return null;
             }
             return await context.Penalties
-                .Where(a => a.PersonId == _userContext.Id) 
+                .Where(a => a.PersonId == _userContext.PersonId) 
                 .Include(i => i.LoanApplication)
                 .Include(i => i.Reason)
                 .FirstOrDefaultAsync(i => i.Id == id);

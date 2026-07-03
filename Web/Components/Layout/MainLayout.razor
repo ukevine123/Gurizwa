@@ -1,9 +1,11 @@
+@namespace Web.Components.Layout
 @inherits LayoutComponentBase
 @using Application.Interfaces
 @using Infrastructure.Identity
 @using MudBlazor
 @inject NavigationManager NavigationManager
 @inject IUserContext UserContext
+@inject Application.Services.Persons.IPersonService PersonService
 
 <MudThemeProvider Theme="_theme" 
 @bind-IsDarkMode="_isDarkMode" />
@@ -25,183 +27,70 @@
         display: flex;
     }
 
-    /* --- SIDE DRAWER STYLES (Theme Aware) --- */
-    .dark-drawer {
-        background-color: #F4F7FE !important;
-        border-right: 1px solid #E3E6F0 !important;
-        transition: background-color 0.3s ease, border-color 0.3s ease !important;
-    }
-    .dark-drawer.dark-mode {
-        background-color: #0B1139 !important;
-        border-right: 1px solid #1E293B !important;
-    }
-    .dark-drawer .mud-nav-link,
-    .dark-drawer .mud-nav-group-header {
-        font-weight: 600 !important;
-        font-size: 0.98rem !important;
-        color: #1B2559 !important; /* Black text for light mode */
-        border-right: 4px solid transparent;
-        transition: all 0.2s ease;
-    }
-    .dark-drawer.dark-mode .mud-nav-link,
-    .dark-drawer.dark-mode .mud-nav-group-header {
-        color: #A3AED0 !important; /* Light text for dark mode */
-    }
-    .dark-drawer .mud-nav-link .mud-nav-link-icon,
-    .dark-drawer .mud-nav-group-header .mud-nav-link-icon,
-    .dark-drawer .mud-nav-group-header .mud-nav-group-sign {
-        color: #1B2559 !important;
-        margin-right: 16px;
-        transition: all 0.2s ease;
-    }
-    .dark-drawer.dark-mode .mud-nav-link .mud-nav-link-icon,
-    .dark-drawer.dark-mode .mud-nav-group-header .mud-nav-link-icon,
-    .dark-drawer.dark-mode .mud-nav-group-header .mud-nav-group-sign {
-        color: #A3AED0 !important;
-    }
-    /* Hover state */
-    .dark-drawer .mud-nav-link:hover,
-    .dark-drawer .mud-nav-group-header:hover {
-        background-color: #E8ECFF !important;
-        color: #4318FF !important;
-    }
-    .dark-drawer.dark-mode .mud-nav-link:hover,
-    .dark-drawer.dark-mode .mud-nav-group-header:hover {
-        background-color: #1B2559 !important;
-        color: #FFFFFF !important;
-    }
-    .dark-drawer .mud-nav-link:hover .mud-nav-link-icon,
-    .dark-drawer .mud-nav-group-header:hover .mud-nav-link-icon,
-    .dark-drawer .mud-nav-group-header:hover .mud-nav-group-sign {
-        color: #4318FF !important;
-    }
-    .dark-drawer.dark-mode .mud-nav-link:hover .mud-nav-link-icon,
-    .dark-drawer.dark-mode .mud-nav-group-header:hover .mud-nav-link-icon,
-    .dark-drawer.dark-mode .mud-nav-group-header:hover .mud-nav-group-sign {
-        color: var(--mud-palette-primary) !important;
-    }
-    /* Active Link */
-    .dark-drawer .mud-nav-link.active {
-        background-color: transparent !important;
-        color: #4318FF !important;
-        font-weight: 700 !important;
-        border-right: 4px solid #4318FF !important;
-    }
-    .dark-drawer.dark-mode .mud-nav-link.active {
-        color: #FFFFFF !important;
-        border-right: 4px solid var(--mud-palette-primary) !important;
-    }
-    .dark-drawer .mud-nav-link.active .mud-nav-link-icon {
-        color: #4318FF !important;
-    }
-    .dark-drawer.dark-mode .mud-nav-link.active .mud-nav-link-icon {
-        color: var(--mud-palette-primary) !important;
-    }
-    .dark-drawer .brand-title {
-        color: #1B2559 !important;
-    }
-    .dark-drawer.dark-mode .brand-title {
-        color: #FFFFFF !important;
-    }
-    .dark-drawer .brand-subtitle {
-        color: #A3AED0 !important;
-    }
-    .dark-drawer.dark-mode .brand-subtitle {
-        color: #A3AED0 !important;
+    /* Side Drawer Background */
+    .white-drawer {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #F0F2F5 !important;
     }
 
     /* Main Content Area */
     .mud-main-content {
+        min-height: 100vh;
         padding-top: 0 !important;
         flex: 1;
+        @* overflow-x: auto; *@
         max-width: 100%;
-        /* No hardcoded background — let MudBlazor theme control it */
     }
 
     .content-fill {
-        /* Remove double-height stack that caused scroll fill */
+        height: 100%;
+        min-height: 100vh;
         border-radius: 0 !important;
+    }
+
+    /* Default Navigation Link Styling */
+    .mud-nav-link {
+        font-weight: 600 !important;
+        font-size: 0.98rem !important;
+        color: #020818 !important; /* Muted grey for inactive items */
+        @* margin: 4px 0; *@
+        border-right: 4px solid transparent;
+    }
+
+    .mud-nav-link .mud-nav-link-icon {
+        color: #14151a !important;
+        margin-right: 16px;
+    }
+
+    /* Active Link Styling (Matching Screenshot) */
+    .mud-nav-link.active {
         background-color: transparent !important;
+        color: #1B2559 !important; /* Deep dark blue for active text */
+        font-weight: 700 !important;
+        border-right: 4px solid #4318FF !important; /* Purple indicator */
     }
 
-    /* Light mode explicit background */
-    :not(.dark-mode-layout) .mud-main-content {
-        background-color: #F4F7FE !important;
-    }
-
-    /* Dark mode content background */
-    .dark-mode-layout .mud-main-content {
-        background-color: #0B1139 !important;
-    }
-
-    /* Force MudBlazor component surfaces to follow dark mode */
-    .dark-mode-layout .mud-paper,
-    .dark-mode-layout .mud-card,
-    .dark-mode-layout .mud-sheet,
-    .dark-mode-layout .mud-container,
-    .dark-mode-layout .card {
-        background-color: #0B1139 !important;
-        color: #E6EEF8 !important;
-        box-shadow: none !important;
-        border: 0 !important;
-    }
-
-    /* Keep small contrasting panels slightly lighter for separation if desired */
-    .dark-mode-layout .mud-paper.elevation-1,
-    .dark-mode-layout .mud-card.elevation-1 {
-        background-color: #0E1330 !important;
-    }
-
-    /* Ensure headings, text and links are readable in dark mode */
-    .dark-mode-layout .mud-typography,
-    .dark-mode-layout h1,
-    .dark-mode-layout h2,
-    .dark-mode-layout h3,
-    .dark-mode-layout h4,
-    .dark-mode-layout h5,
-    .dark-mode-layout p,
-    .dark-mode-layout a,
-    .dark-mode-layout .mud-text {
-        color: #E6EEF8 !important;
-    }
-
-    /* Remove strong white rounded card look that was causing the large white areas */
-    .dark-mode-layout .dashboard-card,
-    .dark-mode-layout .overview-card {
-        background-color: #0B1139 !important;
-        box-shadow: none !important;
-    }
-
-    /* If some components still use explicit inline bg, reduce their contrast */
-    .dark-mode-layout [style*="background-color: #ffffff"],
-    .dark-mode-layout [style*="background-color:#fff"],
-    .dark-mode-layout [style*="background-color: white"] {
-        background-color: transparent !important;
+    .mud-nav-link.active .mud-nav-link-icon {
+        color: #4318FF !important; /* Icon turns purple when active */
     }
 
     /* Typography Overrides */
     .brand-title {
-        font-weight: 900;
+        color: #1B2559;
+        font-weight: 800;
         line-height: 1.1;
         font-family: 'Century Gothic';
-        transition: color 0.3s ease;
     }
 
     .brand-subtitle {
+        color: #A3AED0;
         font-size: 0.75rem;
-        font-weight: 900;
+        font-weight: 700;
         letter-spacing: 1px;
-        transition: color 0.3s ease;
-    }
-
-    /* Transparent Appbar Icon Color Synchronization */
-    .mud-appbar .mud-icon-button {
-        color: var(--mud-palette-text-primary) !important;
-        transition: color 0.3s ease;
     }
 </style>
 
-<MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
+<MudLayout>
     @* Top AppBar *@
     <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
@@ -223,13 +112,19 @@
                         </MudAvatar>
 
                         <div class="d-none d-md-flex flex-column">
-                            <MudText Typo="Typo.body2" Style="@($"line-height: 1.1; font-weight: 800; font-size: 1.05rem; color: {(_isDarkMode ? "#FFFFFF" : "#1B2559")};")">
-                                @UserContext.FullName
-                            </MudText>
 
                             <MudText Typo="Typo.caption" Color="Color.Primary" Style="line-height: 1.1; font-size: 0.9rem;">
                                 @UserContext.Email
                             </MudText>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined" Class="mt-1">
+                                Role: @UserContext.PrimaryRole
+                            </MudChip>
+                            @if (!string.IsNullOrEmpty(tenantName))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1" Style="font-size: 0.75rem;">
+                                    Tenant: @tenantName
+                                </MudText>
+                            }
                         </div>
                         <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Medium" Color="Color.Primary" />
                     </MudStack>
@@ -246,7 +141,7 @@
                Variant="DrawerVariant.Mini" 
                OpenMiniOnHover="false" 
                Elevation="0" 
-               Class="@("py-4 dark-drawer " + (_isDarkMode ? "dark-mode" : ""))">
+               Class="py-4 white-drawer">
                
         
         <div class="d-flex align-center justify-center mb-10 mt-2 px-4">
@@ -300,29 +195,22 @@
                 @(_drawerOpen ? "Penality" : "")
             </MudNavLink>
 
-            <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
-                  @(_drawerOpen ? "Waivers" : "")
-            </MudNavLink>
-
             <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
                 @(_drawerOpen ? "Process Fee" : "")
             </MudNavLink>
 
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
                 <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
-                <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-                @if (!UserContext.IsSubUser)
+                @if (UserContext.PrimaryRole == "Tenant")
                 {
-                    <MudNavLink Href="/MyTeam" Icon="@Icons.Material.Outlined.Group">
-                        @(_drawerOpen ? "My Team" : "")
-                    </MudNavLink>
+                    <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
                 }
             </MudNavGroup>
         </MudNavMenu>
     </MudDrawer>
 
     <MudMainContent Class="pa-0">
-        <div class="content-fill">
+        <MudPaper Elevation="0" Class="content-fill pa-8" Style="@(_isDarkMode ? "background-color: #0B1139;" : "background-color: #F4F7FE;")">
             @Body
         </div>
     </MudMainContent>
@@ -355,9 +243,20 @@
         }
     };
 
+    private string tenantName = "";
+
     protected override void OnInitialized()
     {
         _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+        
+        if (UserContext.IsAuthenticated && UserContext.PersonId.HasValue && UserContext.PrimaryRole != "Tenant")
+        {
+            var person = PersonService.GetPersonById(UserContext.PersonId.Value);
+            if (person != null)
+            {
+                tenantName = $"{person.FirstName} {person.LastName}";
+            }
+        }
     }
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;

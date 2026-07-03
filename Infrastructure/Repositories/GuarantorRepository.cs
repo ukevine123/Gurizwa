@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
         return await dbContext.Guarantors
             .Include(a => a.GuarantorType)
             .Include(a => a.LoanApplication)
-            .Where(a => a.PersonId == _userContext.Id)
+            .Where(a => a.PersonId == _userContext.PersonId)
             .ToListAsync();
         }
         public async Task <Guarantor> GetGuarantorById(int Id)
@@ -40,7 +40,7 @@ namespace Infrastructure.Repositories
         return null;
     }
         return await dbContext.Guarantors
-       .Where(a => a.PersonId == _userContext.Id)
+       .Where(a => a.PersonId == _userContext.PersonId)
       .FirstOrDefaultAsync(t => t.Id == Id);
         }
          public async Task CreateGuarantor(CreateGuarantorDTO guarantorDTO)
@@ -88,14 +88,27 @@ namespace Infrastructure.Repositories
  
             };
             dbContext.Guarantors.Add(_guarantor);
+            dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
+                _userContext,
+                "Guarantor Added",
+                nameof(Guarantor),
+                _guarantor.Identification,
+                $"Added guarantor {_guarantor.FirstName} {_guarantor.LastName} (ID: {_guarantor.Identification}) for loan application {loanApplication?.ApplicationCode}."
+            ));
             dbContext.SaveChanges();
         }
-     public async Task UpdateGuarantor(int Id,UpdateGuarantorDTO guarantorDTO)
+        public async Task UpdateGuarantor(int Id,UpdateGuarantorDTO guarantorDTO)
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
-            var _guarantor = dbContext.Guarantors.Find(Id);
+            var _guarantor = await dbContext.Guarantors
+                .Include(g => g.LoanApplication)
+                .FirstOrDefaultAsync(g => g.Id == Id);
+
             if (_guarantor != null)
             {
+                var oldFirstName = _guarantor.FirstName;
+                var oldLastName = _guarantor.LastName;
+
                 _guarantor.FirstName = guarantorDTO.FirstName;
                 _guarantor.LastName = guarantorDTO.LastName;
                 _guarantor.Identification = guarantorDTO.Identification;
@@ -107,11 +120,44 @@ namespace Infrastructure.Repositories
                 _guarantor.Sector = guarantorDTO.Sector;
                 _guarantor.Cell = guarantorDTO.Cell;
                 _guarantor.Village = guarantorDTO.Village;
+
+                dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
+                    _userContext,
+                    "Guarantor Edited",
+                    nameof(Guarantor),
+                    _guarantor.Identification,
+                    $"Edited guarantor {_guarantor.FirstName} {_guarantor.LastName}. Name: {oldFirstName} {oldLastName} -> {_guarantor.FirstName} {_guarantor.LastName}."
+                ));
+
                 dbContext.SaveChanges();
             }
         }
+
+        public async Task DeleteGuarantor(int id)
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var guarantor = await dbContext.Guarantors
+                .Include(g => g.LoanApplication)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (guarantor == null)
+            {
+                throw new KeyNotFoundException("Guarantor not found.");
+            }
+
+            dbContext.Guarantors.Remove(guarantor);
+            dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
+                _userContext,
+                "Guarantor Deleted",
+                nameof(Guarantor),
+                guarantor.Identification,
+                $"Deleted guarantor {guarantor.FirstName} {guarantor.LastName} (ID: {guarantor.Identification}) associated with loan {guarantor.LoanApplication?.ApplicationCode}."
+            ));
+
+            await dbContext.SaveChangesAsync();
+        }
     }
-    }   
+}   
     
     
         

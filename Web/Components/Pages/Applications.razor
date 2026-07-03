@@ -19,6 +19,15 @@
     <MudGrid Class="mb-4" Spacing="2">
 
         <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteApplication" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
             <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
             <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
         </MudItem>
@@ -100,7 +109,7 @@
         @* Add the Rescheduled check here *@
         @if (context.Item?.Status == LoanStatus.Disbursed || 
              context.Item?.Status == LoanStatus.Paid || 
-             context.Item?.Status == LoanStatus.Approved ||
+             context.Item?.Status == LoanStatus.Confirmed ||
              context.Item?.Status == LoanStatus.Rescheduled) 
         {
             <MudIconButton Icon="@Icons.Material.Filled.History" 
@@ -112,17 +121,6 @@
     </CellTemplate>
 </TemplateColumn>
 
-
-            <TemplateColumn Title="Status">
-                <CellTemplate>
-                    <MudChip T="string" 
-                             Color="@GetStatusColor(context.Item.Status)" 
-                             Size="Size.Small" 
-                             Variant="Variant.Text">
-                        @context.Item.Status
-                    </MudChip>
-                </CellTemplate>
-            </TemplateColumn>
 
             <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
                 <CellTemplate>
@@ -292,8 +290,9 @@
         }
     }
 
-    private async Task ConfirmDeleteApplication(LoanApplication selected)
+    private async Task ConfirmDeleteApplication()
     {
+        var selected = _selectedItems.FirstOrDefault();
         if (selected == null) return;
 
         var result = await DialogService.ShowMessageBox(
@@ -303,8 +302,6 @@
 
         if (result == true)
         {
-            Snackbar.Add("Delete feature is not implemented in the service yet.", Severity.Warning);
-            /*
             try
             {
                 await LoanApplicationService.DeleteLoanApplicationAsync(selected.Id);
@@ -316,7 +313,6 @@
             {
                 Snackbar.Add($"Error: {ex.Message}", Severity.Error);
             }
-            */
         }
     }
 }

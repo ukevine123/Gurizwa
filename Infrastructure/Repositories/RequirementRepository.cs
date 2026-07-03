@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
             return await dbContext.Requirements
             .Include(i => i.RequiredDocument)
             .Include(i => i.LoanProduct)
-            .Where(i => i.PersonId == _userContext.Id) // Filter by the logged-in user's PersonId
+            .Where(i => i.PersonId == _userContext.PersonId) // Filter by the logged-in user's PersonId
             .ToListAsync();
         }
 
@@ -43,7 +43,7 @@ namespace Infrastructure.Repositories
               return await dbContext.Requirements
             .Include(i => i.RequiredDocument)
             .Include(i => i.LoanProduct)
-            .Where(i => i.PersonId == _userContext.Id) // Filter by the logged-in user's PersonId
+            .Where(i => i.PersonId == _userContext.PersonId) // Filter by the logged-in user's PersonId
             .FirstOrDefaultAsync(i => i.Id == id);
         }
 
