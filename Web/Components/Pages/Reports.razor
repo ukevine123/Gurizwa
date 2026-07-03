@@ -11,7 +11,11 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-6">Portfolio Reports</MudText>
 
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" Position="Position.Left">
+        
+        @* 1. LOAN PORTFOLIO *@
+        <MudTabPanel Text="1. Loan Portfolio" Icon="@Icons.Material.Filled.FolderShared">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
         
         @* 1. ACTIVE LOANS SUMMARY *@
         <MudTabPanel Text="Active Loans" Icon="@Icons.Material.Filled.Assignment">
@@ -249,11 +253,166 @@
                 </PagerContent>
             </MudDataGrid>
         </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
+
+        @* 2. REPAYMENT & COLLECTION *@
+        <MudTabPanel Text="2. Repayment & Collection" Icon="@Icons.Material.Filled.AccountBalance">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                <MudTabPanel Text="Repayment Schedule" Icon="@Icons.Material.Filled.Schedule">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Repayment Schedule Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Overdue / Delinquency" Icon="@Icons.Material.Filled.Warning">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Overdue/Delinquency Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Collection Efficiency" Icon="@Icons.Material.Filled.TrendingUp">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Collection Efficiency Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
+
+        @* 3. FINANCIAL PERFORMANCE *@
+        <MudTabPanel Text="3. Financial Performance" Icon="@Icons.Material.Filled.AttachMoney">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                <MudTabPanel Text="Interest Income" Icon="@Icons.Material.Filled.Savings">
+                    <MudGrid Class="mt-4">
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-6 rounded-xl" Style="background: linear-gradient(135deg, #1B2559 0%, #2A3673 100%); color: white; box-shadow: 0 10px 30px rgba(27, 37, 89, 0.2);">
+                                <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Total Interest Expected</MudText>
+                                <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px;">$124,500.00</MudText>
+                                <MudText Typo="Typo.body2" Class="mt-2" Style="color: #05CD99; font-weight: 600;">
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                                    +12.5% from last year
+                                </MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-6 rounded-xl" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
+                                <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Interest Collected</MudText>
+                                <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px; color: #1B2559;">$89,200.00</MudText>
+                                <MudText Typo="Typo.body2" Class="mt-2" Style="color: #05CD99; font-weight: 600;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                                    71.6% collection rate
+                                </MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-6 rounded-xl" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
+                                <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Outstanding Interest</MudText>
+                                <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px; color: #E31A1A;">$35,300.00</MudText>
+                                <MudText Typo="Typo.body2" Class="mt-2" Style="color: #E31A1A; font-weight: 600;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
+                                    Action required for 12 accounts
+                                </MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" Class="mt-4">
+                            <MudPaper Class="pa-6 rounded-xl" Style="background: white; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
+                                <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559; margin-bottom: 16px;">Revenue Trend (YTD)</MudText>
+                                <ApexChart TItem="MonthlyIncome" Options="@_chartOptions" Height="350">
+                                    <ApexPointSeries TItem="MonthlyIncome"
+                                                     Items="_incomeData"
+                                                     Name="Interest Income"
+                                                     SeriesType="SeriesType.Area"
+                                                     XValue="@(e => e.Month)"
+                                                     YAggregate="@(e => e.Sum(x => x.Interest))" />
+                                    <ApexPointSeries TItem="MonthlyIncome"
+                                                     Items="_incomeData"
+                                                     Name="Penalties"
+                                                     SeriesType="SeriesType.Area"
+                                                     XValue="@(e => e.Month)"
+                                                     YAggregate="@(e => e.Sum(x => x.Penalties))" />
+                                </ApexChart>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+                <MudTabPanel Text="Penalty / Charges" Icon="@Icons.Material.Filled.Gavel">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Penalty/Charges Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Profitability" Icon="@Icons.Material.Filled.BarChart">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Profitability Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
+
+        @* 4. RISK & COMPLIANCE *@
+        <MudTabPanel Text="4. Risk & Compliance" Icon="@Icons.Material.Filled.Security">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                <MudTabPanel Text="Credit Risk" Icon="@Icons.Material.Filled.ErrorOutline">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Credit Risk Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Non-Performing Loans" Icon="@Icons.Material.Filled.MoneyOff">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Non-Performing Loans (NPL) Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Regulatory Compliance" Icon="@Icons.Material.Filled.Policy">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Regulatory Compliance Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
+
+        @* 5. CUSTOMER REPORTS *@
+        <MudTabPanel Text="5. Customer Reports" Icon="@Icons.Material.Filled.People">
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                <MudTabPanel Text="Customer Portfolio" Icon="@Icons.Material.Filled.ContactPage">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Customer Portfolio Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Application Status" Icon="@Icons.Material.Filled.PendingActions">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Loan Application Status Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+                <MudTabPanel Text="Customer Risk Profile" Icon="@Icons.Material.Filled.Badge">
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Customer Risk Profile Report - Data mapping in progress.</MudAlert>
+                </MudTabPanel>
+            </MudTabs>
+        </MudTabPanel>
 
     </MudTabs>
 </MudContainer>
 
 @code {
+    public class MonthlyIncome
+    {
+        public string Month { get; set; } = string.Empty;
+        public decimal Interest { get; set; }
+        public decimal Penalties { get; set; }
+    }
+
+    private List<MonthlyIncome> _incomeData = new()
+    {
+        new MonthlyIncome { Month = "Jan", Interest = 4500, Penalties = 200 },
+        new MonthlyIncome { Month = "Feb", Interest = 5200, Penalties = 150 },
+        new MonthlyIncome { Month = "Mar", Interest = 4800, Penalties = 300 },
+        new MonthlyIncome { Month = "Apr", Interest = 6100, Penalties = 100 },
+        new MonthlyIncome { Month = "May", Interest = 5900, Penalties = 400 },
+        new MonthlyIncome { Month = "Jun", Interest = 7200, Penalties = 250 },
+        new MonthlyIncome { Month = "Jul", Interest = 8400, Penalties = 500 }
+    };
+
+    private ApexChartOptions<MonthlyIncome> _chartOptions = new()
+    {
+        Chart = new Chart
+        {
+            Toolbar = new Toolbar { Show = false },
+            Background = "transparent",
+            FontFamily = "Roboto, sans-serif"
+        },
+        Colors = new List<string> { "#1B2559", "#4318FF" },
+        DataLabels = new DataLabels { Enabled = false },
+        Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 },
+        Xaxis = new XAxis 
+        { 
+            Labels = new XAxisLabels { Style = new AxisLabelStyle { Colors = "#A3AED0" } },
+            AxisBorder = new AxisBorder { Show = false },
+            AxisTicks = new AxisTicks { Show = false }
+        },
+        Yaxis = new List<YAxis> 
+        { 
+            new YAxis { Labels = new YAxisLabels { Style = new AxisLabelStyle { Colors = "#A3AED0" } } } 
+        },
+        Grid = new Grid { BorderColor = "#E2E8F0", StrokeDashArray = 4 },
+        Fill = new Fill { Type = FillType.Gradient, Gradient = new FillGradient { ShadeIntensity = 1, OpacityFrom = 0.4d, OpacityTo = 0.05d, Stops = new List<double> { 0, 100 } } }
+    };
+
     private List<ActiveLoanSummaryDTO> _activeLoans = new();
     private List<LoanDisbursementReportDTO> _disbursements = new();
     private List<LoanMaturityReportDTO> _maturities = new();

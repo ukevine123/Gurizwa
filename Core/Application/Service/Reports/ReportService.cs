@@ -34,5 +34,25 @@ namespace Application.Service.Reports
         {
             return await _reportRepository.GetUserActivityReportAsync(startDate, endDate);
         }
+
+        // ── Repayment & Collection ─────────────────────────────────────────────
+        public async Task<List<RepaymentScheduleReportDTO>> GetRepaymentScheduleReportAsync() => await _reportRepository.GetRepaymentScheduleReportAsync();
+        public async Task<List<OverdueReportDTO>> GetOverdueReportAsync() => await _reportRepository.GetOverdueReportAsync();
+        public async Task<List<CollectionEfficiencyReportDTO>> GetCollectionEfficiencyReportAsync() => await _reportRepository.GetCollectionEfficiencyReportAsync();
+
+        // ── Financial Performance ──────────────────────────────────────────────
+        public async Task<List<InterestIncomeReportDTO>> GetInterestIncomeReportAsync() => await _reportRepository.GetInterestIncomeReportAsync();
+        public async Task<List<PenaltyIncomeReportDTO>> GetPenaltyIncomeReportAsync() => await _reportRepository.GetPenaltyIncomeReportAsync();
+        public async Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync() => await _reportRepository.GetProfitabilityReportAsync();
+
+        // ── Risk & Compliance ──────────────────────────────────────────────────
+        public async Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync() => await _reportRepository.GetCreditRiskReportAsync();
+        public async Task<List<NplReportDTO>> GetNplReportAsync() => await _reportRepository.GetNplReportAsync();
+        public async Task<List<RegulatoryComplianceReportDTO>> GetRegulatoryComplianceReportAsync() => await _reportRepository.GetRegulatoryComplianceReportAsync();
+
+        // ── Customer Reports ───────────────────────────────────────────────────
+        public async Task<List<CustomerPortfolioReportDTO>> GetCustomerPortfolioReportAsync() => await _reportRepository.GetCustomerPortfolioReportAsync();
+        public async Task<List<ApplicationStatusReportDTO>> GetApplicationStatusReportAsync() => await _reportRepository.GetApplicationStatusReportAsync();
+        public async Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync() => await _reportRepository.GetCustomerRiskProfileReportAsync();
     }
 }

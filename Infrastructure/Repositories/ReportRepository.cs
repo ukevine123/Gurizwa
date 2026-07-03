@@ -182,6 +182,26 @@ namespace Infrastructure.Repositories
             await dbContext.SaveChangesAsync();
         }
 
+        // ── Repayment & Collection ─────────────────────────────────────────────
+        public async Task<List<RepaymentScheduleReportDTO>> GetRepaymentScheduleReportAsync() => await Task.FromResult(new List<RepaymentScheduleReportDTO>());
+        public async Task<List<OverdueReportDTO>> GetOverdueReportAsync() => await Task.FromResult(new List<OverdueReportDTO>());
+        public async Task<List<CollectionEfficiencyReportDTO>> GetCollectionEfficiencyReportAsync() => await Task.FromResult(new List<CollectionEfficiencyReportDTO>());
+
+        // ── Financial Performance ──────────────────────────────────────────────
+        public async Task<List<InterestIncomeReportDTO>> GetInterestIncomeReportAsync() => await Task.FromResult(new List<InterestIncomeReportDTO>());
+        public async Task<List<PenaltyIncomeReportDTO>> GetPenaltyIncomeReportAsync() => await Task.FromResult(new List<PenaltyIncomeReportDTO>());
+        public async Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync() => await Task.FromResult(new List<ProfitabilityReportDTO>());
+
+        // ── Risk & Compliance ──────────────────────────────────────────────────
+        public async Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync() => await Task.FromResult(new List<CreditRiskReportDTO>());
+        public async Task<List<NplReportDTO>> GetNplReportAsync() => await Task.FromResult(new List<NplReportDTO>());
+        public async Task<List<RegulatoryComplianceReportDTO>> GetRegulatoryComplianceReportAsync() => await Task.FromResult(new List<RegulatoryComplianceReportDTO>());
+
+        // ── Customer Reports ───────────────────────────────────────────────────
+        public async Task<List<CustomerPortfolioReportDTO>> GetCustomerPortfolioReportAsync() => await Task.FromResult(new List<CustomerPortfolioReportDTO>());
+        public async Task<List<ApplicationStatusReportDTO>> GetApplicationStatusReportAsync() => await Task.FromResult(new List<ApplicationStatusReportDTO>());
+        public async Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync() => await Task.FromResult(new List<CustomerRiskProfileReportDTO>());
+
         private async Task<int?> GetCurrentPersonIdAsync(ApplicationDbContext dbContext)
         {
             if (!_userContext.Id.HasValue)

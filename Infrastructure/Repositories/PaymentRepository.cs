@@ -58,20 +58,6 @@ namespace Infrastructure.Repositories
 
                 if (disbursement == null) throw new Exception("Disbursement not found.");
 
-                // 2. CHECK: Prevent payment if today is before the Loan Start Date
-                if (DateTime.Now.Date < disbursement.StartDate.Date)
-                {
-                    throw new InvalidOperationException($"The installment cycle for this loan starts on {disbursement.StartDate:MMMM dd, yyyy}. Please wait for the cycle to begin.");
-                }
-
-                // 3. CHECK: Prevent payment if current installment is already settled
-                var (remainingPeriodAmount, nextDueDate) = await GetNextScheduledPaymentAsync(paymentDTO.DisbursementId);
-                
-                if (remainingPeriodAmount <= 0)
-                {
-                    throw new InvalidOperationException($"The current installment is already fully paid. The next payment is due after {nextDueDate:MMMM dd, yyyy}.");
-                }
-
                 // 4. Calculate Total Remaining Debt for the whole loan
                 var totalPaidSoFar = disbursement.Payments
                     .Where(p => p.IsActive)
@@ -79,12 +65,9 @@ namespace Infrastructure.Repositories
 
                 decimal remainingTotalDebt = disbursement.Amount - totalPaidSoFar;
 
-                // 5. Validate Final Installment Overpayment
-                bool isLastInstallment = remainingTotalDebt <= remainingPeriodAmount;
-
-                if (isLastInstallment && paymentDTO.Amount > remainingTotalDebt)
+                if (paymentDTO.Amount > remainingTotalDebt)
                 {
-                    throw new InvalidOperationException($"This is the final payment. Please pay exactly {remainingTotalDebt:N2} to close the loan.");
+                    throw new InvalidOperationException($"Overpayment detected. The remaining loan balance is {remainingTotalDebt:N2}.");
                 }
 
                 // 6. Update Account Balance

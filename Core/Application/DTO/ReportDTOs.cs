@@ -92,4 +92,91 @@ namespace Application.DTO
         public decimal CollectionRate { get; set; }      // TotalCollected / TotalDue * 100
         public string EfficiencyCategory { get; set; } = string.Empty; // Excellent | Good | Fair | Poor
     }
+
+    // ── Financial Performance Reports ─────────────────────────────────────
+    public class InterestIncomeReportDTO
+    {
+        public string Period { get; set; } = string.Empty;
+        public decimal TotalInterestExpected { get; set; }
+        public decimal TotalInterestCollected { get; set; }
+    }
+
+    public class PenaltyIncomeReportDTO
+    {
+        public int LoanId { get; set; }
+        public string ApplicationCode { get; set; } = string.Empty;
+        public string BorrowerName { get; set; } = string.Empty;
+        public decimal TotalPenalties { get; set; }
+        public decimal CollectedPenalties { get; set; }
+    }
+
+    public class ProfitabilityReportDTO
+    {
+        public string LoanType { get; set; } = string.Empty;
+        public int TotalLoans { get; set; }
+        public decimal TotalPrincipal { get; set; }
+        public decimal TotalInterestEarned { get; set; }
+        public decimal TotalFeesEarned { get; set; }
+        public decimal NetProfit { get; set; }
+    }
+
+    // ── Risk and Compliance Reports ───────────────────────────────────────
+    public class CreditRiskReportDTO
+    {
+        public int BorrowerId { get; set; }
+        public string BorrowerName { get; set; } = string.Empty;
+        public int ActiveLoans { get; set; }
+        public decimal TotalExposure { get; set; }
+        public int MissedPayments { get; set; }
+        public string RiskLevel { get; set; } = string.Empty;
+    }
+
+    public class NplReportDTO
+    {
+        public int LoanId { get; set; }
+        public string ApplicationCode { get; set; } = string.Empty;
+        public string BorrowerName { get; set; } = string.Empty;
+        public decimal OutstandingBalance { get; set; }
+        public int DaysPastDue { get; set; }
+        public string NplStatus { get; set; } = string.Empty;
+    }
+
+    public class RegulatoryComplianceReportDTO
+    {
+        public int BorrowerId { get; set; }
+        public string BorrowerName { get; set; } = string.Empty;
+        public bool KycComplete { get; set; }
+        public bool AmlCleared { get; set; }
+        public DateTime LastUpdated { get; set; }
+    }
+
+    // ── Customer Reports ──────────────────────────────────────────────────
+    public class CustomerPortfolioReportDTO
+    {
+        public int BorrowerId { get; set; }
+        public string BorrowerName { get; set; } = string.Empty;
+        public int ActiveLoans { get; set; }
+        public int ClosedLoans { get; set; }
+        public decimal TotalOutstanding { get; set; }
+        public decimal TotalPaid { get; set; }
+    }
+
+    public class ApplicationStatusReportDTO
+    {
+        public int ApplicationId { get; set; }
+        public string ApplicationCode { get; set; } = string.Empty;
+        public string BorrowerName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime ApplicationDate { get; set; }
+        public int ProcessingDays { get; set; }
+    }
+
+    public class CustomerRiskProfileReportDTO
+    {
+        public int BorrowerId { get; set; }
+        public string BorrowerName { get; set; } = string.Empty;
+        public string CreditScore { get; set; } = string.Empty;
+        public int DefaultHistory { get; set; }
+        public string RiskRating { get; set; } = string.Empty;
+    }
 }
