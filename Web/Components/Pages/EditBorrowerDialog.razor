@@ -86,11 +86,15 @@
                 FirstName = _borrower.FirstName,
                 LastName = _borrower.LastName,
                 BorrowerTypeId = _borrower.BorrowerTypeId,
-                sex = _borrower.sex,
-                DateOfBirth = _borrower.DateOfBirth,
-                Maritalstatus = _borrower.Maritalstatus,
+                sex = _borrower.sex ?? Domain.ValueObjects.Sex.Male,
+                DateOfBirth = _borrower.DateOfBirth ?? DateTime.Now,
+                Maritalstatus = _borrower.Maritalstatus ?? Domain.ValueObjects.Maritalstatus.Single,
                 SpouceIdNumber = _borrower.SpouceIdNumber,
                 SpouceName = _borrower.SpouceName,
+                CompanyName = _borrower.CompanyName,
+                TIN = _borrower.TIN,
+                ContactPersonName = _borrower.ContactPersonName,
+                ContactPersonPhone = _borrower.ContactPersonPhone
             };
         }
     }

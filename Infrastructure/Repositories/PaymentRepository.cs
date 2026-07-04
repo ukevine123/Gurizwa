@@ -53,33 +53,22 @@ namespace Infrastructure.Repositories
                 
                     .Include(d => d.LoanApplication)
                     .Include(d => d.Payments)
-                     .Where(a => a.PersonId == _userContext.Id)
+                     .Where(a => a.PersonId == _userContext.PersonId)
                     .FirstOrDefaultAsync(d => d.Id == paymentDTO.DisbursementId);
 
                 if (disbursement == null) throw new Exception("Disbursement not found.");
 
-                // 2. CHECK: Prevent payment if today is before the Loan Start Date
-                // COMMENTED OUT to allow payment before the installment date
-                // if (DateTime.Now.Date < disbursement.StartDate.Date)
-                // {
-                //     throw new InvalidOperationException($"The installment cycle for this loan starts on {disbursement.StartDate:MMMM dd, yyyy}. Please wait for the cycle to begin.");
-                // }
-
-                // 3. Calculate Total Remaining Debt for the whole loan
+                // 4. Calculate Total Remaining Debt for the whole loan
                 var totalPaidSoFar = disbursement.Payments
                     .Where(p => p.IsActive)
                     .Sum(p => p.Amount);
 
                 decimal remainingTotalDebt = disbursement.Amount - totalPaidSoFar;
 
-                // 4. Validate payment amount doesn't exceed remaining debt
                 if (paymentDTO.Amount > remainingTotalDebt)
                 {
-                    throw new InvalidOperationException($"Payment amount ({paymentDTO.Amount:N2}) exceeds remaining debt ({remainingTotalDebt:N2}). Please enter a valid amount.");
+                    throw new InvalidOperationException($"Overpayment detected. The remaining loan balance is {remainingTotalDebt:N2}.");
                 }
-
-                // 5. Check if loan is being completed
-                bool isLoanCompleted = paymentDTO.Amount >= remainingTotalDebt;
 
                 // 6. Update Account Balance
                 var account = await context.Accounts.FirstOrDefaultAsync(a => a.Id == paymentDTO.AccountId);
@@ -88,10 +77,6 @@ namespace Infrastructure.Repositories
                 account.Balance += paymentDTO.Amount;
 
                 // 7. Create Payment Record
-                // Determine payment status: Completed ONLY if remaining debt after payment = 0, Partial otherwise
-                decimal remainingDebtAfterPayment = remainingTotalDebt - paymentDTO.Amount;
-                string paymentStatus = remainingDebtAfterPayment <= 0 ? "Completed" : "Partial";
-                
                 var payment = new Payment
                 {
                     DisbursementId = paymentDTO.DisbursementId,
@@ -99,7 +84,6 @@ namespace Infrastructure.Repositories
                     PaymentTypeId = paymentDTO.PaymentTypeId,
                     Amount = paymentDTO.Amount,
                     PaymentDate = DateTime.Now,
-                    Status = paymentStatus,
                     IsActive = true,
                     CreatedAt = DateTime.Now,
                    PersonId = user.Person.Id,
@@ -112,10 +96,10 @@ namespace Infrastructure.Repositories
                     "Payment Created",
                     nameof(Payment),
                     applicationCode,
-                    $"Recorded payment of {paymentDTO.Amount:N2} for loan application {applicationCode}. Remaining debt: {remainingDebtAfterPayment:N2}."));
+                    $"Recorded payment of {paymentDTO.Amount:N2} for loan application {applicationCode}."));
 
                 // 8. Update Loan Status if fully paid
-                if (isLoanCompleted)
+                if (totalPaidSoFar + paymentDTO.Amount >= disbursement.Amount)
                 {
                     disbursement.LoanApplication.Status = LoanStatus.Paid;
                     context.ActivityLogs.Add(ActivityLogFactory.Create(
@@ -199,13 +183,6 @@ namespace Infrastructure.Repositories
                 disbursement.Amount += penaltyAmount;
 
                 // 6. Create the Payment Record
-                // Calculate remaining debt after this payment to determine status
-                decimal totalPaidBeforeThisPayment = disbursement.Payments
-                    .Where(p => p.IsActive)
-                    .Sum(p => (decimal?)p.Amount ?? 0);
-                decimal remainingDebtAfterThisPayment = disbursement.Amount - totalPaidBeforeThisPayment - paymentDTO.Amount;
-                string paymentStatus = remainingDebtAfterThisPayment <= 0 ? "Completed" : "Partial";
-
                 var payment = new Payment
                 {
                     DisbursementId = paymentDTO.DisbursementId,
@@ -213,7 +190,6 @@ namespace Infrastructure.Repositories
                     PaymentTypeId = paymentDTO.PaymentTypeId,
                     Amount = paymentDTO.Amount,
                     PaymentDate = DateTime.Now,
-                    Status = paymentStatus,
                     IsActive = true,
                     CreatedAt = DateTime.Now,
                     PersonId = user.Person.Id
@@ -225,7 +201,7 @@ namespace Infrastructure.Repositories
                     "Payment With Penalty Created",
                     nameof(Payment),
                     applicationCode,
-                    $"Recorded payment of {paymentDTO.Amount:N2} and penalty of {penaltyAmount:N2} for loan application {applicationCode}. Remaining debt: {remainingDebtAfterThisPayment:N2}."));
+                    $"Recorded payment of {paymentDTO.Amount:N2} and penalty of {penaltyAmount:N2} for loan application {applicationCode}."));
 
                 // 7. Check if loan is finished
                 decimal totalPaidSoFar = disbursement.Payments
@@ -305,7 +281,7 @@ namespace Infrastructure.Repositories
             return new List<Payment>();
         }
             return await context.Payments
-                .Where(a => a.PersonId == _userContext.Id)
+                .Where(a => a.PersonId == _userContext.PersonId)
                 .Include(i => i.Disbursement).ThenInclude(d => d.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.Account)
                 .Include(i => i.PaymentType)
@@ -321,7 +297,7 @@ namespace Infrastructure.Repositories
                 return null;
             }
             return await context.Payments
-                .Where(a => a.PersonId == _userContext.Id)
+                .Where(a => a.PersonId == _userContext.PersonId)
                 .Include(i => i.Account)
                 .Include(i => i.PaymentType)
                 .FirstOrDefaultAsync(i => i.Id == id);

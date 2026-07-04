@@ -60,9 +60,6 @@ namespace Infrastructure.DependencyInjection
             services.AddScoped<IProcessFeeDeposit, ProcessFeeDepositRepository>();
             services.AddScoped<ILoanProductSetting, LoanProductSettingRepository>();
             services.AddScoped<IReportRepository, ReportRepository>();
-            services.AddScoped<IWaiver, WaiverRepository>();
-            services.AddScoped<IWaiverType, WaiverTypeRepository>();
-            services.AddScoped<IWaiverService, WaiverService>();
 
 
 

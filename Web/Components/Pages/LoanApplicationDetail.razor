@@ -109,7 +109,7 @@
                             <MudText Typo="Typo.subtitle2" Color="Color.Primary">Location Details</MudText>
                             <MudText Typo="Typo.body2">@borrower.Province, @borrower.District, @borrower.Sector</MudText>
                             
-                            @if (borrower.Maritalstatus == Maritalstatus.Married)
+                            @if (borrower.Maritalstatus == Domain.ValueObjects.Maritalstatus.Married)
                             {
                                 <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
                                     Spouse: @borrower.SpouceName (@borrower.SpouceIdNumber)

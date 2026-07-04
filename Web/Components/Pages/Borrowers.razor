@@ -6,9 +6,9 @@
 @using Domain.ValueObjects
 
 @inject IBorrowerService BorrowerService
-
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Borrowers</PageTitle>
 
@@ -22,7 +22,7 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteBorrower" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
             <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
@@ -95,8 +95,18 @@
                    
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
-            <PropertyColumn Property="x => x.LastName" Title="LastName" />
+            <TemplateColumn Title="Name">
+                <CellTemplate>
+                    @if (!string.IsNullOrEmpty(context.Item.CompanyName))
+                    {
+                        <MudText Typo="Typo.body2">@context.Item.CompanyName</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">@($"{context.Item.FirstName} {context.Item.LastName}")</MudText>
+                    }
+                </CellTemplate>
+            </TemplateColumn>
             <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
             <PropertyColumn Property="x => x.sex" Title="Sex" />
             @* <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" /> *@
@@ -129,9 +139,10 @@
 
     private IEnumerable<Borrower> FilteredBorrowers => _borrowers
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
-                    x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+                    (x.FirstName != null && x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.LastName != null && x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.CompanyName != null && x.CompanyName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Email != null && x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase)));
 
     private List<BorrowerTypeCount> _borrowerTypeCounts = new();
 
@@ -202,5 +213,31 @@
         var result = await dialog.Result;
     }
 
+    private async Task ConfirmDeleteBorrower()
+    {
+        var selected = _selectedItems.FirstOrDefault();
+        if (selected == null) return;
 
+        var name = string.IsNullOrEmpty(selected.CompanyName) ? $"{selected.FirstName} {selected.LastName}" : selected.CompanyName;
+
+        var result = await DialogService.ShowMessageBox(
+            "Delete Borrower",
+            $"Are you sure you want to delete borrower {name}?",
+            yesText: "Delete", cancelText: "Cancel");
+
+        if (result == true)
+        {
+            try
+            {
+                await BorrowerService.DeleteBorrowerAsync(selected.Id);
+                Snackbar.Add("Borrower deleted successfully.", Severity.Success);
+                _selectedItems.Clear();
+                await LoadBorrower();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
 }

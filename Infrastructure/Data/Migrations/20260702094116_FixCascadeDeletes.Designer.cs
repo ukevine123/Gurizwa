@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260525082248_Addstatus")]
-    partial class Addstatus
+    [Migration("20260702094116_FixCascadeDeletes")]
+    partial class FixCascadeDeletes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -78,7 +78,12 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("AccountTypeName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("AccountTypes");
                 });
@@ -272,6 +277,9 @@ namespace Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -281,6 +289,8 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("BorrowerTypes");
                 });
@@ -507,6 +517,9 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -516,6 +529,8 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("GuarantorTypes");
                 });
@@ -676,10 +691,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -718,7 +729,12 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("PaymentModalities");
                 });
@@ -744,6 +760,9 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -751,6 +770,8 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("PaymentTypes");
                 });
@@ -959,7 +980,12 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PersonId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PersonId");
 
                     b.ToTable("Reasons");
                 });
@@ -1324,6 +1350,17 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("Domain.Entities.AccountType", b =>
+                {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
             modelBuilder.Entity("Domain.Entities.Borrower", b =>
                 {
                     b.HasOne("Domain.Entities.BorrowerType", "BorrowerType")
@@ -1339,6 +1376,17 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("BorrowerType");
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("Domain.Entities.BorrowerType", b =>
+                {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Person");
                 });
@@ -1424,6 +1472,17 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("Domain.Entities.GuarantorType", b =>
+                {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
             modelBuilder.Entity("Domain.Entities.LoanApplication", b =>
                 {
                     b.HasOne("Domain.Entities.Borrower", "Borrower")
@@ -1441,7 +1500,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.PaymentModality", "PaymentModality")
                         .WithMany()
                         .HasForeignKey("PaymentModalityId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Person", "Person")
@@ -1524,6 +1583,28 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("Domain.Entities.PaymentModality", b =>
+                {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("Domain.Entities.PaymentType", b =>
+                {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Person");
+                });
+
             modelBuilder.Entity("Domain.Entities.Penality", b =>
                 {
                     b.HasOne("Domain.Entities.LoanApplication", "LoanApplication")
@@ -1593,6 +1674,17 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("LoanApplication");
+
+                    b.Navigation("Person");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Reason", b =>
+                {
+                    b.HasOne("Domain.Entities.Person", "Person")
+                        .WithMany()
+                        .HasForeignKey("PersonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Person");
                 });

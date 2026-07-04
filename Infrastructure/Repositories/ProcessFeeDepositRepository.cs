@@ -25,7 +25,7 @@ namespace Infrastructure.Repositories
         }
            return await dbContext.ProcessFeeDeposits
             .Include(a => a.LoanApplication)
-            .Where(a => a.PersonId == _userContext.Id)
+            .Where(a => a.PersonId == _userContext.PersonId)
             .Include(a => a.Account)
             .ToListAsync();
         }
@@ -37,7 +37,7 @@ namespace Infrastructure.Repositories
                 return null;
             }
             return  dbContext.ProcessFeeDeposits
-            .Where(a => a.PersonId == _userContext.Id)
+            .Where(a => a.PersonId == _userContext.PersonId)
             .FirstOrDefault(t => t.Id == Id);
         }
          public async Task CreateProcessFeeDepositAsync(CreateProcessFeeDepositDTO processFeeDepositDTO)

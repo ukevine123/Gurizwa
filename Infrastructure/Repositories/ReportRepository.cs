@@ -24,12 +24,19 @@ namespace Infrastructure.Repositories
         public async Task<List<ActiveLoanSummaryDTO>> GetActiveLoansSummaryAsync()
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue)
+            {
+                return new List<ActiveLoanSummaryDTO>();
+            }
             
             var activeLoans = await dbContext.Disbursements
                 .Include(d => d.LoanApplication)
                 .ThenInclude(la => la.Borrower)
                 .Include(d => d.Payments)
-                .Where(d => d.IsActive)
+                .Where(d => d.IsActive &&
+                    (d.PersonId == currentPersonId.Value ||
+                     d.LoanApplication.PersonId == currentPersonId.Value))
                 .ToListAsync();
 
             return activeLoans.Select(d => new ActiveLoanSummaryDTO
@@ -48,6 +55,12 @@ namespace Infrastructure.Repositories
         public async Task<List<LoanDisbursementReportDTO>> GetLoanDisbursementReportAsync(DateTime startDate, DateTime endDate, string? loanType = null)
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue)
+            {
+                return new List<LoanDisbursementReportDTO>();
+            }
+
             var start = startDate.Date;
             var endExclusive = endDate.Date.AddDays(1);
 
@@ -58,7 +71,10 @@ namespace Infrastructure.Repositories
                 .Include(d => d.LoanApplication)
                     .ThenInclude(la => la.LoanProductSetting)
                         .ThenInclude(lps => lps.LoanProduct)
-                .Where(d => d.CreatedAt >= start && d.CreatedAt < endExclusive);
+                .Where(d => d.CreatedAt >= start &&
+                    d.CreatedAt < endExclusive &&
+                    (d.PersonId == currentPersonId.Value ||
+                     d.LoanApplication.PersonId == currentPersonId.Value));
 
             if (!string.IsNullOrWhiteSpace(loanType))
             {
@@ -83,11 +99,18 @@ namespace Infrastructure.Repositories
         public async Task<List<LoanMaturityReportDTO>> GetLoanMaturityReportAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue)
+            {
+                return new List<LoanMaturityReportDTO>();
+            }
 
             var query = dbContext.Disbursements
                 .Include(d => d.LoanApplication)
                     .ThenInclude(la => la.Borrower)
                 .Include(d => d.Payments)
+                .Where(d => d.PersonId == currentPersonId.Value ||
+                    d.LoanApplication.PersonId == currentPersonId.Value)
                 .AsQueryable();
 
             if (startDate.HasValue) query = query.Where(d => d.EndDate >= startDate.Value);
@@ -109,8 +132,16 @@ namespace Infrastructure.Repositories
         public async Task<List<UserActivityReportDTO>> GetUserActivityReportAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentUserId = _userContext.Id?.ToString();
+            if (string.IsNullOrWhiteSpace(currentUserId))
+            {
+                return new List<UserActivityReportDTO>();
+            }
 
-            var query = dbContext.ActivityLogs.AsNoTracking().AsQueryable();
+            var query = dbContext.ActivityLogs
+                .AsNoTracking()
+                .Where(a => a.UserId == currentUserId)
+                .AsQueryable();
 
             if (startDate.HasValue)
             {
@@ -149,6 +180,39 @@ namespace Infrastructure.Repositories
                 description));
 
             await dbContext.SaveChangesAsync();
+        }
+
+        // ── Repayment & Collection ─────────────────────────────────────────────
+        public async Task<List<RepaymentScheduleReportDTO>> GetRepaymentScheduleReportAsync() => await Task.FromResult(new List<RepaymentScheduleReportDTO>());
+        public async Task<List<OverdueReportDTO>> GetOverdueReportAsync() => await Task.FromResult(new List<OverdueReportDTO>());
+        public async Task<List<CollectionEfficiencyReportDTO>> GetCollectionEfficiencyReportAsync() => await Task.FromResult(new List<CollectionEfficiencyReportDTO>());
+
+        // ── Financial Performance ──────────────────────────────────────────────
+        public async Task<List<InterestIncomeReportDTO>> GetInterestIncomeReportAsync() => await Task.FromResult(new List<InterestIncomeReportDTO>());
+        public async Task<List<PenaltyIncomeReportDTO>> GetPenaltyIncomeReportAsync() => await Task.FromResult(new List<PenaltyIncomeReportDTO>());
+        public async Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync() => await Task.FromResult(new List<ProfitabilityReportDTO>());
+
+        // ── Risk & Compliance ──────────────────────────────────────────────────
+        public async Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync() => await Task.FromResult(new List<CreditRiskReportDTO>());
+        public async Task<List<NplReportDTO>> GetNplReportAsync() => await Task.FromResult(new List<NplReportDTO>());
+        public async Task<List<RegulatoryComplianceReportDTO>> GetRegulatoryComplianceReportAsync() => await Task.FromResult(new List<RegulatoryComplianceReportDTO>());
+
+        // ── Customer Reports ───────────────────────────────────────────────────
+        public async Task<List<CustomerPortfolioReportDTO>> GetCustomerPortfolioReportAsync() => await Task.FromResult(new List<CustomerPortfolioReportDTO>());
+        public async Task<List<ApplicationStatusReportDTO>> GetApplicationStatusReportAsync() => await Task.FromResult(new List<ApplicationStatusReportDTO>());
+        public async Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync() => await Task.FromResult(new List<CustomerRiskProfileReportDTO>());
+
+        private async Task<int?> GetCurrentPersonIdAsync(ApplicationDbContext dbContext)
+        {
+            if (!_userContext.Id.HasValue)
+            {
+                return null;
+            }
+
+            return await dbContext.Users
+                .Where(u => u.Id == _userContext.Id.Value)
+                .Select(u => (int?)u.PersonId)
+                .FirstOrDefaultAsync();
         }
     }
 }

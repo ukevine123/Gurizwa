@@ -118,19 +118,7 @@
                     {
                         var selectedDisbursement = Disbursements.FirstOrDefault(d => d.Id == Model.DisbursementId);
                         
-                        @if (selectedDisbursement != null && DateTime.Today < selectedDisbursement.StartDate.Date)
-                        {
-                            <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Style="border-radius: 8px;">
-                                <b>WAITING FOR START DATE:</b> Cycle begins on <b>@selectedDisbursement.StartDate.ToString("MMM dd, yyyy")</b>.
-                            </MudAlert>
-                        }
-                        else if (ExpectedAmount <= 0)
-                        {
-                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Style="border-radius: 8px;">
-                                <b>INSTALLMENT SETTLED:</b> The current installment is already fully paid. Please wait until <b>@ExpectedDueDate.ToString("MMM dd, yyyy")</b> to make the next payment.
-                            </MudAlert>
-                        }
-                        else if (CalculatedPenalty > 0)
+                        @if (CalculatedPenalty > 0)
                         {
                             var rate = selectedDisbursement?.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0;
                             <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Style="border-radius: 8px;">
@@ -215,13 +203,7 @@
     }
 
     private bool IsPaymentRestricted() {
-        if (Model.DisbursementId == 0) return false;
-        
-        var selected = Disbursements.FirstOrDefault(d => d.Id == Model.DisbursementId);
-        bool beforeStart = selected != null && DateTime.Today < selected.StartDate.Date;
-        bool alreadyPaid = ExpectedAmount <= 0;
-
-        return beforeStart || alreadyPaid;
+        return Model.DisbursementId == 0;
     }
 
     private void OnAccountChanged(int id) {

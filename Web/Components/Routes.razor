@@ -10,7 +10,7 @@
 <CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly"> 
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
             <NotAuthorized>
                 @if (!context.User.Identity?.IsAuthenticated !=true)
                  { 
@@ -36,7 +36,7 @@
         </Found>
         <NotFound>
             <PageTitle>Not Found</PageTitle>
-            <LayoutView Layout="typeof(Layout.MainLayout)">
+            <LayoutView Layout="typeof(MainLayout)">
                 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
                     <MudAlert Severity="Severity.Warning">
                         Sorry, there's nothing at this address.

@@ -14,57 +14,14 @@
 <style>
     .dashboard-container {
         padding: 24px;
-        background-color: #F7F9FC;
-        height: calc(100vh - 64px);
-        margin: -1.35rem -0.1rem -2.0rem; /* Negate .app-main-body padding to prevent scrollbar */
-        box-sizing: border-box;
+        background-color: #F7F9FC; /* Slightly warmer, professional grey-blue */
+        height: 100vh;
+        max-height: 100vh;
         overflow: hidden;
         display: flex;
         flex-direction: column;
         font-family: 'Inter', sans-serif;
         color: #1B2559;
-    }
-
-    /* === DARK MODE OVERRIDES === */
-    .dark-mode-layout .dashboard-container {
-        background-color: transparent;
-        color: #E6EEF8;
-    }
-
-    .dark-mode-layout .performance-card,
-    .dark-mode-layout .activity-sidebar {
-        background: #111C44 !important;
-        border-color: #1E293B !important;
-    }
-
-    .dark-mode-layout .account-balance-card {
-        background: #111C44 !important;
-        border-color: #1E293B !important;
-    }
-
-    .dark-mode-layout .stat-card {
-        background: rgba(17, 28, 68, 0.9) !important;
-        border-color: #1E293B !important;
-    }
-
-    .dark-mode-layout .overview-title,
-    .dark-mode-layout .account-type,
-    .dark-mode-layout .account-amount {
-        color: #E6EEF8 !important;
-    }
-
-    .dark-mode-layout [style*="color: #1B2559"] {
-        color: #E6EEF8 !important;
-    }
-
-    .dark-mode-layout .heatmap-cell {
-        background-color: #1E293B !important;
-    }
-
-    .dark-mode-layout .stat-value {
-        background: linear-gradient(135deg, #A3AED0 0%, #6366F1 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
     }
 
     .header-section {
@@ -141,7 +98,6 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     .activity-sidebar {
@@ -153,7 +109,6 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        transition: background 0.3s ease, border-color 0.3s ease;
     }
 
     .heatmap-grid {
@@ -180,7 +135,7 @@
         padding: 16px 20px;
         box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.03);
         border: 1px solid #EDF2F7;
-        transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s ease;
         cursor: pointer;
         position: relative;
         overflow: hidden;
@@ -273,6 +228,12 @@
             <div class="overview-title">Overview</div>
         </div>
         <div class="d-flex gap-2">
+            <MudButton Variant="Variant.Outlined" 
+                       StartIcon="@Icons.Material.Filled.Event" 
+                       Style="border-radius: 12px; text-transform: none; font-weight: 700; border-color: #E2E8F0; color: #1B2559;"
+                       OnClick="@OpenPaymentSchedule">
+                Payment Schedule
+            </MudButton>
             <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.FileDownload" Class="export-btn">Export</MudButton>
         </div>
     </div>
@@ -306,7 +267,7 @@
                         <MudItem xs="3">
                             <div class="stat-card" style="border-left: 4px solid #05CD99;">
                                 <div>
-                                    <div class="stat-label">Approved</div>
+                                    <div class="stat-label">Confirmed</div>
                                     <div class="stat-value">@CountApproved</div>
                                 </div>
                                 <div class="stat-change up">
@@ -399,7 +360,7 @@
                                 <div class="status-badge status-final-review">Active</div>
                             </div>
                             <div class="account-id">#@balance.Type.GetHashCode().ToString("X").Substring(0, 6)</div>
-                            <div class="account-amount">Rwf @balance.Balance.ToString("N0")</div>
+                            <div class="account-amount">$ @balance.Balance.ToString("N0")</div>
                         </div>
                     </MudItem>
                 }
@@ -429,6 +390,11 @@
     private List<ChartSeries> Series = new();
     private string[] Labels = Array.Empty<string>();
 
+    private void OpenPaymentSchedule()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        DialogService.Show<Web.Components.Pages.PaymentScheduleDialog>("Payment Schedule (Recent)", options);
+    }
 
     protected override async Task OnInitializedAsync()
     {
