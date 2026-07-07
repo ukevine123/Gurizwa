@@ -36,7 +36,7 @@
     /* Main Content Area */
     .mud-main-content {
         min-height: 100vh;
-        padding-top: 0 !important;
+        padding-top: calc(var(--mud-appbar-height) + 16px) !important;
         flex: 1;
         @* overflow-x: auto; *@
         max-width: 100%;
@@ -44,7 +44,7 @@
 
     .content-fill {
         height: 100%;
-        min-height: 100vh;
+        min-height: calc(100vh - var(--mud-appbar-height) - 16px);
         border-radius: 0 !important;
     }
 
@@ -246,9 +246,6 @@
                 @(_drawerOpen ? "Reports" : "")
             </MudNavLink>
             
-            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
-                @(_drawerOpen ? "Process Fee" : "")
-            </MudNavLink>
 
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
                 <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
