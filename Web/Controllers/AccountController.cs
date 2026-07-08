@@ -21,23 +21,33 @@ namespace Web.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromForm] string email, [FromForm] string password, [FromForm] bool rememberMe, [FromForm] string? returnUrl)
         {
-            var result = await _identityService.LoginAsync(new LoginDTO
+            try
             {
-                Email = email,
-                Password = password,
-                RememberMe = rememberMe
-            });
+                var result = await _identityService.LoginAsync(new LoginDTO
+                {
+                    Email = email,
+                    Password = password,
+                    RememberMe = rememberMe
+                });
 
-            if (result)
-            {
-                var redirect = string.IsNullOrEmpty(returnUrl) ? "/dashboard" : returnUrl;
-                return Redirect(redirect);
+                if (result)
+                {
+                    var redirect = string.IsNullOrEmpty(returnUrl) ? "/dashboard" : returnUrl;
+                    return Redirect(redirect);
+                }
+
+                var errorUrl = string.IsNullOrEmpty(returnUrl)
+                    ? "/account/login?error=Invalid+email+or+password"
+                    : $"/account/login?error=Invalid+email+or+password&returnUrl={Uri.EscapeDataString(returnUrl)}";
+                return Redirect(errorUrl);
             }
-
-            var errorUrl = string.IsNullOrEmpty(returnUrl)
-                ? "/account/login?error=Invalid+email+or+password"
-                : $"/account/login?error=Invalid+email+or+password&returnUrl={Uri.EscapeDataString(returnUrl)}";
-            return Redirect(errorUrl);
+            catch (Exception ex)
+            {
+                var errorUrl = string.IsNullOrEmpty(returnUrl)
+                    ? $"/account/login?error={Uri.EscapeDataString(ex.Message)}"
+                    : $"/account/login?error={Uri.EscapeDataString(ex.Message)}&returnUrl={Uri.EscapeDataString(returnUrl)}";
+                return Redirect(errorUrl);
+            }
         }
 
         [HttpPost("logout")]

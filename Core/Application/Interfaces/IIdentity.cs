@@ -12,6 +12,7 @@ namespace Application.Interfaces
             Task UpdateUser(int id, UserDetailDTO dto);
             Task<bool> LoginAsync(LoginDTO dto);
             Task LogoutAsync();
+            Task ApproveUserAsync(int userId);
             
             Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId);
             Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId);

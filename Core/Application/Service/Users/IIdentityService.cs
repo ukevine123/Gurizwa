@@ -22,6 +22,12 @@ namespace Application.Services.Users
             await _identity.LogoutAsync();
             
             }
+
+        public async Task ApproveUserAsync(int userId)
+        {
+            await _identity.ApproveUserAsync(userId);
+        }
+
         public async Task RegisterUser(RegisterUserDTO dto)
         {
             await _identity.RegisterUser(dto);

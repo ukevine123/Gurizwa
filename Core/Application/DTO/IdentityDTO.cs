@@ -40,8 +40,10 @@ namespace Application.DTO
         public string Email { get; set; }
         public string? PhoneNumber { get; set; }
         public bool EmailConfirmed { get; set; }
+        public bool IsApproved { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? Role { get; set; }
 
         // Sub-user support
         public int? ParentUserId { get; set; }
