@@ -43,6 +43,7 @@ namespace Application.DTO
         public bool IsApproved { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string? Role { get; set; }
 
         // Sub-user support
         public int? ParentUserId { get; set; }

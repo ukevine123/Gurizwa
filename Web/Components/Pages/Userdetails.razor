@@ -94,6 +94,15 @@
                             <MudText Typo="Typo.h6" Class="mb-4">Account Information</MudText>
                             
                             <MudList T="string" Dense="true">
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.Security">
+                                    <div class="d-flex flex-column">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Role</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@user.Role</MudChip>
+                                    </div>
+                                </MudListItem>
+
+                                <MudDivider />
+
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.VerifiedUser">
                                     <div class="d-flex flex-column">
                                         <MudText Typo="Typo.caption" Color="Color.Secondary">Email Confirmed</MudText>
@@ -151,6 +160,42 @@
                     Edit User
                 </MudButton>
             </MudCardActions>
+
+            @if (subUsers != null && subUsers.Count > 0)
+            {
+                <MudDivider />
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Class="mb-4 mt-2">Assigned Workers</MudText>
+                    <MudTable Items="@subUsers" Hover="true" Striped="true" Dense="true" Elevation="0" Outlined="true">
+                        <HeaderContent>
+                            <MudTh>ID</MudTh>
+                            <MudTh>Name</MudTh>
+                            <MudTh>Email</MudTh>
+                            <MudTh>Role</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh Style="text-align: right;">Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="worker">
+                            <MudTd DataLabel="ID">@worker.Id</MudTd>
+                            <MudTd DataLabel="Name">@worker.FullName</MudTd>
+                            <MudTd DataLabel="Email">@worker.Email</MudTd>
+                            <MudTd DataLabel="Role">
+                                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">@worker.Role</MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Size="Size.Small" Color="@(worker.IsActive ? Color.Success : Color.Warning)" Variant="Variant.Outlined">
+                                    @(worker.IsActive ? "Active" : "Inactive")
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Actions" Style="text-align: right;">
+                                <MudButton Href="@($"/Users/{worker.Id}")" Variant="Variant.Text" Color="Color.Info" Size="Size.Small" StartIcon="@Icons.Material.Filled.Visibility">
+                                    View
+                                </MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent>
+            }
         </MudCard>
     }
 </MudContainer>
@@ -160,10 +205,11 @@
     public int Id { get; set; }
 
     private UserDetailDTO? user;
+    private List<UserDetailDTO>? subUsers;
     private bool isLoading = true;
     private string? errorMessage;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         await LoadUserDetails();
     }
@@ -187,6 +233,14 @@
             else
             {
                 Console.WriteLine($"[UserDetails] User loaded successfully: {user.Email}");
+                if (user.ParentUserId == null)
+                {
+                    subUsers = await IdentityService.GetSubUsersAsync(user.Id);
+                }
+                else
+                {
+                    subUsers = null;
+                }
             }
         }
         catch (Exception ex)

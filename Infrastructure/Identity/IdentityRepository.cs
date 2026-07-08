@@ -156,6 +156,9 @@ namespace Infrastructure.Identity
                     throw new InvalidOperationException($"A user with email '{dto.Email}' already exists.");
                 }
 
+                // Find the parent user to link this sub-user
+                var parentUser = await _userManager.Users.FirstOrDefaultAsync(u => u.PersonId == parentPersonId && u.ParentUserId == null);
+
                 var newUser = new User
                 {
                     FirstName = dto.FirstName,
@@ -163,6 +166,7 @@ namespace Infrastructure.Identity
                     Email = dto.Email,
                     UserName = dto.Email,
                     PersonId = parentPersonId,
+                    ParentUserId = parentUser?.Id,
                     PhoneNumber = dto.PhoneNumber,
                     EmailConfirmed = true,
                     CreatedAt = DateTime.UtcNow,
@@ -203,18 +207,30 @@ namespace Infrastructure.Identity
                 .ThenBy(u => u.FirstName)
                 .ToListAsync();
 
-            return users.Select(u => new UserDetailDTO
+            var result = new List<UserDetailDTO>();
+            foreach (var u in users)
             {
-                Id = u.Id,
-                FirstName = u.FirstName ?? "",
-                LastName = u.LastName ?? "",
-                Email = u.Email ?? "",
-                PhoneNumber = u.PhoneNumber,
-                EmailConfirmed = u.EmailConfirmed,
-                IsApproved = u.IsApproved,
-                CreatedAt = u.CreatedAt,
-                UpdatedAt = u.UpdatedAt
-            }).ToList();
+                var roles = await _userManager.GetRolesAsync(u);
+                var primaryRole = roles.FirstOrDefault() ?? "Agent";
+                if (primaryRole.Contains("_"))
+                    primaryRole = primaryRole.Substring(primaryRole.IndexOf("_") + 1);
+
+                result.Add(new UserDetailDTO
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName ?? "",
+                    LastName = u.LastName ?? "",
+                    Email = u.Email ?? "",
+                    PhoneNumber = u.PhoneNumber,
+                    EmailConfirmed = u.EmailConfirmed,
+                    IsApproved = u.IsApproved,
+                    Role = primaryRole,
+                    CreatedAt = u.CreatedAt,
+                    UpdatedAt = u.UpdatedAt,
+                    ParentUserId = u.ParentUserId
+                });
+            }
+            return result;
         }
 
         public async Task<List<string>> GetRolesAsync(int parentPersonId)
@@ -267,24 +283,37 @@ namespace Infrastructure.Identity
                 Console.WriteLine("[GetAllUsers] Fetching users...");
 
                 var users = await _userManager.Users
+                    .Where(u => u.ParentUserId == null)
                     .OrderBy(u => u.LastName)
                     .ThenBy(u => u.FirstName)
                     .ToListAsync();
 
-                Console.WriteLine($"[GetAllUsers] Found {users.Count} users");
+                Console.WriteLine($"[GetAllUsers] Found {users.Count} top-level users");
 
-                return users.Select(u => new UserDetailDTO
+                var result = new List<UserDetailDTO>();
+                foreach (var u in users)
                 {
-                    Id = u.Id,
-                    FirstName = u.FirstName ?? "",
-                    LastName = u.LastName ?? "",
-                    Email = u.Email ?? "",
-                    PhoneNumber = u.PhoneNumber,
-                    EmailConfirmed = u.EmailConfirmed,
-                    IsApproved = u.IsApproved,
-                    CreatedAt = u.CreatedAt,
-                    UpdatedAt = u.UpdatedAt
-                }).ToList();
+                    var roles = await _userManager.GetRolesAsync(u);
+                    var primaryRole = roles.FirstOrDefault() ?? "Tenant";
+                    // If it's a prefixed role (like "1_Staff"), clean it for display
+                    if (primaryRole.Contains("_"))
+                        primaryRole = primaryRole.Substring(primaryRole.IndexOf("_") + 1);
+
+                    result.Add(new UserDetailDTO
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName ?? "",
+                        LastName = u.LastName ?? "",
+                        Email = u.Email ?? "",
+                        PhoneNumber = u.PhoneNumber,
+                        EmailConfirmed = u.EmailConfirmed,
+                        IsApproved = u.IsApproved,
+                        Role = primaryRole,
+                        CreatedAt = u.CreatedAt,
+                        UpdatedAt = u.UpdatedAt
+                    });
+                }
+                return result;
             }
             catch (Exception ex)
             {
@@ -306,6 +335,11 @@ namespace Infrastructure.Identity
                     return null;
                 }
                 
+                var roles = await _userManager.GetRolesAsync(user);
+                var primaryRole = roles.FirstOrDefault() ?? (user.ParentUserId == null ? "Tenant" : "Staff");
+                if (primaryRole.Contains("_"))
+                    primaryRole = primaryRole.Substring(primaryRole.IndexOf("_") + 1);
+
                 return new UserDetailDTO
                 {
                     Id = user.Id,
@@ -314,6 +348,8 @@ namespace Infrastructure.Identity
                     Email = user.Email ?? "",
                     PhoneNumber = user.PhoneNumber,
                     EmailConfirmed = user.EmailConfirmed,
+                    IsApproved = user.IsApproved,
+                    Role = primaryRole,
                     CreatedAt = user.CreatedAt,
                     UpdatedAt = user.UpdatedAt
                 };
@@ -479,20 +515,31 @@ namespace Infrastructure.Identity
                     .ThenBy(u => u.FirstName)
                     .ToListAsync();
 
-                return subUsers.Select(u => new UserDetailDTO
+                var result = new List<UserDetailDTO>();
+                foreach (var u in subUsers)
                 {
-                    Id             = u.Id,
-                    FirstName      = u.FirstName  ?? "",
-                    LastName       = u.LastName   ?? "",
-                    Email          = u.Email      ?? "",
-                    PhoneNumber    = u.PhoneNumber,
-                    EmailConfirmed = u.EmailConfirmed,
-                    IsApproved     = u.IsApproved,
-                    ParentUserId   = u.ParentUserId,
-                    IsActive       = u.EmailConfirmed,
-                    CreatedAt      = u.CreatedAt,
-                    UpdatedAt      = u.UpdatedAt,
-                }).ToList();
+                    var roles = await _userManager.GetRolesAsync(u);
+                    var primaryRole = roles.FirstOrDefault() ?? "Agent";
+                    if (primaryRole.Contains("_"))
+                        primaryRole = primaryRole.Substring(primaryRole.IndexOf("_") + 1);
+
+                    result.Add(new UserDetailDTO
+                    {
+                        Id             = u.Id,
+                        FirstName      = u.FirstName  ?? "",
+                        LastName       = u.LastName   ?? "",
+                        Email          = u.Email      ?? "",
+                        PhoneNumber    = u.PhoneNumber,
+                        EmailConfirmed = u.EmailConfirmed,
+                        IsApproved     = u.IsApproved,
+                        Role           = primaryRole,
+                        IsActive       = u.EmailConfirmed,
+                        CreatedAt      = u.CreatedAt,
+                        UpdatedAt      = u.UpdatedAt,
+                        ParentUserId   = u.ParentUserId
+                    });
+                }
+                return result;
             }
             catch (Exception ex)
             {
