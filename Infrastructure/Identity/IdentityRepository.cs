@@ -47,6 +47,12 @@ namespace Infrastructure.Identity
                     lockoutOnFailure: true
                 );
 
+                if (result.Succeeded && !user.IsApproved)
+                {
+                    await _signInManager.SignOutAsync();
+                    throw new InvalidOperationException("Your account is pending approval by an administrator.");
+                }
+
                 Console.WriteLine($"[Login] Result for {dto.Email}: {result.Succeeded}");
                 return result.Succeeded;
             }
@@ -205,6 +211,7 @@ namespace Infrastructure.Identity
                 Email = u.Email ?? "",
                 PhoneNumber = u.PhoneNumber,
                 EmailConfirmed = u.EmailConfirmed,
+                IsApproved = u.IsApproved,
                 CreatedAt = u.CreatedAt,
                 UpdatedAt = u.UpdatedAt
             }).ToList();
@@ -274,6 +281,7 @@ namespace Infrastructure.Identity
                     Email = u.Email ?? "",
                     PhoneNumber = u.PhoneNumber,
                     EmailConfirmed = u.EmailConfirmed,
+                    IsApproved = u.IsApproved,
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt
                 }).ToList();
@@ -366,6 +374,33 @@ namespace Infrastructure.Identity
             }
         }
 
+        public async Task ApproveUserAsync(int userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                    throw new InvalidOperationException("User not found.");
+
+                user.IsApproved = true;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                var result = await _userManager.UpdateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to approve user: {errors}");
+                }
+
+                Console.WriteLine($"[ApproveUser] User {userId} approved successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ApproveUser] Error: {ex.Message}");
+                throw;
+            }
+        }
+
         // ═══════════════════════════════════════════════
         //  SUB-USER (AGENT) MANAGEMENT
         // ═══════════════════════════════════════════════
@@ -408,6 +443,7 @@ namespace Infrastructure.Identity
                     PersonId       = person.Id,
                     ParentUserId   = parentUserId,
                     EmailConfirmed = true,
+                    IsApproved     = true,
                     CreatedAt      = DateTime.UtcNow,
                     UpdatedAt      = DateTime.UtcNow,
                 };
@@ -451,6 +487,7 @@ namespace Infrastructure.Identity
                     Email          = u.Email      ?? "",
                     PhoneNumber    = u.PhoneNumber,
                     EmailConfirmed = u.EmailConfirmed,
+                    IsApproved     = u.IsApproved,
                     ParentUserId   = u.ParentUserId,
                     IsActive       = u.EmailConfirmed,
                     CreatedAt      = u.CreatedAt,

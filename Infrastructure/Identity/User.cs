@@ -18,5 +18,8 @@ namespace Infrastructure.Identity
         // Auditing fields
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        // Admin Approval for self-registered users
+        public bool IsApproved { get; set; } = false;
     }
 }

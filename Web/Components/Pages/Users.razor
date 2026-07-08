@@ -12,7 +12,7 @@
 
 <PageTitle>Users</PageTitle>
 
-@if (UserContext.PrimaryRole != "Tenant")
+@if (UserContext.PrimaryRole != "Tenant" && !IsDeveloper)
 {
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
         <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4">
@@ -92,7 +92,7 @@ else
                         <MudTh>Name</MudTh>
                         <MudTh>Email</MudTh>
                         <MudTh>Phone</MudTh>
-                        <MudTh>Email Confirmed</MudTh>
+                        <MudTh>Status</MudTh>
                         <MudTh>Created At</MudTh>
                         <MudTh Style="text-align: right;">Actions</MudTh>
                     </HeaderContent>
@@ -116,12 +116,12 @@ else
                         <MudTd DataLabel="Phone">
                             <MudText Typo="Typo.body2">@(string.IsNullOrEmpty(context.PhoneNumber) ? "-" : context.PhoneNumber)</MudText>
                         </MudTd>
-                        <MudTd DataLabel="Email Confirmed">
+                        <MudTd DataLabel="Status">
                             <MudChip T="string" Size="Size.Small" 
                                      Variant="Variant.Outlined"
-                                     Color="@(context.EmailConfirmed ? Color.Success : Color.Warning)"
-                                     Icon="@(context.EmailConfirmed ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Warning)">
-                                @(context.EmailConfirmed ? "Verified" : "Pending")
+                                     Color="@(context.IsApproved ? Color.Success : Color.Warning)"
+                                     Icon="@(context.IsApproved ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Pending)">
+                                @(context.IsApproved ? "Approved" : "Pending")
                             </MudChip>
                         </MudTd>
                         <MudTd DataLabel="Created At">
@@ -129,6 +129,14 @@ else
                         </MudTd>
                         <MudTd DataLabel="Actions" Style="text-align: right;">
                             <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                                @if (!context.IsApproved)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" 
+                                                   Color="Color.Success" 
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => ApproveUser(context.Id))"
+                                                   Title="Approve User" />
+                                }
                                 <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
                                                Color="Color.Info" 
                                                Size="Size.Small"
@@ -164,6 +172,10 @@ else
     private string? errorMessage;
     private string searchString = "";
 
+    private bool IsDeveloper => 
+        string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
@@ -188,6 +200,20 @@ else
         }
     }
 
+    private async Task ApproveUser(int userId)
+    {
+        try
+        {
+            await IdentityService.ApproveUserAsync(userId);
+            // Optionally show a success snackbar here
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error approving user: {ex.Message}";
+        }
+    }
+
     private async Task LoadUsers()
     {
         try
@@ -197,7 +223,11 @@ else
 
             Console.WriteLine("[Users] Loading users list...");
 
-            if (UserContext.PersonId.HasValue)
+            if (IsDeveloper)
+            {
+                users = await IdentityService.GetAllUsers();
+            }
+            else if (UserContext.PersonId.HasValue)
             {
                 users = await IdentityService.GetSubUsers(UserContext.PersonId.Value);
             }

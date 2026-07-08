@@ -696,8 +696,18 @@ namespace Infrastructure.Data.Migrations
                     b.Property<int>("PaymentTypeId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("PenaltyPaid")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("PrincipalPaid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1087,12 +1097,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("PersonId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PersonId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1189,6 +1193,9 @@ namespace Infrastructure.Data.Migrations
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -1791,7 +1798,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.WaiverType", "WaiverType")
                         .WithMany()
                         .HasForeignKey("WaiverTypeId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Disbursement");
@@ -1804,7 +1811,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.LoanProduct", "LoanProduct")
                         .WithMany()
                         .HasForeignKey("LoanProductId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("LoanProduct");
@@ -1912,6 +1919,11 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("RequiredDocuments");
 
                     b.Navigation("Requirements");
+                });
+
+            modelBuilder.Entity("Infrastructure.Identity.User", b =>
+                {
+                    b.Navigation("SubUsers");
                 });
 #pragma warning restore 612, 618
         }
