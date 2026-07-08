@@ -26,8 +26,17 @@ namespace Infrastructure.Repositories
                 return new List<ProvidedDocument>();
             }
         return await dbContext.ProvidedDocuments
-         .Include(a => a.LoanApplication)
            .Where(a => a.PersonId == _userContext.PersonId)
+           .Select(a => new ProvidedDocument {
+               Id = a.Id,
+               DocumentName = a.DocumentName,
+               PersonId = a.PersonId,
+               LoanApplicationId = a.LoanApplicationId,
+               LoanApplication = a.LoanApplication, // EF Core handles Include via projection automatically
+               CreatedAt = a.CreatedAt,
+               CreatedBy = a.CreatedBy
+               // Intentionally leaving DocumentFile as null to save memory
+           })
            .ToListAsync(); 
         }
         public async Task <ProvidedDocument> GetProvidedDocumentById(int Id)
@@ -84,9 +93,17 @@ namespace Infrastructure.Repositories
 
         return newDoc; 
      }
-   }
+
+     public async Task DeleteProvidedDocumentAsync(int id)
+     {
+         using var dbContext = await _contextFactory.CreateDbContextAsync();
+         var doc = await dbContext.ProvidedDocuments.FindAsync(id);
+         if (doc != null)
+         {
+             dbContext.ProvidedDocuments.Remove(doc);
+             await dbContext.SaveChangesAsync();
+         }
+     }
     }
-      
-    
-    
+}
         

@@ -32,6 +32,7 @@ using Application.Services.Collaterals;
 using Application.Services.ProcessFeeDeposits;
 using Application.Services.LoanProductSettings;
 using Application.Service.Reports;
+using Application.Services.Waivers;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,6 +92,8 @@ builder.Services.AddScoped<IProcessFeeDepositService, ProcessFeeDepositService>(
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<ILoanProductSettingService, LoanProductSettingService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IWaiverService, WaiverService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 // File/Location Services
 builder.Services.AddSingleton<IFileProvider>(builder.Environment.WebRootFileProvider);
 builder.Services.AddSingleton<ILocationService, JsonLocationService>();

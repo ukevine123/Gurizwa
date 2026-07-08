@@ -1,4 +1,5 @@
 using Domain.ValueObjects;
+using System.ComponentModel.DataAnnotations.Schema;
 namespace Domain.Entities
 {
     public class Borrower
@@ -33,6 +34,9 @@ namespace Domain.Entities
         public string Village {get;set;}
         public DateTime CreatedAt {get;set;}
         public string CreatedBy {get;set;}
+
+        [NotMapped]
+        public decimal TotalDebt { get; set; }
         
         public void VerifyMaritalData()
     {

@@ -3,6 +3,7 @@
    When present, the "Back to Users" link is always hidden — even if the browser
    somehow has a stale auth cookie — so new self-registering users can never
    accidentally navigate into the admin user list. *@
+@attribute [AllowAnonymous]
 @layout AuthLayout
 @using Application.DTO
 @using Domain.ValueObjects
@@ -60,7 +61,7 @@
     }
 </style>
 
-<PageTitle>Register | Digital Loan</PageTitle>
+<PageTitle>Register | GURIZA</PageTitle>
 
 @* ── Success overlay shown when registration completes ── *@
 @if (_registrationSuccess)
@@ -129,7 +130,7 @@
                     <MudPaper Style="height: 90px; width: 100%; background: #02086b; border-radius: 4px;" Elevation="0" />
                 </MudPaper>
                 
-                <MudText Typo="Typo.caption" Class="mt-8" Style="opacity: 0.5;">© 2026 DIGITAL LOAN</MudText>
+                <MudText Typo="Typo.caption" Class="mt-8" Style="opacity: 0.5;">© 2026 GURIZA</MudText>
             </MudItem>
 
             @* Right Side: Registration Form *@
@@ -137,8 +138,10 @@
                 
                 @* Top Branding Bar *@
                 <div class="d-flex align-center mb-6">
-                    <MudIcon Icon="@Icons.Material.Filled.Circle" Style="color: #02086b;" Size="Size.Small" Class="mr-2" />
-                    <MudText Typo="Typo.h6" Style="font-weight: 800;">Digital Loan Platform</MudText>
+                    <div style="width: 40px; height: 28px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; border-radius: 4px;" class="mr-2">
+                        <img src="/Images/guriza_logo.png" style="width: 40px; height: auto;" alt="Guriza Logo" />
+                    </div>
+                    <MudText Typo="Typo.h6" Style="font-weight: 900; font-family: 'Arial Black', 'Montserrat', sans-serif; text-transform: uppercase;">GURIZA</MudText>
                     <MudSpacer />
                     @if (CanSeeBackToUsers)
                     {

@@ -5,20 +5,22 @@
 @using Application.Interfaces
 @using Domain.Entities
 @using Domain.ValueObjects
+@using ApexCharts
 @inject ILoanApplicationService LoanApplicationService
 @inject IDisbursementService DisbursementService
 @inject IAccountService AccountService
 @inject IDialogService DialogService
+@inject IReportService ReportService
 
 
 <style>
     .dashboard-container {
         padding: 24px;
         background-color: #F7F9FC;
-        height: calc(100vh - 64px);
+        min-height: calc(100vh - 64px);
         margin: -1.35rem -0.1rem -2.0rem; /* Negate .app-main-body padding to prevent scrollbar */
         box-sizing: border-box;
-        overflow: hidden;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         font-family: 'Inter', sans-serif;
@@ -57,9 +59,6 @@
         color: #E6EEF8 !important;
     }
 
-    .dark-mode-layout .heatmap-cell {
-        background-color: #1E293B !important;
-    }
 
     .dark-mode-layout .stat-value {
         background: linear-gradient(135deg, #A3AED0 0%, #6366F1 100%) !important;
@@ -156,23 +155,6 @@
         transition: background 0.3s ease, border-color 0.3s ease;
     }
 
-    .heatmap-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
-        margin-top: 8px;
-    }
-
-    .heatmap-cell {
-        aspect-ratio: 1;
-        border-radius: 6px;
-        background-color: #F4F7FE;
-        transition: background-color 0.2s;
-    }
-
-    .heatmap-cell.active-low { background-color: rgba(67, 24, 255, 0.1); }
-    .heatmap-cell.active-mid { background-color: rgba(67, 24, 255, 0.4); }
-    .heatmap-cell.active-high { background-color: #4318FF; }
 
     .account-balance-card {
         background: white;
@@ -272,15 +254,13 @@
         <div class="d-flex align-center">
             <div class="overview-title">Overview</div>
         </div>
-        <div class="d-flex gap-2">
-            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.FileDownload" Class="export-btn">Export</MudButton>
-        </div>
+       
     </div>
 
     <div class="main-grid">
         <MudGrid Spacing="3">
             <!-- Left Side: Performance & Stats -->
-            <MudItem xs="12" lg="9" Style="height: 100%; display: flex; flex-direction: column;">
+            <MudItem xs="12" lg="12" Style="height: 100%; display: flex; flex-direction: column;">
                 <div class="performance-card">
                     <div class="d-flex justify-space-between align-center mb-3">
                         <div style="font-size: 16px; font-weight: 700; color: #1B2559;">Performance</div>
@@ -298,7 +278,7 @@
                                     <div class="stat-value">@CountApplied</div>
                                 </div>
                                 <div class="stat-change up">
-                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" />
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="MudBlazor.Size.Small" />
                                     +8.2%
                                 </div>
                             </div>
@@ -310,7 +290,7 @@
                                     <div class="stat-value">@CountApproved</div>
                                 </div>
                                 <div class="stat-change up">
-                                    <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                                    <MudIcon Icon="@Icons.Material.Filled.Check" Size="MudBlazor.Size.Small" />
                                     Active
                                 </div>
                             </div>
@@ -322,7 +302,7 @@
                                     <div class="stat-value">@CountRejected</div>
                                 </div>
                                 <div class="stat-change down">
-                                    <MudIcon Icon="@Icons.Material.Filled.Block" Size="Size.Small" />
+                                    <MudIcon Icon="@Icons.Material.Filled.Block" Size="MudBlazor.Size.Small" />
                                     Attention
                                 </div>
                             </div>
@@ -334,7 +314,7 @@
                                     <div class="stat-value">@CountDisbursed</div>
                                 </div>
                                 <div class="stat-change up">
-                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" />
+                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="MudBlazor.Size.Small" />
                                     +1.4%
                                 </div>
                             </div>
@@ -342,49 +322,40 @@
                     </MudGrid>
 
                     <div class="chart-container">
-                        <MudChart ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@Labels" Width="100%" Height="250px" />
-                    </div>
-                </div>
-            </MudItem>
-
-            <!-- Right Side: Daily Activity -->
-            <MudItem xs="12" lg="3" Style="height: 100%;">
-                <div class="activity-sidebar">
-                    <div class="d-flex justify-space-between align-center mb-2">
-                        <div style="font-size: 14px; font-weight: 700; color: #1B2559;">Daily Activity</div>
-                        <div style="font-size: 10px; color: #A3AED0;">Last 5 Weeks</div>
-                    </div>
-
-                    <div class="heatmap-grid">
-                        @for (int i = 0; i < 35; i++)
+                        @if (TrendData != null && TrendData.Any())
                         {
-                            <div class="heatmap-cell @(i == 17 ? "active" : "")"></div>
+                            <ApexChart TItem="MonthlyApplicationData"
+                                       Height="250">
+                                <ApexPointSeries TItem="MonthlyApplicationData"
+                                                 Items="TrendData"
+                                                 Name="Applications"
+                                                 SeriesType="SeriesType.Area"
+                                                 XValue="@(e => e.Month)"
+                                                 YValue="@(e => (decimal)e.Count)" />
+                            </ApexChart>
                         }
                     </div>
-                    <div class="d-flex justify-space-between mt-1 mb-2" style="font-size: 8px; color: #94A3B8;">
-                        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-                    </div>
-
-                    <div class="d-flex align-center mb-2">
-                        <div style="font-size: 14px; font-weight: 800; color: #1B2559;">@DateTime.Today.ToString("MMM dd, yy")</div>
-                    </div>
-
-                    <div class="timeline-container">
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.5; padding: 16px 0;">
-                            <MudIcon Icon="@Icons.Material.Outlined.Inbox" Style="font-size: 32px; color: #A3AED0;" />
-                            <MudText Typo="Typo.caption" Style="color: #A3AED0; font-weight: 600; margin-top: 8px; text-align: center;">No recent activity</MudText>
-                        </div>
-                    </div>
                 </div>
             </MudItem>
+
+            <!-- Old Right Side removed -->
         </MudGrid>
+    </div>
+
+    <!-- Heatmap Section -->
+    <div style="margin-bottom: 20px;">
+        <div class="d-flex justify-space-between align-center mb-2">
+            <div style="font-size: 16px; font-weight: 800; color: #1B2559;">Daily Activity</div>
+            <div style="font-size: 10px; color: #A3AED0;">Last 365 Days</div>
+        </div>
+        <ActivityHeatmap Data="@HeatmapData" />
     </div>
 
     <!-- Bottom Section: Account Balances by Type -->
     <div style="flex-shrink: 0;">
         <div class="d-flex justify-space-between align-center mb-2">
             <div style="font-size: 16px; font-weight: 800; color: #1B2559;">Account Balances</div>
-            <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.NorthEast" Color="Color.Primary" Style="text-transform: none; font-weight: 700; font-size: 11px; height: 24px;">View All</MudButton>
+            <MudButton Variant="Variant.Text" EndIcon="@Icons.Material.Filled.NorthEast" Color="MudBlazor.Color.Primary" Style="text-transform: none; font-weight: 700; font-size: 11px; height: 24px;">View All</MudButton>
         </div>
         
         <MudGrid Spacing="2">
@@ -424,10 +395,16 @@
     private int CountDisbursed;
 
     private List<AccountBalanceByType> AccountBalances = new();
+    private List<ActivityHeatmapDTO> HeatmapData = new();
 
-    // Chart Data
-    private List<ChartSeries> Series = new();
-    private string[] Labels = Array.Empty<string>();
+    public class MonthlyApplicationData
+    {
+        public string Month { get; set; }
+        public int Count { get; set; }
+        public int SortOrder { get; set; }
+    }
+
+    private List<MonthlyApplicationData> TrendData = new();
 
 
     protected override async Task OnInitializedAsync()
@@ -460,22 +437,11 @@
             .OrderBy(d => d)
             .ToList();
 
-        var trendData = last6Months.Select(month => new {
-            Month = month.ToString("MMM"),
-            Count = apps.Count(a => a.DateofApplication.Month == month.Month && a.DateofApplication.Year == month.Year)
+        TrendData = last6Months.Select((month, index) => new MonthlyApplicationData {
+            Month = month.ToString("MMM yyyy"),
+            Count = apps.Count(a => a.DateofApplication.Month == month.Month && a.DateofApplication.Year == month.Year),
+            SortOrder = index
         }).ToList();
-
-        // No applications yet - trendData will have real zero counts
-
-        Labels = trendData.Select(t => t.Month).ToArray();
-        Series = new List<ChartSeries>
-        {
-            new ChartSeries
-            {
-                Name = "Applications",
-                Data = trendData.Select(t => (double)t.Count).ToArray()
-            }
-        };
 
         // Load account balances by type (Real Data)
         var accounts = await AccountService.GetAllAccountsAsync();
@@ -495,6 +461,8 @@
             // No accounts exist - AccountBalances stays empty, UI will show "No account data found"
             AccountBalances = new List<AccountBalanceByType>();
         }
+        
+        HeatmapData = await ReportService.GetActivityHeatmapAsync(365);
         
         StateHasChanged();
     }

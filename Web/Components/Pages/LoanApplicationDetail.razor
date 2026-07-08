@@ -3,6 +3,7 @@
 @using Application.Interfaces
 @using Application.Services.LoanApplications
 @using Application.DTO
+@using System.IO
 @using MudBlazor
 @using Domain.Entities
 @using Domain.ValueObjects
@@ -16,6 +17,7 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
 @inject IUserContext UserContext
+@inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Manager")]
 
@@ -173,7 +175,9 @@
                             <MudListItem Icon="@Icons.Material.Filled.AttachFile">
                                 <div class="d-flex align-center justify-space-between">
                                     <MudText>@doc.DocumentName</MudText>
-                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ViewDocument(doc))">View</MudButton>
+                                    <div>
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="mr-2" OnClick="@(() => ViewDocument(doc))">View</MudButton>
+                                    </div>
                                 </div>
                             </MudListItem>
                         }
@@ -329,13 +333,14 @@
     } *@
    private async Task ViewDocument(ProvidedDocument doc)
 {
-    if (doc.DocumentFile == null || doc.DocumentFile.Length == 0)
+    var fullDoc = await DocumentRepo.GetProvidedDocumentById(doc.Id);
+    if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
     {
         Snackbar.Add("File is empty.", Severity.Error);
         return;
     }
 
-    byte[] fileData = doc.DocumentFile;
+    byte[] fileData = fullDoc.DocumentFile;
 
     // Check if the file is accidentally saved as a Base64 string inside the byte array
     // (Common if you used a JS uploader previously)
@@ -349,7 +354,34 @@
 
     using var stream = new MemoryStream(fileData);
     using var streamRef = new DotNetStreamReference(stream);
+    
+    string mimeType = GetMimeType(fileData);
 
-    await JS.InvokeVoidAsync("downloadFileFromStream", doc.DocumentName, streamRef);
+    await JS.InvokeVoidAsync("downloadFileFromStream", doc.DocumentName ?? "document.pdf", streamRef, mimeType);
 }
+
+private string GetMimeType(byte[] fileData)
+{
+    if (fileData == null || fileData.Length < 4)
+        return "application/octet-stream";
+
+    // PDF
+    if (fileData[0] == 0x25 && fileData[1] == 0x50 && fileData[2] == 0x44 && fileData[3] == 0x46)
+        return "application/pdf";
+    
+    // PNG
+    if (fileData[0] == 0x89 && fileData[1] == 0x50 && fileData[2] == 0x4E && fileData[3] == 0x47)
+        return "image/png";
+    
+    // JPEG
+    if (fileData[0] == 0xFF && fileData[1] == 0xD8 && fileData[2] == 0xFF)
+        return "image/jpeg";
+    
+    // GIF
+    if (fileData[0] == 0x47 && fileData[1] == 0x49 && fileData[2] == 0x46 && fileData[3] == 0x38)
+        return "image/gif";
+
+    return "application/octet-stream";
+}
+
 }

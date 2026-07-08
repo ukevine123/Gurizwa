@@ -1,428 +1,661 @@
 @page "/Reports"
 @using Application.DTO
-@using ApexCharts
 @using Application.Interfaces
 @using MudBlazor
 
 @inject IReportService ReportService
 @inject ISnackbar Snackbar
+@inject IUserContext UserContext
+@inject IIdentity IdentityService
+@inject IExportService ExportService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Portfolio Reports</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     <MudText Typo="Typo.h4" Color="MudBlazor.Color.Primary" Class="mb-6">Portfolio Reports</MudText>
 
-    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" Position="Position.Left">
-        
-        @* 1. LOAN PORTFOLIO *@
-        <MudTabPanel Text="1. Loan Portfolio" Icon="@Icons.Material.Filled.FolderShared">
-            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-        
-        @* 1. ACTIVE LOANS SUMMARY *@
-        <MudTabPanel Text="Active Loans" Icon="@Icons.Material.Filled.Assignment">
-            <MudDataGrid T="ActiveLoanSummaryDTO" Items="@_activeLoans" Hover="true" Bordered="false" Striped="true" QuickFilter="@_activeLoanFilter">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">Active Loans Summary</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
-                    <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
-                    <PropertyColumn Property="x => x.PrincipalBalance" Title="Balance" Format="N2" />
-                    <PropertyColumn Property="x => x.InterestRate" Title="Rate (%)" />
-                    <PropertyColumn Property="x => x.TenureMonths" Title="Tenure (Months)" />
-                    <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="yyyy-MM-dd" />
-                    <PropertyColumn Property="x => x.EndDate" Title="Maturity Date" Format="yyyy-MM-dd" />
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="ActiveLoanSummaryDTO" />
-                </PagerContent>
-            </MudDataGrid>
-        </MudTabPanel>
+    @* Overview Dashboard Cards - Acting as shortcuts *@
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("ActiveLoans")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-purple">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Active Loans</div>
+                <div class="rc-desc">Overview of @_activeLoans.Count active loans and their balances</div>
+                <div class="rc-meta">Last run: 2h ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("ActiveLoans", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("ActiveLoans", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("ActiveLoans", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("Disbursements")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-blue">
+                        <MudIcon Icon="@Icons.Material.Filled.Payments" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Disbursements</div>
+                <div class="rc-desc">Detailed breakdown of @_disbursements.Count loan disbursements</div>
+                <div class="rc-meta">Last run: 52 min ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("Disbursements", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("Disbursements", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("Disbursements", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("MaturityTracker")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-green">
+                        <MudIcon Icon="@Icons.Material.Filled.Event" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Maturity Tracker</div>
+                <div class="rc-desc">Track @_maturities.Count loans reaching maturity dates</div>
+                <div class="rc-meta">Last run: 52 min ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("MaturityTracker", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("MaturityTracker", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("MaturityTracker", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("UserActivities")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-yellow">
+                        <MudIcon Icon="@Icons.Material.Filled.History" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">User Activities</div>
+                <div class="rc-desc">Performance insights for @_activities.Count user activities</div>
+                <div class="rc-meta">Last run: 1d ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("UserActivities", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("UserActivities", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("UserActivities", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+    </MudGrid>
+    
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("RepaymentSchedules")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-pink">
+                        <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Repayment Schedules</div>
+                <div class="rc-desc">Health scores and @_repaymentSchedules.Count repayment schedules</div>
+                <div class="rc-meta">Last run: 3d ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("RepaymentSchedules", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("RepaymentSchedules", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("RepaymentSchedules", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("OverdueLoans")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-red">
+                        <MudIcon Icon="@Icons.Material.Filled.Warning" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Overdue Loans</div>
+                <div class="rc-desc">High level KPI summary for @_overdues.Count overdue loans</div>
+                <div class="rc-meta">Last run: 3d ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("OverdueLoans", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("OverdueLoans", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("OverdueLoans", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("CustomerPortfolios")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-cyan">
+                        <MudIcon Icon="@Icons.Material.Filled.ContactPage" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Customer Portfolios</div>
+                <div class="rc-desc">Detailed overview of @_customerPortfolios.Count customer portfolios</div>
+                <div class="rc-meta">Last run: 1h ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("CustomerPortfolios", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("CustomerPortfolios", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("CustomerPortfolios", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("ApplicationStatuses")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-lightgreen">
+                        <MudIcon Icon="@Icons.Material.Filled.PendingActions" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Application Statuses</div>
+                <div class="rc-desc">Analyze pipeline metrics for @_applicationStatuses.Count applications</div>
+                <div class="rc-meta">Last run: 45 min ago</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("ApplicationStatuses", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("ApplicationStatuses", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("ApplicationStatuses", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+    </MudGrid>
 
-        @* 2. LOAN DISBURSEMENT REPORT *@
-        <MudTabPanel Text="Disbursements" Icon="@Icons.Material.Filled.Payments">
-            <MudPaper Class="pa-4 mb-4" Elevation="0">
-                <MudGrid>
-                    <MudItem xs="12" sm="4">
-                        <MudDateRangePicker Label="Disbursement Period" @bind-DateRange="_disbursementRange" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4">
-                        <MudTextField @bind-Value="_loanTypeFilter" Label="Loan Type" Placeholder="e.g. Personal" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+    <MudGrid Class="mb-6">
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("UpcomingDues")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-purple">
+                        <MudIcon Icon="@Icons.Material.Filled.NotificationImportant" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Upcoming Dues</div>
+                <div class="rc-desc">Filter upcoming dues by 5 or 7 days</div>
+                <div class="rc-meta">Live updates</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("UpcomingDues", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("UpcomingDues", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("UpcomingDues", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
+    </MudGrid>
 
-            <MudDataGrid T="LoanDisbursementReportDTO" Items="@_disbursements" Hover="true" Striped="true" QuickFilter="@_disbursementFilter">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">Loan Disbursement Report</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
-                    <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
-                    <PropertyColumn Property="x => x.AmountDisbursed" Title="Amount" Format="N2" />
-                    <PropertyColumn Property="x => x.LoanType" Title="Type" />
-                    <PropertyColumn Property="x => x.Branch" Title="Branch" />
-                    <PropertyColumn Property="x => x.Officer" Title="Officer" />
-                    <PropertyColumn Property="x => x.DisbursementDate" Title="Date" Format="yyyy-MM-dd" />
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="LoanDisbursementReportDTO" />
-                </PagerContent>
-            </MudDataGrid>
-        </MudTabPanel>
+    <style>
+        .cursor-pointer:hover {
+            cursor: pointer;
+        }
+        .report-card {
+            background-color: var(--mud-palette-surface);
+            border: 1px solid var(--mud-palette-lines-default);
+            border-radius: 12px;
+            padding: 20px;
+            color: var(--mud-palette-text-primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .report-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            border-color: var(--mud-palette-primary);
+        }
+        .rc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .rc-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rc-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--mud-palette-text-primary);
+        }
+        .rc-desc {
+            font-size: 13px;
+            color: var(--mud-palette-text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+        .rc-meta {
+            font-size: 12px;
+            color: var(--mud-palette-text-secondary);
+            margin-bottom: 16px;
+        }
+        .rc-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .rc-exports {
+            display: flex;
+            gap: 12px;
+        }
+        .export-btn {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .text-pdf { color: #F87171; }
+        .text-xlsx { color: #34D399; }
+        .bg-purple { background-color: #8B5CF6; }
+        .bg-blue { background-color: #3B82F6; }
+        .bg-green { background-color: #10B981; }
+        .bg-yellow { background-color: #F59E0B; }
+        .bg-pink { background-color: #EC4899; }
+        .bg-red { background-color: #EF4444; }
+        .bg-cyan { background-color: #06B6D4; }
+        .bg-lightgreen { background-color: #84CC16; }
+    </style>
 
-        @* 3. LOAN MATURITY REPORT *@
-        <MudTabPanel Text="Maturity" Icon="@Icons.Material.Filled.Event">
-             <MudPaper Class="pa-4 mb-4" Elevation="0">
-                <MudGrid>
-                    <MudItem xs="12" sm="4">
-                        <MudDateRangePicker Label="Maturity Period" @bind-DateRange="_maturityRange" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadMaturityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
-
-            <MudDataGrid T="LoanMaturityReportDTO" Items="@_maturities" Hover="true" Striped="true">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6">Loan Maturity Report</MudText>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
-                    <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
-                    <PropertyColumn Property="x => x.MaturityDate" Title="Maturity Date" Format="yyyy-MM-dd" />
-                    <PropertyColumn Property="x => x.RemainingBalance" Title="Remaining Balance" Format="N2" />
-                    <TemplateColumn Title="Status">
-                        <CellTemplate>
-                            <MudChip T="string" Color="@(context.Item.Status == "Matured" ? MudBlazor.Color.Error : MudBlazor.Color.Info)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="LoanMaturityReportDTO" />
-                </PagerContent>
-            </MudDataGrid>
-        </MudTabPanel>
-
-        @* 4. USER ACTIVITY REPORT *@
-        <MudTabPanel Text="User Activity" Icon="@Icons.Material.Filled.History">
-            <MudPaper Class="pa-6 mb-6 rounded-xl" Elevation="0" Style="background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);">
-                <MudGrid>
-                    <MudItem xs="12" sm="4">
-                        <MudDateRangePicker Label="Activity Period" @bind-DateRange="_activityRange" Class="rounded-lg" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4">
-                        <MudTextField @bind-Value="_activityUserSearch"
-                                      Label="User Name"
-                                      Placeholder="Search by user name"
-                                      Immediate="true"
-                                      Adornment="Adornment.Start"
-                                      AdornmentIcon="@Icons.Material.Filled.PersonSearch" />
-                    </MudItem>
-                    <MudItem xs="12" sm="4" Class="d-flex align-end">
-                        <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadActivityReport" StartIcon="@Icons.Material.Filled.Refresh" Class="rounded-lg px-6 py-3" Style="text-transform: none; font-weight: 600;">Generate Report</MudButton>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
-
-            @* Quick Metrics *@
-            <MudGrid Class="mb-6" Spacing="3">
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
-                        <div class="pa-3 rounded-lg" style="background: var(--mud-palette-primary-hover); color: var(--mud-palette-primary);">
-                            <MudIcon Icon="@Icons.Material.Filled.Leaderboard" Size="MudBlazor.Size.Medium" />
-                        </div>
-                        <div>
-                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Total Logs</MudText>
-                            <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count</MudText>
-                        </div>
-                    </MudPaper>
+    @if (_activeReport == "ActiveLoans")
+    {
+        <MudDataGrid T="ActiveLoanSummaryDTO" Items="@_activeLoans" Hover="true" Bordered="false" Striped="true" QuickFilter="@_activeLoanFilter">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Active Loans Summary</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                <PropertyColumn Property="x => x.PrincipalBalance" Title="Balance" Format="N2" />
+                <PropertyColumn Property="x => x.InterestRate" Title="Rate (%)" />
+                <PropertyColumn Property="x => x.TenureMonths" Title="Tenure (Months)" />
+                <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="yyyy-MM-dd" />
+                <PropertyColumn Property="x => x.EndDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="ActiveLoanSummaryDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (_activeReport == "Disbursements")
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudDateRangePicker Label="Disbursement Period" @bind-DateRange="_disbursementRange" />
                 </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
-                        <div class="pa-3 rounded-lg" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
-                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="MudBlazor.Size.Medium" />
-                        </div>
-                        <div>
-                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Approvals</MudText>
-                            <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count(a => a.Action.Contains("Approval", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Disbursed", StringComparison.OrdinalIgnoreCase))</MudText>
-                        </div>
-                    </MudPaper>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_loanTypeFilter" Label="Loan Type" Placeholder="e.g. Personal" />
                 </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
-                        <div class="pa-3 rounded-lg" style="background: rgba(241, 196, 15, 0.15); color: #f1c40f;">
-                            <MudIcon Icon="@Icons.Material.Filled.Edit" Size="MudBlazor.Size.Medium" />
-                        </div>
-                        <div>
-                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Edits & Updates</MudText>
-                            <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count(a => a.Action.Contains("Edited", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Rescheduled", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Updated", StringComparison.OrdinalIgnoreCase))</MudText>
-                        </div>
-                    </MudPaper>
-                </MudItem>
-                <MudItem xs="12" sm="6" md="3">
-                    <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
-                        <div class="pa-3 rounded-lg" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c;">
-                            <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Size="MudBlazor.Size.Medium" />
-                        </div>
-                        <div>
-                            <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Deletions</MudText>
-                            <MudText Typo="Typo.h6" Style="font-weight: 700;">@_activities.Count(a => a.Action.Contains("Deleted", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Removed", StringComparison.OrdinalIgnoreCase))</MudText>
-                        </div>
-                    </MudPaper>
+                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
                 </MudItem>
             </MudGrid>
+        </MudPaper>
 
-            <MudDataGrid T="UserActivityReportDTO" Items="@_activities" Hover="true" Elevation="0" Class="rounded-xl border-none" QuickFilter="@_activityFilter">
-                <ToolBarContent>
-                    <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559;">User Activity Log</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="_activitySearch" Placeholder="Search action or details..." Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0" Style="max-width: 300px;"></MudTextField>
-                </ToolBarContent>
-                <Columns>
-                    <PropertyColumn Property="x => x.Timestamp" Title="Created At" Format="yyyy-MM-dd HH:mm" />
-                    <TemplateColumn Title="Created By">
-                        <CellTemplate>
-                            <div class="d-flex align-center gap-2">
-                                <MudAvatar Size="MudBlazor.Size.Small" Color="MudBlazor.Color.Primary" Variant="Variant.Filled">
-                                    @(context.Item.UserName?.Substring(0, Math.Min(2, context.Item.UserName.Length)).ToUpper() ?? "U")
-                                </MudAvatar>
-                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@context.Item.UserName</MudText>
-                            </div>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Action">
-                        <CellTemplate>
-                            @{
-                                var action = context.Item.Action;
-                                var color = MudBlazor.Color.Default;
-                                var variant = Variant.Text;
-                                
-                                if (action.Contains("Approval", StringComparison.OrdinalIgnoreCase) || 
-                                    action.Contains("Disbursed", StringComparison.OrdinalIgnoreCase) || 
-                                    action.Contains("Paid", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    color = MudBlazor.Color.Success;
-                                    variant = Variant.Filled;
-                                }
-                                else if (action.Contains("Deleted", StringComparison.OrdinalIgnoreCase) || 
-                                         action.Contains("Removed", StringComparison.OrdinalIgnoreCase) || 
-                                         action.Contains("Rejection", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    color = MudBlazor.Color.Error;
-                                    variant = Variant.Filled;
-                                }
-                                else if (action.Contains("Edited", StringComparison.OrdinalIgnoreCase) || 
-                                         action.Contains("Rescheduled", StringComparison.OrdinalIgnoreCase) || 
-                                         action.Contains("Updated", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    color = MudBlazor.Color.Warning;
-                                    variant = Variant.Filled;
-                                }
-                                else if (action.Contains("Created", StringComparison.OrdinalIgnoreCase) || 
-                                         action.Contains("Added", StringComparison.OrdinalIgnoreCase) || 
-                                         action.Contains("Deposit", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    color = MudBlazor.Color.Info;
-                                    variant = Variant.Filled;
-                                }
-                            }
-                            <MudChip T="string" Color="@color" Size="MudBlazor.Size.Small" Variant="@variant" Style="font-weight: 600; font-size: 0.75rem;">
-                                @action
-                            </MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="Entity">
-                        <CellTemplate>
-                            <MudChip T="string" Size="MudBlazor.Size.Small" Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" Style="font-weight: 500;">
-                                @context.Item.EntityName
-                            </MudChip>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <PropertyColumn Property="x => x.Description" Title="Details" />
-                </Columns>
-                <PagerContent>
-                    <MudDataGridPager T="UserActivityReportDTO" />
-                </PagerContent>
-            </MudDataGrid>
-        </MudTabPanel>
-            </MudTabs>
-        </MudTabPanel>
+        <MudDataGrid T="LoanDisbursementReportDTO" Items="@_disbursements" Hover="true" Striped="true" QuickFilter="@_disbursementFilter">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Loan Disbursement Report</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                <PropertyColumn Property="x => x.AmountDisbursed" Title="Amount" Format="N2" />
+                <PropertyColumn Property="x => x.LoanType" Title="Type" />
+                <PropertyColumn Property="x => x.Branch" Title="Branch" />
+                <PropertyColumn Property="x => x.Officer" Title="Officer" />
+                <PropertyColumn Property="x => x.DisbursementDate" Title="Date" Format="yyyy-MM-dd" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="LoanDisbursementReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (_activeReport == "MaturityTracker")
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudDateRangePicker Label="Maturity Period" @bind-DateRange="_maturityRange" />
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadMaturityReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
 
-        @* 2. REPAYMENT & COLLECTION *@
-        <MudTabPanel Text="2. Repayment & Collection" Icon="@Icons.Material.Filled.AccountBalance">
-            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-                <MudTabPanel Text="Repayment Schedule" Icon="@Icons.Material.Filled.Schedule">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Repayment Schedule Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Overdue / Delinquency" Icon="@Icons.Material.Filled.Warning">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Overdue/Delinquency Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Collection Efficiency" Icon="@Icons.Material.Filled.TrendingUp">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Collection Efficiency Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-            </MudTabs>
-        </MudTabPanel>
+        <MudDataGrid T="LoanMaturityReportDTO" Items="@_maturities" Hover="true" Striped="true">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Loan Maturity Report</MudText>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                <PropertyColumn Property="x => x.MaturityDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+                <PropertyColumn Property="x => x.RemainingBalance" Title="Remaining Balance" Format="N2" />
+                <TemplateColumn Title="Status">
+                    <CellTemplate>
+                        <MudChip T="string" Color="@(context.Item.Status == "Matured" ? MudBlazor.Color.Error : MudBlazor.Color.Info)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="LoanMaturityReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (_activeReport == "UserActivities")
+    {
+        var targetActivities = _activities.Where(a => string.IsNullOrEmpty(_activityUserSearch) || string.Equals(a.UserName, _activityUserSearch, StringComparison.OrdinalIgnoreCase)).ToList();
+        var appsCount = targetActivities.Count(a => (a.EntityName != null && a.EntityName.Contains("Application", StringComparison.OrdinalIgnoreCase)) || (a.Action != null && a.Action.Contains("Application", StringComparison.OrdinalIgnoreCase)));
+        var disbCount = targetActivities.Count(a => (a.EntityName != null && a.EntityName.Contains("Disbursement", StringComparison.OrdinalIgnoreCase)) || (a.Action != null && a.Action.Contains("Disbursed", StringComparison.OrdinalIgnoreCase)));
+        var payCount = targetActivities.Count(a => (a.EntityName != null && a.EntityName.Contains("Payment", StringComparison.OrdinalIgnoreCase)) || (a.Action != null && (a.Action.Contains("Paid", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Deposit", StringComparison.OrdinalIgnoreCase))));
 
-        @* 3. FINANCIAL PERFORMANCE *@
-        <MudTabPanel Text="3. Financial Performance" Icon="@Icons.Material.Filled.AttachMoney">
-            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-                <MudTabPanel Text="Interest Income" Icon="@Icons.Material.Filled.Savings">
-                    <MudGrid Class="mt-4">
-                        <MudItem xs="12" sm="4">
-                            <MudPaper Class="pa-6 rounded-xl" Style="background: linear-gradient(135deg, #1B2559 0%, #2A3673 100%); color: white; box-shadow: 0 10px 30px rgba(27, 37, 89, 0.2);">
-                                <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Total Interest Expected</MudText>
-                                <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px;">$124,500.00</MudText>
-                                <MudText Typo="Typo.body2" Class="mt-2" Style="color: #05CD99; font-weight: 600;">
-                                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="MudBlazor.Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
-                                    +12.5% from last year
-                                </MudText>
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudPaper Class="pa-6 rounded-xl" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
-                                <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Interest Collected</MudText>
-                                <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px; color: #1B2559;">$89,200.00</MudText>
-                                <MudText Typo="Typo.body2" Class="mt-2" Style="color: #05CD99; font-weight: 600;">
-                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="MudBlazor.Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
-                                    71.6% collection rate
-                                </MudText>
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudPaper Class="pa-6 rounded-xl" Style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
-                                <MudText Typo="Typo.subtitle2" Style="color: #A3AED0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Outstanding Interest</MudText>
-                                <MudText Typo="Typo.h4" Style="font-weight: 700; margin-top: 8px; color: #E31A1A;">$35,300.00</MudText>
-                                <MudText Typo="Typo.body2" Class="mt-2" Style="color: #E31A1A; font-weight: 600;">
-                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="MudBlazor.Size.Small" Class="mr-1" Style="vertical-align: text-bottom;" />
-                                    Action required for 12 accounts
-                                </MudText>
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem xs="12" Class="mt-4">
-                            <MudPaper Class="pa-6 rounded-xl" Style="background: white; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
-                                <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559; margin-bottom: 16px;">Revenue Trend (YTD)</MudText>
-                                <ApexChart TItem="MonthlyIncome" Options="@_chartOptions" Height="350">
-                                    <ApexPointSeries TItem="MonthlyIncome"
-                                                     Items="_incomeData"
-                                                     Name="Interest Income"
-                                                     SeriesType="SeriesType.Area"
-                                                     XValue="@(e => e.Month)"
-                                                     YAggregate="@(e => e.Sum(x => x.Interest))" />
-                                    <ApexPointSeries TItem="MonthlyIncome"
-                                                     Items="_incomeData"
-                                                     Name="Penalties"
-                                                     SeriesType="SeriesType.Area"
-                                                     XValue="@(e => e.Month)"
-                                                     YAggregate="@(e => e.Sum(x => x.Penalties))" />
-                                </ApexChart>
-                            </MudPaper>
-                        </MudItem>
-                    </MudGrid>
-                </MudTabPanel>
-                <MudTabPanel Text="Penalty / Charges" Icon="@Icons.Material.Filled.Gavel">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Penalty/Charges Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Profitability" Icon="@Icons.Material.Filled.BarChart">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Profitability Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-            </MudTabs>
-        </MudTabPanel>
+        <MudPaper Class="pa-6 mb-6 rounded-xl" Elevation="0" Style="background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudDateRangePicker Label="Activity Period" @bind-DateRange="_activityRange" Class="rounded-lg" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" @bind-Value="_activityUserSearch" Label="Select Sub-User" Placeholder="Select a user" AdornmentIcon="@Icons.Material.Filled.PersonSearch">
+                        <MudSelectItem T="string" Value="@("")">All Users</MudSelectItem>
+                        @foreach (var user in _subUsers)
+                        {
+                            <MudSelectItem T="string" Value="@user.FullName">@user.FullName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadActivityReport" StartIcon="@Icons.Material.Filled.Refresh" Class="rounded-lg px-6 py-3" Style="text-transform: none; font-weight: 600;">Generate Report</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
 
-        @* 4. RISK & COMPLIANCE *@
-        <MudTabPanel Text="4. Risk & Compliance" Icon="@Icons.Material.Filled.Security">
-            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-                <MudTabPanel Text="Credit Risk" Icon="@Icons.Material.Filled.ErrorOutline">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Credit Risk Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Non-Performing Loans" Icon="@Icons.Material.Filled.MoneyOff">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Non-Performing Loans (NPL) Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Regulatory Compliance" Icon="@Icons.Material.Filled.Policy">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Regulatory Compliance Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-            </MudTabs>
-        </MudTabPanel>
+        <MudGrid Class="mb-6" Spacing="3">
+            <MudItem xs="12" sm="4">
+                <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
+                    <div class="pa-3 rounded-lg" style="background: var(--mud-palette-primary-hover); color: var(--mud-palette-primary);">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="MudBlazor.Size.Medium" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Loan Applications</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">@appsCount</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
+                    <div class="pa-3 rounded-lg" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
+                        <MudIcon Icon="@Icons.Material.Filled.Payments" Size="MudBlazor.Size.Medium" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Disbursements</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">@disbCount</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
+                    <div class="pa-3 rounded-lg" style="background: rgba(241, 196, 15, 0.15); color: #f1c40f;">
+                        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="MudBlazor.Size.Medium" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Payments</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">@payCount</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+    else if (_activeReport == "RepaymentSchedules")
+    {
+        <MudDataGrid T="RepaymentScheduleReportDTO" Items="@_repaymentSchedules" Hover="true" Striped="true" QuickFilter="@_repaymentFilter" Class="mt-4">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Repayment Schedule</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_repaymentSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                <PropertyColumn Property="x => x.DueDate" Title="Next Due" Format="yyyy-MM-dd" />
+                <PropertyColumn Property="x => x.InstallmentAmount" Title="Amount Due" Format="N2" />
+                <PropertyColumn Property="x => x.Balance" Title="Remaining Bal" Format="N2" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="RepaymentScheduleReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (_activeReport == "UpcomingDues")
+    {
+        <MudTabs Elevation="0" Rounded="true" Centered="true" Class="mt-4" Color="Color.Transparent" ActiveTabClass="mud-theme-primary">
+            <MudTabPanel Text="Due in 5 Days">
+                <MudDataGrid T="RepaymentScheduleReportDTO" Items="@_repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(5)).OrderBy(s => s.DueDate)" Hover="true" Striped="true" Class="mt-4">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Loans Due within 5 Days</MudText>
+                        <MudSpacer />
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                        <PropertyColumn Property="x => x.DueDate" Title="Due Date" Format="yyyy-MM-dd" />
+                        <PropertyColumn Property="x => x.InstallmentAmount" Title="Installment Amount" Format="N2" />
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="RepaymentScheduleReportDTO" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+            <MudTabPanel Text="Due in 7 Days">
+                <MudDataGrid T="RepaymentScheduleReportDTO" Items="@_repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(7)).OrderBy(s => s.DueDate)" Hover="true" Striped="true" Class="mt-4">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Loans Due within 7 Days</MudText>
+                        <MudSpacer />
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                        <PropertyColumn Property="x => x.DueDate" Title="Due Date" Format="yyyy-MM-dd" />
+                        <PropertyColumn Property="x => x.InstallmentAmount" Title="Installment Amount" Format="N2" />
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="RepaymentScheduleReportDTO" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+        </MudTabs>
+    }
+    else if (_activeReport == "OverdueLoans")
+    {
+        <MudDataGrid T="OverdueReportDTO" Items="@_overdues" Hover="true" Striped="true" QuickFilter="@_overdueFilter" Class="mt-4">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Overdue Loans</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_overdueSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+                <PropertyColumn Property="x => x.DaysPastDue" Title="Days Past Due" />
+                <PropertyColumn Property="x => x.OverdueAmount" Title="Overdue Amount" Format="N2" />
+                <PropertyColumn Property="x => x.RiskCategory" Title="Risk Level" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="OverdueReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (_activeReport == "CustomerPortfolios")
+    {
+        <MudDataGrid T="CustomerPortfolioReportDTO" Items="@_customerPortfolios" Hover="true" Striped="true" QuickFilter="@_customerFilter" Class="mt-4">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Customer Portfolios</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_customerSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.BorrowerName" Title="Customer" />
+                <PropertyColumn Property="x => x.ActiveLoans" Title="Active Loans" />
+                <PropertyColumn Property="x => x.ClosedLoans" Title="Closed Loans" />
+                <PropertyColumn Property="x => x.TotalOutstanding" Title="Total Outstanding" Format="N2" />
+                <PropertyColumn Property="x => x.TotalPaid" Title="Total Paid" Format="N2" />
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="CustomerPortfolioReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (_activeReport == "ApplicationStatuses")
+    {
+        <MudDataGrid T="ApplicationStatusReportDTO" Items="@_applicationStatuses" Hover="true" Striped="true" QuickFilter="@_applicationFilter" Class="mt-4">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Application Statuses</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_applicationSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+                <PropertyColumn Property="x => x.BorrowerName" Title="Applicant" />
+                <PropertyColumn Property="x => x.ApplicationDate" Title="Applied On" Format="yyyy-MM-dd" />
+                <PropertyColumn Property="x => x.ProcessingDays" Title="Days in System" />
+                <TemplateColumn Title="Status">
+                    <CellTemplate>
+                        <MudChip T="string" Color="@(context.Item.Status == "Approved" ? MudBlazor.Color.Success : context.Item.Status == "Rejected" ? MudBlazor.Color.Error : MudBlazor.Color.Warning)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="ApplicationStatusReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+    }
 
-        @* 5. CUSTOMER REPORTS *@
-        <MudTabPanel Text="5. Customer Reports" Icon="@Icons.Material.Filled.People">
-            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
-                <MudTabPanel Text="Customer Portfolio" Icon="@Icons.Material.Filled.ContactPage">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Customer Portfolio Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Application Status" Icon="@Icons.Material.Filled.PendingActions">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Loan Application Status Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-                <MudTabPanel Text="Customer Risk Profile" Icon="@Icons.Material.Filled.Badge">
-                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-4">Customer Risk Profile Report - Data mapping in progress.</MudAlert>
-                </MudTabPanel>
-            </MudTabs>
-        </MudTabPanel>
-
-    </MudTabs>
 </MudContainer>
 
 @code {
-    public class MonthlyIncome
+    [SupplyParameterFromQuery]
+    public string? Active { get; set; }
+
+    private string _activeReport = "";
+
+    protected override void OnParametersSet()
     {
-        public string Month { get; set; } = string.Empty;
-        public decimal Interest { get; set; }
-        public decimal Penalties { get; set; }
+        if (!string.IsNullOrEmpty(Active))
+        {
+            _activeReport = Active;
+        }
     }
 
-    private List<MonthlyIncome> _incomeData = new()
+    private void SetActiveReport(string reportName)
     {
-        new MonthlyIncome { Month = "Jan", Interest = 4500, Penalties = 200 },
-        new MonthlyIncome { Month = "Feb", Interest = 5200, Penalties = 150 },
-        new MonthlyIncome { Month = "Mar", Interest = 4800, Penalties = 300 },
-        new MonthlyIncome { Month = "Apr", Interest = 6100, Penalties = 100 },
-        new MonthlyIncome { Month = "May", Interest = 5900, Penalties = 400 },
-        new MonthlyIncome { Month = "Jun", Interest = 7200, Penalties = 250 },
-        new MonthlyIncome { Month = "Jul", Interest = 8400, Penalties = 500 }
-    };
+        _activeReport = reportName;
+        StateHasChanged();
+    }
 
-    private ApexChartOptions<MonthlyIncome> _chartOptions = new()
+    private async Task Export(string reportName, string format)
     {
-        Chart = new Chart
+        byte[] fileBytes = null;
+        string fileName = $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}";
+
+        try 
         {
-            Toolbar = new Toolbar { Show = false },
-            Background = "transparent",
-            FontFamily = "Roboto, sans-serif"
-        },
-        Colors = new List<string> { "#1B2559", "#4318FF" },
-        DataLabels = new DataLabels { Enabled = false },
-        Stroke = new Stroke { Curve = Curve.Smooth, Width = 3 },
-        Xaxis = new XAxis 
-        { 
-            Labels = new XAxisLabels { Style = new AxisLabelStyle { Colors = "#A3AED0" } },
-            AxisBorder = new AxisBorder { Show = false },
-            AxisTicks = new AxisTicks { Show = false }
-        },
-        Yaxis = new List<YAxis> 
-        { 
-            new YAxis { Labels = new YAxisLabels { Style = new AxisLabelStyle { Colors = "#A3AED0" } } } 
-        },
-        Grid = new Grid { BorderColor = "#E2E8F0", StrokeDashArray = 4 },
-        Fill = new Fill { Type = FillType.Gradient, Gradient = new FillGradient { ShadeIntensity = 1, OpacityFrom = 0.4d, OpacityTo = 0.05d, Stops = new List<double> { 0, 100 } } }
-    };
+            switch (reportName)
+            {
+                case "ActiveLoans": fileBytes = ExportData(_activeLoans, format, reportName); break;
+                case "Disbursements": fileBytes = ExportData(_disbursements, format, reportName); break;
+                case "MaturityTracker": fileBytes = ExportData(_maturities, format, reportName); break;
+                case "UserActivities": fileBytes = ExportData(_activities, format, reportName); break;
+                case "RepaymentSchedules": fileBytes = ExportData(_repaymentSchedules, format, reportName); break;
+                case "UpcomingDues": 
+                    var dues = _repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(7)).OrderBy(s => s.DueDate).ToList();
+                    fileBytes = ExportData(dues, format, reportName); 
+                    break;
+                case "OverdueLoans": fileBytes = ExportData(_overdues, format, reportName); break;
+                case "CustomerPortfolios": fileBytes = ExportData(_customerPortfolios, format, reportName); break;
+                case "ApplicationStatuses": fileBytes = ExportData(_applicationStatuses, format, reportName); break;
+            }
+
+            if (fileBytes != null)
+            {
+                string extension = format == "pdf" ? ".pdf" : format == "doc" ? ".doc" : ".xlsx";
+                using var streamRef = new DotNetStreamReference(new MemoryStream(fileBytes));
+                await JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName + extension, streamRef);
+            }
+        } 
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to export: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private byte[] ExportData<T>(IEnumerable<T> data, string format, string title)
+    {
+        if (format == "pdf") return ExportService.ExportToPdf(data, title);
+        if (format == "doc") return ExportService.ExportToWordHtml(data, title);
+        return ExportService.ExportToExcel(data, title);
+    }
 
     private List<ActiveLoanSummaryDTO> _activeLoans = new();
     private List<LoanDisbursementReportDTO> _disbursements = new();
     private List<LoanMaturityReportDTO> _maturities = new();
     private List<UserActivityReportDTO> _activities = new();
+    private List<UserDetailDTO> _subUsers = new();
+
+    private List<RepaymentScheduleReportDTO> _repaymentSchedules = new();
+    private List<OverdueReportDTO> _overdues = new();
+    private List<CustomerPortfolioReportDTO> _customerPortfolios = new();
+    private List<ApplicationStatusReportDTO> _applicationStatuses = new();
 
     private string _activeLoanSearch = "";
     private string _disbursementSearch = "";
     private string _activityUserSearch = "";
     private string _activitySearch = "";
+    private string _repaymentSearch = "";
+    private string _overdueSearch = "";
+    private string _customerSearch = "";
+    private string _applicationSearch = "";
+
     private DateRange _disbursementRange = new DateRange(DateTime.Now.AddYears(-5).Date, DateTime.Now.Date);
     private string? _loanTypeFilter;
     private DateRange _maturityRange = new DateRange(DateTime.Now.AddYears(-5).Date, DateTime.Now.AddYears(5).Date);
@@ -430,10 +663,34 @@
 
     protected override async Task OnInitializedAsync()
     {
+        try 
+        {
+            if (UserContext.PersonId.HasValue)
+            {
+                _subUsers = await IdentityService.GetSubUsers(UserContext.PersonId.Value) ?? new List<UserDetailDTO>();
+            }
+            
+            if (!_subUsers.Any() && UserContext.Id.HasValue)
+            {
+                _subUsers = await IdentityService.GetSubUsersAsync(UserContext.Id.Value) ?? new List<UserDetailDTO>();
+            }
+        } 
+        catch { }
+
         await LoadActiveLoans();
         await LoadDisbursementReport();
         await LoadMaturityReport();
         await LoadActivityReport();
+
+        await LoadNewReports();
+    }
+
+    private async Task LoadNewReports()
+    {
+        try { _repaymentSchedules = await ReportService.GetRepaymentScheduleReportAsync(); } catch { }
+        try { _overdues = await ReportService.GetOverdueReportAsync(); } catch { }
+        try { _customerPortfolios = await ReportService.GetCustomerPortfolioReportAsync(); } catch { }
+        try { _applicationStatuses = await ReportService.GetApplicationStatusReportAsync(); } catch { }
     }
 
     private async Task LoadActiveLoans()
@@ -479,32 +736,63 @@
     private Func<ActiveLoanSummaryDTO, bool> _activeLoanFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_activeLoanSearch)) return true;
-        if (x.BorrowerName.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.ApplicationCode.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase)) return true;
+        if (x.BorrowerName?.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.ApplicationCode?.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
         return false;
     };
 
     private Func<LoanDisbursementReportDTO, bool> _disbursementFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_disbursementSearch)) return true;
-        if (x.BorrowerName.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.ApplicationCode.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.LoanType.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.Branch.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
-        if (x.Officer.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase)) return true;
+        if (x.BorrowerName?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.ApplicationCode?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.LoanType?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.Branch?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.Officer?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
         return false;
     };
 
     private Func<UserActivityReportDTO, bool> _activityFilter => x =>
     {
         var userMatches = string.IsNullOrWhiteSpace(_activityUserSearch) ||
-            x.UserName.Contains(_activityUserSearch, StringComparison.OrdinalIgnoreCase);
+            (!string.IsNullOrEmpty(x.UserName) && x.UserName.Contains(_activityUserSearch, StringComparison.OrdinalIgnoreCase));
 
         var activityMatches = string.IsNullOrWhiteSpace(_activitySearch) ||
-            x.Action.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase) ||
-            x.EntityName.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase) ||
-            x.Description.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase);
+            (!string.IsNullOrEmpty(x.Action) && x.Action.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(x.EntityName) && x.EntityName.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase));
 
         return userMatches && activityMatches;
+    };
+
+    private Func<RepaymentScheduleReportDTO, bool> _repaymentFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_repaymentSearch)) return true;
+        if (x.BorrowerName?.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.ApplicationCode?.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+
+    private Func<OverdueReportDTO, bool> _overdueFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_overdueSearch)) return true;
+        if (x.BorrowerName?.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.ApplicationCode?.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+
+    private Func<CustomerPortfolioReportDTO, bool> _customerFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_customerSearch)) return true;
+        if (x.BorrowerName?.Contains(_customerSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+
+    private Func<ApplicationStatusReportDTO, bool> _applicationFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_applicationSearch)) return true;
+        if (x.BorrowerName?.Contains(_applicationSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.ApplicationCode?.Contains(_applicationSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
     };
 }

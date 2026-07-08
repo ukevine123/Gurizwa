@@ -75,26 +75,4 @@ h1:focus {
 .app-main-body {
     flex: 1 1 auto;
     padding: 1.35rem 0.1rem 2.0rem;
-}
-/* The outer-most background */
-body {
-    background-color: #B2D7FF !important; /* Sky Blue */
-    margin: 0;
-    padding: 40px; /* This creates the blue 'frame' around your app */
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* The 'Paper' container that holds your entire system */
-.app-container {
-    width: 100%;
-    max-width: 1440px; /* Optional: caps the width for large screens */
-    height: 90vh; /* Keeps it slightly smaller than the window */
-    background-color: white;
-    border-radius: 40px; /* Large rounded corners from the image */
-    box-shadow: 0px 20px 50px rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* Ensures the sidebar/content stay inside the curves */
-    display: flex;
-}
+}

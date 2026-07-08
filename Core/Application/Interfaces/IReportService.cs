@@ -11,6 +11,7 @@ namespace Application.Interfaces
         Task<List<LoanDisbursementReportDTO>> GetLoanDisbursementReportAsync(DateTime startDate, DateTime endDate, string? loanType = null);
         Task<List<LoanMaturityReportDTO>> GetLoanMaturityReportAsync(DateTime? startDate = null, DateTime? endDate = null);
         Task<List<UserActivityReportDTO>> GetUserActivityReportAsync(DateTime? startDate = null, DateTime? endDate = null);
+        Task<List<ActivityHeatmapDTO>> GetActivityHeatmapAsync(int days = 365);
         
         // Repayment & Collection
         Task<List<RepaymentScheduleReportDTO>> GetRepaymentScheduleReportAsync();

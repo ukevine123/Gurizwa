@@ -33,7 +33,7 @@
                         <MudButtonGroup Variant="Variant.Outlined">
                             <MudButton Href="/Users" 
                                        StartIcon="@Icons.Material.Filled.ArrowBack"
-                                       Color="Color.Secondary">
+                                       Color="Color.Primary">
                                 Back to List
                             </MudButton>
                             <MudButton Href="@($"/Users/Edit/{Id}")" 
@@ -54,7 +54,7 @@
                             <MudList T="string" Dense="true">
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.Badge">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">User ID</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">User ID</MudText>
                                         <MudText Typo="Typo.body1"><strong>@user.Id</strong></MudText>
                                     </div>
                                 </MudListItem>
@@ -63,7 +63,7 @@
 
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Full Name</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Full Name</MudText>
                                         <MudText Typo="Typo.body1"><strong>@user.FirstName @user.LastName</strong></MudText>
                                     </div>
                                 </MudListItem>
@@ -72,7 +72,7 @@
 
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.Email">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Email</MudText>
                                         <MudText Typo="Typo.body1">@user.Email</MudText>
                                     </div>
                                 </MudListItem>
@@ -81,7 +81,7 @@
 
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.Phone">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Phone Number</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Phone Number</MudText>
                                         <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(user.PhoneNumber) ? "Not provided" : user.PhoneNumber)</MudText>
                                     </div>
                                 </MudListItem>
@@ -96,7 +96,7 @@
                             <MudList T="string" Dense="true">
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.VerifiedUser">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Email Confirmed</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Email Confirmed</MudText>
                                         <MudChip Size="Size.Small" 
                                                  Color="@(user.EmailConfirmed ? Color.Success : Color.Warning)"
                                                  Icon="@(user.EmailConfirmed ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Warning)">
@@ -109,7 +109,7 @@
 
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.CalendarToday">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Created At</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Created At</MudText>
                                         <MudText Typo="Typo.body1">@user.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</MudText>
                                     </div>
                                 </MudListItem>
@@ -118,7 +118,7 @@
 
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.Update">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Last Updated</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Last Updated</MudText>
                                         <MudText Typo="Typo.body1">@user.UpdatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</MudText>
                                     </div>
                                 </MudListItem>
@@ -127,7 +127,7 @@
 
                                 <MudListItem T="string" Icon="@Icons.Material.Filled.AccessTime">
                                     <div class="d-flex flex-column">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Account Age</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">Account Age</MudText>
                                         <MudText Typo="Typo.body1">@GetAccountAge(user.CreatedAt)</MudText>
                                     </div>
                                 </MudListItem>
@@ -140,7 +140,7 @@
             <MudCardActions Class="d-flex justify-end pa-4">
                 <MudButton Href="/Users" 
                            Variant="Variant.Text" 
-                           Color="Color.Secondary"
+                           Color="Color.Primary"
                            StartIcon="@Icons.Material.Filled.ArrowBack">
                     Back to List
                 </MudButton>

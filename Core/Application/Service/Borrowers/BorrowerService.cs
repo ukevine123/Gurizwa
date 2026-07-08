@@ -34,5 +34,10 @@ namespace  Application.Services.Borrowers
         {
             await _borrower.DeleteBorrowerAsync(id);
         }
+
+        public async Task<BorrowerDebtDTO> GetBorrowerDebtAsync(int id)
+        {
+            return await _borrower.GetBorrowerDebtAsync(id);
+        }
     }
 }

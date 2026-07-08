@@ -35,6 +35,11 @@ namespace Application.Service.Reports
             return await _reportRepository.GetUserActivityReportAsync(startDate, endDate);
         }
 
+        public async Task<List<ActivityHeatmapDTO>> GetActivityHeatmapAsync(int days = 365)
+        {
+            return await _reportRepository.GetActivityHeatmapAsync(days);
+        }
+
         // ── Repayment & Collection ─────────────────────────────────────────────
         public async Task<List<RepaymentScheduleReportDTO>> GetRepaymentScheduleReportAsync() => await _reportRepository.GetRepaymentScheduleReportAsync();
         public async Task<List<OverdueReportDTO>> GetOverdueReportAsync() => await _reportRepository.GetOverdueReportAsync();

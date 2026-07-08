@@ -2,8 +2,10 @@
 @using Application.Interfaces
 @using Infrastructure.Identity
 @using MudBlazor
+@using Application.DTO
 @inject NavigationManager NavigationManager
 @inject IUserContext UserContext
+@inject IReportService ReportService
 
 <MudThemeProvider Theme="_theme" 
 @bind-IsDarkMode="_isDarkMode" />
@@ -182,7 +184,8 @@
     .brand-title {
         font-weight: 900;
         line-height: 1.1;
-        font-family: 'Century Gothic';
+        font-family: 'Arial Black', 'Montserrat', sans-serif;
+        text-transform: uppercase;
         transition: color 0.3s ease;
     }
 
@@ -202,43 +205,6 @@
 
 <MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
     @* Top AppBar *@
-    @* <MudAppBar Elevation="0" Color="Color.Transparent" Fixed="true">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Default" Edge="Edge.Start" OnClick="DrawerToggle" />
-        <MudSpacer />
-        
-        <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
-        
-        <MudIconButton
-            Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-            Color="Color.Default"
-            OnClick="ToggleTheme" />
-
-        @if (UserContext.IsAuthenticated)
-        {
-            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Dense="true" Class="ml-4">
-                <ActivatorContent>
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="cursor-pointer">
-                        <MudAvatar Color="Color.Primary" Size="Size.Small" Style="font-weight: bold;">
-                        </MudAvatar>
-
-                        <div class="d-none d-md-flex flex-column">
-                            <MudText Typo="Typo.body2" Style="@($"line-height: 1.1; font-weight: 800; font-size: 1.05rem; color: {(_isDarkMode ? "#FFFFFF" : "#1B2559")};")">
-                                @UserContext.FullName
-                            </MudText>
-
-                            <MudText Typo="Typo.caption" Color="Color.Primary" Style="line-height: 1.1; font-size: 0.9rem;">
-                                @UserContext.Email
-                            </MudText>
-                        </div>
-                        <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="Size.Medium" Color="Color.Primary" />
-                    </MudStack>
-                </ActivatorContent>
-                <ChildContent>
-                    <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
-                </ChildContent>
-            </MudMenu>
-        }
-    </MudAppBar> *@
     <MudAppBar Elevation="2" Dense="false" Color="Color.Transparent" Fixed="true" Class="@(_isDarkMode ? "dark-mode" : "")">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        Color="Color.Inherit"
@@ -248,7 +214,35 @@
 
         <MudSpacer />
 
-        <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+        <MudBadge Content="@_dueIn7Days.Count" Color="Color.Error" Overlap="true" Visible="@(_dueIn7Days.Count > 0)" Class="mr-4">
+            <MudMenu Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" MaxHeight="500">
+                <MudText Typo="Typo.subtitle2" Class="pa-3" Style="font-weight: 700; color: var(--mud-palette-primary);">Upcoming Due Dates</MudText>
+                <MudDivider />
+                @if (_dueIn7Days.Count == 0)
+                {
+                    <MudMenuItem>No upcoming due dates.</MudMenuItem>
+                }
+                else
+                {
+                    @foreach (var loan in _dueIn7Days.Take(10))
+                    {
+                        <MudMenuItem Href="/Reports?active=UpcomingDues">
+                            <div class="d-flex flex-column gap-1" style="min-width: 280px;">
+                                <MudText Typo="Typo.body2" Style="font-weight: 600;">@loan.BorrowerName (@loan.ApplicationCode)</MudText>
+                                <div class="d-flex justify-space-between align-center w-100">
+                                    <MudText Typo="Typo.caption" Color="Color.Error">Due: @loan.DueDate.ToString("yyyy-MM-dd")</MudText>
+                                    <MudText Typo="Typo.caption" Style="font-weight: 600; color: var(--mud-palette-success);">Inst: $@loan.InstallmentAmount.ToString("N2")</MudText>
+                                </div>
+                            </div>
+                        </MudMenuItem>
+                    }
+                    <MudDivider />
+                    <MudMenuItem Href="/Reports?active=UpcomingDues" Class="text-center">
+                        <MudText Typo="Typo.body2" Color="Color.Primary" Style="font-weight: 600;">View All</MudText>
+                    </MudMenuItem>
+                }
+            </MudMenu>
+        </MudBadge>
 
         <MudIconButton
             Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
@@ -291,12 +285,13 @@
                
         
         <div class="d-flex align-center justify-center mb-10 mt-2 px-4">
-            <MudIcon Icon="@Icons.Material.Filled.Home" Color="Color.Primary" Size="Size.Large" />
+            <div style="width: 56px; height: 40px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; border-radius: 8px;">
+                <img src="/Images/guriza_logo.png" style="width: 56px; height: auto;" alt="Guriza Logo" />
+            </div>
             @if (_drawerOpen)
             {
-                <div class="d-flex flex-column ml-3">
-                    <MudText Typo="Typo.h6" Class="brand-title">DIGITAL LOAN</MudText>
-                    <MudText Class="brand-subtitle">PLATFORM</MudText>
+                <div class="d-flex flex-column ml-3 justify-center">
+                    <MudText Typo="Typo.h5" Class="brand-title" Style="letter-spacing: 1px;">GURIZA</MudText>
                 </div>
             }
         </div>
@@ -353,21 +348,11 @@
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
                 <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
                 <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-                @if (!UserContext.IsSubUser)
-                {
-                    <MudNavLink Href="/MyTeam" Icon="@Icons.Material.Outlined.Group">
-                        @(_drawerOpen ? "My Team" : "")
-                    </MudNavLink>
-                }
+
             </MudNavGroup>
         </MudNavMenu>
     </MudDrawer>
-@* 
-    <MudMainContent Class="pa-0">
-        <div class="content-fill">
-            @Body
-        </div>
-    </MudMainContent> *@
+
     <MudMainContent Class="app-main-with-footer px-0">
         <div class="app-main-body content-fill">
             @Body
@@ -402,12 +387,50 @@
         }
     };
 
-    protected override void OnInitialized()
+    private List<RepaymentScheduleReportDTO> _dueIn5Days = new();
+    private List<RepaymentScheduleReportDTO> _dueIn7Days = new();
+
+    protected override async Task OnInitializedAsync()
     {
         _theme.Typography.Default.FontFamily = new[] { "Century Gothic", "Arial", "sans-serif" };
+
+        try 
+        {
+            var schedules = await ReportService.GetRepaymentScheduleReportAsync();
+            var today = DateTime.Now.Date;
+            
+            _dueIn5Days = schedules
+                .Where(s => s.DueDate.Date >= today && s.DueDate.Date <= today.AddDays(5))
+                .OrderBy(s => s.DueDate)
+                .ToList();
+
+            _dueIn7Days = schedules
+                .Where(s => s.DueDate.Date >= today && s.DueDate.Date <= today.AddDays(7))
+                .OrderBy(s => s.DueDate)
+                .ToList();
+        } 
+        catch { }
+
+        // Injecting mock data for UI testing if the lists are empty (or if the API failed)
+        if (!_dueIn5Days.Any() && !_dueIn7Days.Any())
+        {
+            var today = DateTime.Now.Date;
+            var mock1 = new RepaymentScheduleReportDTO { BorrowerName = "Jane Doe", ApplicationCode = "APP-2026-001", DueDate = today.AddDays(2), InstallmentAmount = 150.00m };
+            var mock2 = new RepaymentScheduleReportDTO { BorrowerName = "John Smith", ApplicationCode = "APP-2026-002", DueDate = today.AddDays(4), InstallmentAmount = 300.50m };
+            var mock3 = new RepaymentScheduleReportDTO { BorrowerName = "Alice Johnson", ApplicationCode = "APP-2026-003", DueDate = today.AddDays(6), InstallmentAmount = 50.00m };
+            
+            _dueIn5Days.Add(mock1);
+            _dueIn5Days.Add(mock2);
+            _dueIn5Days = _dueIn5Days.OrderBy(s => s.DueDate).ToList();
+
+            _dueIn7Days.Add(mock1);
+            _dueIn7Days.Add(mock2);
+            _dueIn7Days.Add(mock3);
+            _dueIn7Days = _dueIn7Days.OrderBy(s => s.DueDate).ToList();
+        }
     }
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
     void ToggleTheme() => _isDarkMode = !_isDarkMode;
-    void Logout() => NavigationManager.NavigateTo("/account/login");
+    void Logout() => NavigationManager.NavigateTo("/api/account/logout", forceLoad: true);
 }

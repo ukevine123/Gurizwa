@@ -2,7 +2,6 @@
 @layout AuthLayout
 
 @using MudBlazor
-@inject HttpClient Http
 @inject NavigationManager Navigation
 
 <PageTitle>Logging out...</PageTitle>
@@ -25,13 +24,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        @* Navigation.NavigateTo("/api/account/logout", true); *@
-
-        // 2️⃣ Small delay (optional for UX)
-        await Task.Delay(1200);
-
-        // 3️⃣ Redirect to Login page
-        Navigation.NavigateTo("/account/login", true);
+        Navigation.NavigateTo("/api/account/logout", true);
     }
 
 }

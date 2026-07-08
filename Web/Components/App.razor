@@ -31,16 +31,17 @@
     <script src="_content/Blazor-ApexCharts/js/blazor-apex-charts.js"></script>
 
     <script>
-        window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+        window.downloadFileFromStream = async (fileName, contentStreamReference, contentType) => {
     const arrayBuffer = await contentStreamReference.arrayBuffer();
     
-    // 1. Determine the correct MIME type based on the file extension
-    let mimeType = 'application/pdf'; // Default
-    const extension = fileName.toLowerCase().split('.').pop();
-
-    if (extension === 'png') mimeType = 'image/png';
-    else if (extension === 'jpg' || extension === 'jpeg') mimeType = 'image/jpeg';
-    else if (extension === 'gif') mimeType = 'image/gif';
+    // 1. Determine the correct MIME type based on the provided content type or file extension
+    let mimeType = contentType || 'application/pdf'; // Default
+    if (!contentType) {
+        const extension = fileName.toLowerCase().split('.').pop();
+        if (extension === 'png') mimeType = 'image/png';
+        else if (extension === 'jpg' || extension === 'jpeg') mimeType = 'image/jpeg';
+        else if (extension === 'gif') mimeType = 'image/gif';
+    }
 
     // 2. Create the Blob with the correct type
     const blob = new Blob([arrayBuffer], { type: mimeType });
@@ -56,6 +57,18 @@
     // 4. Cleanup memory after 1 minute
     setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
+
+        window.triggerFileDownload = async (fileName, contentStreamReference) => {
+            const arrayBuffer = await contentStreamReference.arrayBuffer();
+            const blob = new Blob([arrayBuffer]);
+            const url = URL.createObjectURL(blob);
+            const anchorElement = document.createElement('a');
+            anchorElement.href = url;
+            anchorElement.download = fileName ?? '';
+            anchorElement.click();
+            anchorElement.remove();
+            URL.revokeObjectURL(url);
+        };
     </script>
 
 </body>

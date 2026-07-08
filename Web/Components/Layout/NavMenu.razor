@@ -99,8 +99,10 @@
     <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">
         @(!IsMini ? "Settings" : "")
     </MudNavLink>
-    <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
-        @(!IsMini ? "Users" : "")
-    </MudNavLink>
+    <AuthorizeView Roles="Tenant">
+        <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
+            @(!IsMini ? "Users" : "")
+        </MudNavLink>
+    </AuthorizeView>
 </MudNavGroup>
 </MudNavMenu>

@@ -41,6 +41,7 @@ namespace Web.Controllers
         }
 
         [HttpPost("logout")]
+        [HttpGet("logout")]
         public async Task<IActionResult> Logout()
         {
             await _identityService.LogoutAsync();

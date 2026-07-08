@@ -1,13 +1,18 @@
 @page "/ProvidedDocuments"
+@using System.IO
 @using Microsoft.EntityFrameworkCore
 @using MudBlazor
 @using Domain.Entities
 @using Application.Services.ProvidedDocuments
 @using Domain.ValueObjects
+@using Application.Interfaces
 
 @inject IProvidedDocumentService ProvidedDocumentService
+@inject IProvidedDocument DocumentRepo
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
 
 <PageTitle>Provided Document</PageTitle>
 
@@ -51,11 +56,11 @@
 
                 <MudMenuItem Icon="@Icons.Material.Filled.Add"
                              OnClick="OpenDialog">
-                    Single
+                    Add
                 </MudMenuItem>
 
                 <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    Import
+                    Print
                 </MudMenuItem>
 
             </MudMenu>
@@ -65,8 +70,8 @@
             @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
             <MudSpacer />
             <MudMenu Label="Upload" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Upload" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
             </MudMenu>
         </ToolBarContent>
 
@@ -83,23 +88,14 @@
    
             <TemplateColumn Title="Action">
     <CellTemplate>
-        @if (context.Item.DocumentFile != null && context.Item.DocumentFile.Length > 0)
-        {
-          
-            string base64 = Convert.ToBase64String(context.Item.DocumentFile);
-            string fileName = context.Item.DocumentName ?? "document";
-            
-          <MudLink Href="@($"data:application/octet-stream;base64,{base64}")" 
-                     Download="@context.Item.DocumentName"
-                     Underline="Underline.Hover">
-                <MudIcon Icon="@Icons.Material.Filled.Download" Size="Size.Small" />
-                Download @context.Item.DocumentName
-            </MudLink>
-        }
-        else
-        {
-            <MudText Typo="Typo.caption" Color="Color.Error">No File Data</MudText>
-        }
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="mr-2" OnClick="@(() => ViewDocument(context.Item))">
+            <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="Size.Small" Class="mr-1" />
+            View @context.Item.DocumentName
+        </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => ReplaceDocument(context.Item))">
+            <MudIcon Icon="@Icons.Material.Filled.Autorenew" Size="Size.Small" Class="mr-1" />
+            Replace
+        </MudButton>
     </CellTemplate>
 </TemplateColumn>
 
@@ -145,6 +141,71 @@
         _providedDocument = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
         StateHasChanged();
     }
+
+    private async Task ViewDocument(ProvidedDocument doc)
+    {
+        var fullDoc = await ProvidedDocumentService.GetProvidedDocumentById(doc.Id);
+        if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
+        {
+            Snackbar.Add("File is empty.", Severity.Error);
+            return;
+        }
+
+        byte[] fileData = fullDoc.DocumentFile;
+
+        // Check if the file is accidentally saved as a Base64 string inside the byte array
+        string possibleBase64 = System.Text.Encoding.UTF8.GetString(fileData);
+        if (possibleBase64.Contains("base64,"))
+        {
+            var base64Data = possibleBase64.Split(',')[1];
+            fileData = Convert.FromBase64String(base64Data);
+        }
+
+        using var stream = new MemoryStream(fileData);
+        using var streamRef = new DotNetStreamReference(stream);
+        
+        string mimeType = GetMimeType(fileData);
+
+    await JS.InvokeVoidAsync("downloadFileFromStream", doc.DocumentName ?? "document.pdf", streamRef, mimeType);
+}
+
+private string GetMimeType(byte[] fileData)
+{
+    if (fileData == null || fileData.Length < 4)
+        return "application/octet-stream";
+
+    // PDF
+    if (fileData[0] == 0x25 && fileData[1] == 0x50 && fileData[2] == 0x44 && fileData[3] == 0x46)
+        return "application/pdf";
+    
+    // PNG
+    if (fileData[0] == 0x89 && fileData[1] == 0x50 && fileData[2] == 0x4E && fileData[3] == 0x47)
+        return "image/png";
+    
+    // JPEG
+    if (fileData[0] == 0xFF && fileData[1] == 0xD8 && fileData[2] == 0xFF)
+        return "image/jpeg";
+    
+    // GIF
+    if (fileData[0] == 0x47 && fileData[1] == 0x49 && fileData[2] == 0x46 && fileData[3] == 0x38)
+        return "image/gif";
+
+    return "application/octet-stream";
+}
+    private async Task ReplaceDocument(ProvidedDocument doc)
+    {
+        try
+        {
+            await DocumentRepo.DeleteProvidedDocumentAsync(doc.Id);
+            Snackbar.Add("Document deleted. Please upload a replacement.", Severity.Info);
+            await LoadDocument();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error replacing document: {ex.Message}", Severity.Error);
+        }
+    }
+
     private string GetIcon(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName)) return Icons.Custom.FileFormats.FileDocument;

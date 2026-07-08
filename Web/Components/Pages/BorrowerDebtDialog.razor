@@ -1,0 +1,76 @@
+@using MudBlazor
+@using Application.Services.Borrowers
+@using Application.DTO
+
+@inject IBorrowerService BorrowerService
+
+<MudDialog>
+    <DialogContent>
+        @if (isLoading)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="mx-auto my-4 d-block" />
+        }
+        else if (debt != null)
+        {
+            <MudPaper Elevation="0" Class="pa-4 bg-light rounded-lg">
+                <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 700; color: #1B2559;">Debt Breakdown</MudText>
+                
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total Principal:</MudText>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@debt.TotalPrincipal.ToString("C")</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total Interest:</MudText>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600; color: #f59e0b;">@debt.TotalInterest.ToString("C")</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total Penalties:</MudText>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600; color: #ef4444;">@debt.TotalPenalties.ToString("C")</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total Paid:</MudText>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600; color: #10b981;">@debt.TotalPaid.ToString("C")</MudText>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.body1" Color="Color.Primary" Style="font-weight: 700;">Remaining Balance:</MudText>
+                        <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: 800;">@debt.RemainingBalance.ToString("C")</MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Error">Could not load debt information.</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int BorrowerId { get; set; }
+    
+    private BorrowerDebtDTO debt;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            debt = await BorrowerService.GetBorrowerDebtAsync(BorrowerId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

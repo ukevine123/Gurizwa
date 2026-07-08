@@ -39,8 +39,8 @@
                     <MudText Typo="Typo.h5" Color="Color.Primary">Payment Types</MudText>
                     <MudSpacer />
                     <MudMenu Label="Add Payment Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreatePaymentType">Single</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreatePaymentType">Add</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
                     </MudMenu>
                 </ToolBarContent>
 
@@ -77,68 +77,47 @@
         </MudTabPanel>
         
         @* --- TAB 2 --- *@
-        <MudTabPanel Text="Reasons">
-            
-@* --- ACTION BAR: Clean spacing and alignment --- *@
-<MudGrid Class="mb-4 px-4" Spacing="2">
-    <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
-        @if (_selectedItems.Any())
-        {
-            <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
-            <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-        }
-        <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-    </MudItem>
-</MudGrid>
+        <MudTabPanel Text="Reasons" Icon="@Icons.Material.Filled.Category">
+            <MudDataGrid T="Reason"
+                         Items="@_reason"
+                         MultiSelection="true"
+                         SortMode="SortMode.Multiple"
+                         Filterable="true"
+                         Hideable="true"
+                         Dense="true"
+                         Hover="true"
+                         Striped="true"
+                         Class="elevation-1">
 
-@* --- DATA GRID: Styled with rounded corners and no borders --- *@
-<MudDataGrid T="Reason" 
-             Items="@_reason" 
-             Hover="true" 
-             Bordered="false" 
-             Elevation="0" 
-             MultiSelection="true"
-             @bind-SelectedItems="_selectedItems"
-             Class="rounded-xl border-none shadow-sm mx-4">
-    
-    <ToolBarContent>
-        <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Reasons List</MudText>
-        <MudSpacer />
-        <MudMenu Label="Add Reason" 
-                 Variant="Variant.Filled" 
-                 EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
-                 Color="Color.Primary"
-                 Class="rounded-lg">
-            <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreateReason())">Single</MudMenuItem>
-            <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
-        </MudMenu>
-    </ToolBarContent>
+                <ToolBarContent>
+                    <MudText Typo="Typo.h5" Color="Color.Primary">Reasons</MudText>
+                    <MudSpacer />
+                    <MudMenu Label="Add Reason" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateReason">Add</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
+                    </MudMenu>
+                </ToolBarContent>
 
-    <Columns>
-        <SelectColumn T="Reason" />
+                <Columns>
+                    <SelectColumn T="Reason" />
+                    <PropertyColumn Property="x => x.Id" Title="ID" Sortable="true" />
+                    <PropertyColumn Property="x => x.Name" Title="Reason" Sortable="true" />
 
-        <PropertyColumn Property="x => x.Id" Title="ID" />
-        <PropertyColumn Property="x => x.Name" Title="Reason" />
-      
-        <TemplateColumn Title="Status">
-            <CellTemplate>
-                <MudChip T="string" 
-                         Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
-                         Size="Size.Small" 
-                         Variant="Variant.Text"
-                         Style="font-weight: 600;">
-                    @(context.Item.IsActive ? "Active" : "Inactive")
-                </MudChip>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-
-    <PagerContent>
-        <MudDataGridPager T="Reason" />
-    </PagerContent>
-</MudDataGrid>
+                    <TemplateColumn Title="Status" HeaderStyle="white-space:nowrap" ItemStyle="white-space:nowrap">
+                        <CellTemplate>
+                            <MudChip T="string"
+                                     Color="@(context.Item.IsActive ? Color.Success : Color.Error)"
+                                     Size="Size.Small"
+                                     Variant="Variant.Text">
+                                @(context.Item.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="Reason" />
+                </PagerContent>
+            </MudDataGrid>
 
         </MudTabPanel>
 
@@ -160,8 +139,8 @@
                     <MudText Typo="Typo.h5" Color="Color.Primary">Account Types</MudText>
                     <MudSpacer />
                     <MudMenu Label="Add Account Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateAccountType">Single</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateAccountType">Add</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
                     </MudMenu>
                 </ToolBarContent>
 
@@ -196,8 +175,8 @@
                     <MudText Typo="Typo.h5" Color="Color.Primary">Borrower Types</MudText>
                     <MudSpacer />
                     <MudMenu Label="Add Borrower Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateBorrowerType">Single</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateBorrowerType">Add</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
                     </MudMenu>
                 </ToolBarContent>
 
@@ -231,8 +210,8 @@
                     <MudText Typo="Typo.h5" Color="Color.Primary">Guarantor Types</MudText>
                     <MudSpacer />
                     <MudMenu Label="Add Guarantor Type" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateGuarantorType">Single</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateGuarantorType">Add</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
                     </MudMenu>
                 </ToolBarContent>
 
@@ -267,8 +246,8 @@
                     <MudText Typo="Typo.h5" Color="Color.Primary">Payment Modalities</MudText>
                     <MudSpacer />
                     <MudMenu Label="Add Payment Modality" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreatePaymentModality">Single</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreatePaymentModality">Add</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
                     </MudMenu>
                 </ToolBarContent>
 

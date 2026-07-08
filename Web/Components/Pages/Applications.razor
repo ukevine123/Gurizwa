@@ -24,7 +24,7 @@
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+               
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDeleteApplication(_selectedItems.First()))" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
@@ -69,11 +69,11 @@
 
                 <MudMenuItem Icon="@Icons.Material.Filled.Add"
                              OnClick="OpenDialog">
-                    Single
+                    Add
                 </MudMenuItem>
 
                 <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    Import
+                    Print
                 </MudMenuItem>
 
             </MudMenu>
@@ -83,8 +83,8 @@
             @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
             <MudSpacer />
             <MudMenu Label="Add LoanApplication" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
             </MudMenu>
         </ToolBarContent>
 
@@ -97,6 +97,14 @@
             <PropertyColumn Property="x => x.PaymentModality.Mode" Title="Payment Method" />
             <PropertyColumn Property="x => x.AmountRequested" Title="AmountRequested" />
             <PropertyColumn Property="x => x.PreferredDate" Title="PreferredDate" Format="yyyy-MM-dd" />
+            
+            <TemplateColumn Title="Status" SortBy="x => x.Status">
+                <CellTemplate>
+                    <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Item.Status)">
+                        @context.Item.Status.ToString()
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
             
          <TemplateColumn T="LoanApplication" Title="History">
     <CellTemplate>
@@ -115,7 +123,7 @@
     </CellTemplate>
 </TemplateColumn>
 
-
+@* 
             <TemplateColumn Title="Actions" CellClass="d-flex justify-end">
                 <CellTemplate>
                     <MudIconButton Icon="@Icons.Material.Filled.Info" 
@@ -124,11 +132,7 @@
                                    OnClick="@(() => OpenDetailDialog(context.Item.Id))" 
                                    Title="View Details" />
                                    
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                   Size="Size.Small" 
-                                   Color="Color.Primary"
-                                   OnClick="@(() => OpenEditDialog(context.Item.Id))" 
-                                   Title="Edit Application" />
+                    
                                    
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                    Size="Size.Small" 
@@ -136,7 +140,8 @@
                                    OnClick="@(() => ConfirmDeleteApplication(context.Item))" 
                                    Title="Delete Application" />
                 </CellTemplate>
-            </TemplateColumn>
+            </TemplateColumn> 
+*@
         </Columns>
         
         <PagerContent>
@@ -225,14 +230,6 @@
         }
     }
 
-     private async Task OpenEditDialog(int id)
-    {
-        var parameters = new DialogParameters<EditBorrowerDialog> { { x => x.Id, id } };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-
-        var dialog = await DialogService.ShowAsync<EditBorrowerDialog>("Edit Application", parameters, options);
-        var result = await dialog.Result;
-    }
 
     @* private async Task OpenTransactionHistoryDialog(int id)
     {

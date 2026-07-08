@@ -1,5 +1,6 @@
 @page "/"
 @page "/account/login"
+@attribute [AllowAnonymous]
 @layout AuthLayout
 
 @using MudBlazor
@@ -51,7 +52,9 @@
         align-items: center;
         gap: 12px;
         margin-bottom: 48px;
-        font-weight: 700;
+        font-weight: 900;
+        font-family: 'Arial Black', 'Montserrat', sans-serif;
+        text-transform: uppercase;
         font-size: 1.5rem;
         color: var(--sellora-text-main);
     }
@@ -109,8 +112,10 @@
     <div class="login-section">
         <div class="login-form-container">
             <div class="brand-logo">
-                <MudIcon Icon="@Icons.Material.Filled.AllInclusive" Color="Color.Primary" Size="Size.Large" />
-                <span>DIGITAL LOAN PLATFORM</span>
+                <div style="width: 72px; height: 51px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; border-radius: 10px;">
+                    <img src="/Images/guriza_logo.png" style="width: 72px; height: auto;" alt="Guriza Logo" />
+                </div>
+                <span>GURIZA</span>
             </div>
 
             <MudText Typo="Typo.h4" Style="font-weight: 800; margin-bottom: 8px;">Welcome Back</MudText>
@@ -188,7 +193,7 @@
                 Manage your LOANS and Its Operations.
             </MudText>
             <MudText Typo="Typo.h6" Style="font-weight: 400; opacity: 0.9;" Class="mb-10">
-                Log in to access your DIGITAL LOAN PLATFORM and manage your team.
+                Log in to access GURIZA and manage your team.
             </MudText>
 
             <MudPaper Elevation="25" Class="pa-4 rounded-xl relative" Style="background-color: white; min-height: 350px; color: black;">

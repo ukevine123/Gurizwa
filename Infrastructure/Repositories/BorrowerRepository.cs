@@ -27,10 +27,35 @@ namespace Infrastructure.Repositories
                 return new List<Borrower>();
             }
         using var dbContext = await _contextFactory.CreateDbContextAsync();
-        return await dbContext.Borrowers
+        
+        var borrowers = await dbContext.Borrowers
             .Include(a => a.BorrowerType)
             .Where(a => a.PersonId == _userContext.PersonId)
             .ToListAsync();
+
+        var borrowerIds = borrowers.Select(b => b.Id).ToList();
+        var disbursements = await dbContext.Disbursements
+            .Include(d => d.LoanApplication)
+            .Where(d => borrowerIds.Contains(d.LoanApplication.BorrowerId) && d.IsActive)
+            .ToListAsync();
+
+        var payments = await dbContext.Payments
+            .Include(p => p.Disbursement).ThenInclude(d => d.LoanApplication)
+            .Where(p => borrowerIds.Contains(p.Disbursement.LoanApplication.BorrowerId) && p.IsActive)
+            .ToListAsync();
+
+        foreach (var borrower in borrowers)
+        {
+            var bDisb = disbursements.Where(d => d.LoanApplication.BorrowerId == borrower.Id);
+            var bPayments = payments.Where(p => p.Disbursement.LoanApplication.BorrowerId == borrower.Id);
+            
+            decimal totalAmount = bDisb.Sum(d => d.Amount);
+            decimal totalPaid = bPayments.Sum(p => p.Amount);
+            
+            borrower.TotalDebt = Math.Max(0, totalAmount - totalPaid);
+        }
+
+        return borrowers;
         }
         public async Task <Borrower> GetBorrowerById(int Id)
         {
@@ -185,6 +210,47 @@ namespace Infrastructure.Repositories
             ));
 
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task<BorrowerDebtDTO> GetBorrowerDebtAsync(int id)
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            
+            var disbursements = await dbContext.Disbursements
+                .Include(d => d.LoanApplication)
+                .Where(d => d.LoanApplication.BorrowerId == id && d.IsActive)
+                .ToListAsync();
+
+            var payments = await dbContext.Payments
+                .Include(p => p.Disbursement).ThenInclude(d => d.LoanApplication)
+                .Where(p => p.Disbursement.LoanApplication.BorrowerId == id && p.IsActive)
+                .ToListAsync();
+
+            var penalties = await dbContext.Penalties
+                .Include(p => p.LoanApplication)
+                .Where(p => p.LoanApplication.BorrowerId == id && p.IsActive)
+                .ToListAsync();
+
+            decimal totalPrincipal = disbursements.Sum(d => d.PrincipalOffered);
+            decimal currentTotalAmount = disbursements.Sum(d => d.Amount);
+            decimal totalPenalties = penalties.Sum(p => p.Amount);
+            
+            // Total amount = Principal + Interest + Penalties
+            // Therefore: Interest = Total amount - Principal - Penalties
+            decimal totalInterest = currentTotalAmount - totalPrincipal - totalPenalties;
+            if (totalInterest < 0) totalInterest = 0;
+            
+            decimal totalPaid = payments.Sum(p => p.Amount);
+            decimal remainingBalance = currentTotalAmount - totalPaid;
+
+            return new BorrowerDebtDTO
+            {
+                TotalPrincipal = totalPrincipal,
+                TotalInterest = totalInterest,
+                TotalPenalties = totalPenalties,
+                TotalPaid = totalPaid,
+                RemainingBalance = remainingBalance > 0 ? remainingBalance : 0
+            };
         }
     }
 }   

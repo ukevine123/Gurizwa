@@ -1,88 +1,72 @@
-
 @using Application.DTO
+@using Application.Interfaces
 @using Application.Services.GuarantorTypes
+@using Domain.Entities
 @using MudBlazor
+@using MudBlazor.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Authorization
 
+@inject NavigationManager Navigation
 @inject IGuarantorTypeService GuarantorTypeService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<MudDialog Style="border-radius:12px; max-width: 400px;">
-    <TitleContent>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Class="pa-2">
-            @* Icons removed *@
-            <MudStack Spacing="0">
-                <MudText Typo="Typo.h6" Style="font-weight:800; color: #1B2559;">Add New Guarantor Type</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Enter classification details</MudText>
-            </MudStack>
-        </MudStack>
-    </TitleContent>
-
+<MudDialog Style="overflow:hidden;" >
     <DialogContent>
-        <MudDivider Class="mb-6" />
-        
-        <MudStack Spacing="3">
+        <MudPaper Elevation="0" Style="background: linear-gradient(135deg, #4318FF); padding:14px 18px; margin-bottom:16px;">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                <MudDivider Vertical="true" FlexItem="true" Style="border-width: 3px; border-color: #1B2559; height: 16px; border-radius: 2px;" />
-                <MudText Typo="Typo.caption" Style="color:#1B2559; font-weight:900; letter-spacing:.1em;">Guarantor Type</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Home" Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1" Style="color:white; font-weight:700; line-height:1.2;">Create Guarantor Type</MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">Fill the form below to create a new Guarantor Type</MudText>
+                </MudStack>
             </MudStack>
+        </MudPaper>
 
-            <MudTextField T="string" 
-                          Label="Guarantor Type" 
-                          Variant="Variant.Outlined" 
-                          Margin="Margin.Dense" 
-                          Lines="3"
-                          @bind-Value="Model.Name"
-                          Placeholder="e.g. Cash, Cheque, Online Transfer, etc..."
-                          For="@(() => Model.Name)"
-                          AutoFocuss="true" />
-        </MudStack>
+        <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateGuarantorTypeForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <MudGrid Spacing="1" Class="align-items-center">
+                <MudItem  xs="12">
+                <MudTextField Label="Guarantor Type"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              @bind-Value="Model.Name"
+                              For="@(() => Model.Name)" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" FullWidth="true" ButtonType="ButtonType.Submit" Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
+                    Add Guarantor Type
+                </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
     </DialogContent>
-
-    <DialogActions>
-        <MudStack Row="true" Class="px-6 pb-6" Style="width: 100%;" Spacing="3">
-            <MudButton ButtonType="ButtonType.Submit"
-                       OnClick="HandleValidSubmit"
-                       FullWidth="true"
-                       Disabled="@_isProcessing"
-                       Style="background-color: #1B2559; color: white; border-radius: 8px; padding: 10px 0; font-weight: 700; text-transform: none;">
-                @if (_isProcessing)
-                {
-                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-                    <MudText Class="ms-2">SAVING...</MudText>
-                }
-                else
-                {
-                    <MudText>SAVE Type</MudText>
-                }
-            </MudButton>
-        </MudStack>
-    </DialogActions>
 </MudDialog>
 
-@code {
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+@code{
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    
+    [SupplyParameterFromForm(Name = "CreateGuarantorTypeForm")]
+    private CreateGuarantorTypeDTO Model {get;set;} = new ();
+    private string ErrorMessage{get;set;}
 
-    private CreateGuarantorTypeDTO Model { get; set; } = new();
-    private bool _isProcessing { get; set; }
-
-    private async Task HandleValidSubmit()
+    private async Task onValidSubmit()
     {
-        if (string.IsNullOrWhiteSpace(Model.Name)) return;
-        _isProcessing = true;
-        
         try
         {
             await GuarantorTypeService.CreateGuarantorType(Model);
-            MudDialog.Close(DialogResult.Ok(true));  
+            Snackbar.Add("Guarantor Type created successfully!", Severity.Info);
+            MudDialog.Close(DialogResult.Ok(Model));
         }
-        catch
+        catch(Exception ex)
         {
-            // Silently handle or log error without UI alert
-        }
-        finally
-        {
-            _isProcessing = false;
+            ErrorMessage = ex.Message;
+            Snackbar.Add(ex.Message, Severity.Error);
         }
     }
-
-    private void Cancel() => MudDialog.Cancel(); 
 }

@@ -1,0 +1,297 @@
+@using Application.DTO
+
+<div class="heatmap-wrapper">
+    <div class="heatmap-header">
+        <MudText Typo="Typo.subtitle1" Style="font-weight: 700;">@TotalContributions activities in the  year</MudText>
+    </div>
+    
+    <div class="heatmap-scroll-container">
+        <div class="heatmap-graph">
+            <div class="heatmap-months">
+                @foreach (var month in GetMonths())
+                {
+                    <div class="heatmap-month-label" style="grid-column: @month.StartColumn;">@month.Name</div>
+                }
+            </div>
+            
+            <div class="heatmap-body">
+                <div class="heatmap-days-of-week">
+                    <div>Mon</div>
+                    <div>Wed</div>
+                    <div>Fri</div>
+                </div>
+                
+                <div class="heatmap-grid-container">
+                    @for (int col = 0; col < WeeksCount; col++)
+                    {
+                        <div class="heatmap-column">
+                            @for (int row = 0; row < 7; row++)
+                            {
+                                var dayIndex = col * 7 + row;
+                                if (dayIndex >= Days.Count) continue;
+                                
+                                var day = Days[dayIndex];
+                                // Skip days that are before our start date (to align correctly)
+                                if (day.Date == DateTime.MinValue)
+                                {
+                                    <div class="heatmap-cell empty"></div>
+                                    continue;
+                                }
+
+                                <MudTooltip Text="@($"{day.Count} activities on {day.Date:MMM dd, yyyy}")" Delay="0" Placement="Placement.Top">
+                                    <div class="heatmap-cell @GetColorClass(day.Count)"></div>
+                                </MudTooltip>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="heatmap-footer">
+        <MudText Typo="Typo.caption" Style="color: #57606a;"> count activities</MudText>
+        <div class="heatmap-legend">
+            <span class="legend-text">Less</span>
+            <div class="heatmap-cell level-0"></div>
+            <div class="heatmap-cell level-1"></div>
+            <div class="heatmap-cell level-2"></div>
+            <div class="heatmap-cell level-3"></div>
+            <div class="heatmap-cell level-4"></div>
+            <span class="legend-text">More</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .heatmap-wrapper {
+        background: #ffffff;
+        color: #1B2559;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        border: 1px solid #e1e4e8;
+    }
+    
+    .heatmap-header {
+        margin-bottom: 12px;
+    }
+    
+    .heatmap-scroll-container {
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .heatmap-scroll-container::-webkit-scrollbar {
+        height: 8px;
+    }
+    .heatmap-scroll-container::-webkit-scrollbar-track {
+        background: #f6f8fa; 
+    }
+    .heatmap-scroll-container::-webkit-scrollbar-thumb {
+        background: #d0d7de; 
+        border-radius: 4px;
+    }
+
+    .heatmap-graph {
+        display: inline-block;
+        min-width: 750px;
+    }
+
+    .heatmap-months {
+        display: grid;
+        grid-template-columns: repeat(@WeeksCount, 15px);
+        font-size: 12px;
+        color: #57606a;
+        margin-bottom: 4px;
+        padding-left: 30px; /* Space for weekday labels */
+    }
+
+    .heatmap-month-label {
+        grid-column-end: span 4;
+    }
+
+    .heatmap-body {
+        display: flex;
+    }
+
+    .heatmap-days-of-week {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #57606a;
+        padding-right: 8px;
+        height: 105px; /* 7 cells * 15px */
+        padding-top: 15px; /* align Mon, Wed, Fri */
+        box-sizing: border-box;
+    }
+
+    .heatmap-days-of-week > div:nth-child(1) { margin-top: 0px; }
+    .heatmap-days-of-week > div:nth-child(2) { margin-top: 15px; }
+    .heatmap-days-of-week > div:nth-child(3) { margin-top: 15px; }
+
+    .heatmap-grid-container {
+        display: flex;
+        gap: 3px;
+    }
+
+    .heatmap-column {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .heatmap-cell {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        outline: 1px solid rgba(27, 31, 35, 0.06);
+        outline-offset: -1px;
+    }
+
+    .heatmap-cell.empty {
+        background: transparent;
+        outline: none;
+    }
+
+    /* GitHub Light Theme Colors */
+    .heatmap-cell.level-0 { background-color: #ebedf0; }
+    .heatmap-cell.level-1 { background-color: #9be9a8; }
+    .heatmap-cell.level-2 { background-color: #40c463; }
+    .heatmap-cell.level-3 { background-color: #30a14e; }
+    .heatmap-cell.level-4 { background-color: #216e39; }
+
+    .heatmap-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+    }
+
+    .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: #57606a;
+    }
+    
+    .legend-text {
+        margin: 0 4px;
+    }
+
+    /* === DARK MODE OVERRIDES === */
+    .dark-mode-layout .heatmap-wrapper {
+        background: #111C44;
+        color: #E6EEF8;
+        border-color: #1E293B;
+    }
+    .dark-mode-layout .heatmap-scroll-container::-webkit-scrollbar-track {
+        background: #111C44; 
+    }
+    .dark-mode-layout .heatmap-scroll-container::-webkit-scrollbar-thumb {
+        background: #30363d; 
+    }
+    .dark-mode-layout .heatmap-months,
+    .dark-mode-layout .heatmap-days-of-week,
+    .dark-mode-layout .heatmap-legend {
+        color: #8c959f;
+    }
+    .dark-mode-layout .heatmap-cell.level-0 { background-color: #161b22; }
+    .dark-mode-layout .heatmap-cell.level-1 { background-color: #0e4429; }
+    .dark-mode-layout .heatmap-cell.level-2 { background-color: #006d32; }
+    .dark-mode-layout .heatmap-cell.level-3 { background-color: #26a641; }
+    .dark-mode-layout .heatmap-cell.level-4 { background-color: #39d353; }
+</style>
+
+@code {
+    [Parameter]
+    public List<ActivityHeatmapDTO> Data { get; set; } = new();
+
+    private List<HeatmapDay> Days = new();
+    private int WeeksCount = 53;
+    private int TotalContributions = 0;
+
+    protected override void OnParametersSet()
+    {
+        GenerateCalendar();
+    }
+
+    private void GenerateCalendar()
+    {
+        Days.Clear();
+        TotalContributions = 0;
+
+        var endDate = DateTime.Today;
+        // GitHub usually starts on Sunday. So we find the Sunday 52 weeks ago.
+        var startDate = endDate.AddDays(-365);
+        while (startDate.DayOfWeek != DayOfWeek.Sunday)
+        {
+            startDate = startDate.AddDays(-1);
+        }
+
+        var currentDate = startDate;
+        
+        // Dictionary for O(1) lookups
+        var dataDict = Data.ToDictionary(x => x.Date.Date, x => x.Count);
+
+        while (currentDate <= endDate)
+        {
+            int count = dataDict.ContainsKey(currentDate) ? dataDict[currentDate] : 0;
+            TotalContributions += count;
+            
+            Days.Add(new HeatmapDay
+            {
+                Date = currentDate,
+                Count = count
+            });
+            
+            currentDate = currentDate.AddDays(1);
+        }
+
+        WeeksCount = (int)Math.Ceiling(Days.Count / 7.0);
+    }
+
+    private string GetColorClass(int count)
+    {
+        if (count == 0) return "level-0";
+        if (count <= 2) return "level-1";
+        if (count <= 5) return "level-2";
+        if (count <= 10) return "level-3";
+        return "level-4";
+    }
+
+    private List<MonthLabel> GetMonths()
+    {
+        var months = new List<MonthLabel>();
+        if (Days.Count == 0) return months;
+
+        int currentMonth = Days[0].Date.Month;
+        months.Add(new MonthLabel { Name = Days[0].Date.ToString("MMM"), StartColumn = 1 });
+
+        for (int i = 1; i < Days.Count; i += 7) // check first day of each week
+        {
+            if (Days[i].Date.Month != currentMonth)
+            {
+                currentMonth = Days[i].Date.Month;
+                int col = (i / 7) + 1;
+                months.Add(new MonthLabel { Name = Days[i].Date.ToString("MMM"), StartColumn = col });
+            }
+        }
+        
+        return months;
+    }
+
+    private class HeatmapDay
+    {
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+    }
+
+    private class MonthLabel
+    {
+        public string Name { get; set; } = "";
+        public int StartColumn { get; set; }
+    }
+}

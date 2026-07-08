@@ -67,11 +67,11 @@
 
                 <MudMenuItem Icon="@Icons.Material.Filled.Add"
                              OnClick="OpenDialog">
-                    Single
+                    Add
                 </MudMenuItem>
 
                 <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    Import
+                    Print
                 </MudMenuItem>
 
             </MudMenu>
@@ -81,8 +81,8 @@
             @* <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText> *@
             <MudSpacer />
             <MudMenu Label="Add Borrower" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Single</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Import</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
             </MudMenu>
         </ToolBarContent>
 
@@ -112,6 +112,13 @@
             @* <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" /> *@
             @* <PropertyColumn Property="x => x.KinPhoneNumber" Title="KinPhoneNumber" /> *@
             <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
+            <TemplateColumn Title="Total Debt" SortBy="x => x.TotalDebt">
+                <CellTemplate>
+                    <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDebtDialog(context.Item.Id))" Style="font-weight: 700;">
+                        @context.Item.TotalDebt.ToString("N2")
+                    </MudButton>
+                </CellTemplate>
+            </TemplateColumn>
             <PropertyColumn Property="x => x.Email" Title="Email" />
             <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
             @* <PropertyColumn Property="x => x.SpouceIdNumber" Title="SpouceIdNumber" /> *@
@@ -202,6 +209,13 @@
     {
         var parameters = new DialogParameters<BorrowerDetailDialog> { { x => x.Id, id } };
         await DialogService.ShowAsync<BorrowerDetailDialog>("View Details", parameters);
+    }
+
+    private async Task OpenDebtDialog(int id)
+    {
+        var parameters = new DialogParameters<BorrowerDebtDialog> { { x => x.BorrowerId, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        await DialogService.ShowAsync<BorrowerDebtDialog>("Debt Breakdown", parameters, options);
     }
 
      private async Task OpenEditDialog(int id)

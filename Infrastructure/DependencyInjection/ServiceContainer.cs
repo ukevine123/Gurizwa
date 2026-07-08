@@ -26,32 +26,25 @@ namespace Infrastructure.DependencyInjection
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Register ApplicationDbContext (service here) with SQL Server provider
-            // services.AddDbContext<ApplicationDbContext>(options =>
-            //  options.UseSqlServer(configuration.GetConnectionString("LoanPlatformDBCONN")),ServiceLifetime.Scoped
-            //     );
-                //Register authentication services
-            // services.AddAuthenticationService(configuration);
-
-             services.AddHttpContextAccessor();
+            services.AddHttpContextAccessor();
              
-             services.AddScoped<IBorrower, BorrowerRepository>();
-             services.AddScoped<IBorrowerType, BorrowerTypeRepository>();
-             services.AddScoped<ILoanApplication, LoanApplicationRepository>();
-             services.AddScoped<IGuarantor, GuarantorRepository>();
-             services.AddScoped<IGuarantorType, GuarantorTypeRepository>();
-             services.AddScoped<IProvidedDocument, ProvidedDocumentRepository>();
-             services.AddScoped<IPaymentModality, PaymentModalityRepository>();
-              services.AddScoped<IIdentity, IdentityRepository>();
-              services.AddScoped<IAccount, AccountRepository>();
+            services.AddScoped<IBorrower, BorrowerRepository>();
+            services.AddScoped<IBorrowerType, BorrowerTypeRepository>();
+            services.AddScoped<ILoanApplication, LoanApplicationRepository>();
+            services.AddScoped<IGuarantor, GuarantorRepository>();
+            services.AddScoped<IGuarantorType, GuarantorTypeRepository>();
+            services.AddScoped<IProvidedDocument, ProvidedDocumentRepository>();
+            services.AddScoped<IPaymentModality, PaymentModalityRepository>();
+            services.AddScoped<IIdentity, IdentityRepository>();
+            services.AddScoped<IAccount, AccountRepository>();
             services.AddScoped<ILoanProduct, LoanProductRepository>();
             services.AddScoped<IRequiredDocument, RequiredDocumentRepository>();
             services.AddScoped<IRequirement, RequirementRepository>();
             services.AddScoped<IAccountType, AccountTypeRepository>();
-             services.AddScoped<IPerson, PersonRepository>();
-             services.AddScoped<IRequirement, RequirementRepository>();
+            services.AddScoped<IPerson, PersonRepository>();
+            services.AddScoped<IRequirement, RequirementRepository>();
 
-              services.AddScoped<IDisbursement, DisbursementRepository>();
+            services.AddScoped<IDisbursement, DisbursementRepository>();
             services.AddScoped<IReason, ReasonRepository>();
             services.AddScoped<IPayment, PaymentRepository>();
             services.AddScoped<IPenality, PenalityRepository>();
@@ -60,10 +53,10 @@ namespace Infrastructure.DependencyInjection
             services.AddScoped<IProcessFeeDeposit, ProcessFeeDepositRepository>();
             services.AddScoped<ILoanProductSetting, LoanProductSettingRepository>();
             services.AddScoped<IReportRepository, ReportRepository>();
+            services.AddScoped<IWaiver, WaiverRepository>();
+            services.AddScoped<IWaiverType, WaiverTypeRepository>();
 
-
-
-             return services;
+            return services;
         }
     }
 }

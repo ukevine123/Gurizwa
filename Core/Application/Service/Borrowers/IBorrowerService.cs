@@ -10,5 +10,6 @@ namespace Application.Services.Borrowers
         Task CreateBorrower(CreateBorrowerDTO borrowerDTO);
         Task UpdateBorrower(int Id, UpdateBorrowerDTO borrowerDTO);
         Task DeleteBorrowerAsync(int id);
+        Task<BorrowerDebtDTO> GetBorrowerDebtAsync(int id);
     }
 }
