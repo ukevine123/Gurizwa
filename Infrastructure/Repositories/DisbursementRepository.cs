@@ -285,8 +285,8 @@ namespace Infrastructure.Repositories
                     _userContext,
                     "Loan Disbursed",
                     nameof(Disbursement),
-                    loanApp.ApplicationCode,
-                    $"Disbursed {netPrincipal:N2} for loan application {loanApp.ApplicationCode}."));
+                    loanApp.ApplicationCode ?? loanApp.Id.ToString(),
+                    $"Disbursed {netPrincipal:N2} for loan application {loanApp.ApplicationCode ?? loanApp.Id.ToString()}."));
 
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();

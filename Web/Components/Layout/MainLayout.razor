@@ -221,7 +221,7 @@
 
 <MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
     @* Top AppBar *@
-    <MudAppBar Elevation="2" Dense="false" Color="Color.Transparent" Fixed="true" Class="@(_isDarkMode ? "dark-mode" : "")">
+    <MudAppBar Elevation="2" Dense="false" Fixed="true" Class="@(_isDarkMode ? "dark-mode" : "")">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        Color="Color.Inherit"
                        Edge="Edge.Start"
@@ -365,10 +365,6 @@
                 @(_drawerOpen ? "Reports" : "")
             </MudNavLink>
 
-            <MudNavLink href="/IncomeStatement" Icon="@Icons.Material.Outlined.Receipt">
-                @(_drawerOpen ? "Income Statement" : "")
-            </MudNavLink>
-
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
                 <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
                 <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
@@ -394,7 +390,7 @@
         {
             Primary = "#4318FF",
             Background = "#F4F7FE",
-            AppbarBackground = "rgba(255,255,255,0)",
+            AppbarBackground = "#FFFFFF",
             DrawerBackground = "#FFFFFF",
             TextPrimary = "#1B2559",
             ActionDefault = "#A3AED0",

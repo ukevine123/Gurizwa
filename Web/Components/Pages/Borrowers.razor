@@ -14,20 +14,30 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     <MudGrid Class="mb-4" Spacing="2">
-
-        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
+        <MudItem xs="12" sm="4">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search borrowers..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudSelect T="string" @bind-Value="_selectedBorrowerType" Label="Borrower Type" AnchorOrigin="Origin.BottomCenter" Clearable="false">
+                <MudSelectItem Value="@("All")">All</MudSelectItem>
+                @if (_borrowerTypeCounts != null)
+                {
+                    @foreach (var bt in _borrowerTypeCounts.Where(c => c.BorrowerType != null).Select(c => c.BorrowerType).Distinct())
+                    {
+                        <MudSelectItem Value="@bt">@bt</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
-                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteBorrower" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-     
         </MudItem>
     </MudGrid>
 
@@ -53,8 +63,8 @@
     </MudGrid>
 
     @* 4. THE DATAGRID *@
-    <MudDataGrid T="Borrower" Items="@_borrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
-                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+    <MudDataGrid T="Borrower" Items="@FilteredBorrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none" Filterable="true">
 
                   <ToolBarContent>
             <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText>
@@ -88,48 +98,53 @@
 
         <Columns>
             <SelectColumn T="Borrower" />
-            @* <HierarchyColumn T="Borrower" />
-            <PropertyColumn Property="x => x.Id" Title="ID" /> *@
-            <TemplateColumn >
-                <CellTemplate>
-                   
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn Title="Name">
-                <CellTemplate>
-                    @if (!string.IsNullOrEmpty(context.Item.CompanyName))
-                    {
-                        <MudText Typo="Typo.body2">@context.Item.CompanyName</MudText>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body2">@($"{context.Item.FirstName} {context.Item.LastName}")</MudText>
-                    }
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
-            <PropertyColumn Property="x => x.sex" Title="Sex" />
-            @* <PropertyColumn Property="x => x.Maritalstatus" Title="Maritalstatus" /> *@
-            @* <PropertyColumn Property="x => x.KinPhoneNumber" Title="KinPhoneNumber" /> *@
-            <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
-            <TemplateColumn Title="Total Debt" SortBy="x => x.TotalDebt">
-                <CellTemplate>
-                    <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDebtDialog(context.Item.Id))" Style="font-weight: 700;">
-                        @context.Item.TotalDebt.ToString("N2")
-                    </MudButton>
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.Email" Title="Email" />
-            <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
-            @* <PropertyColumn Property="x => x.SpouceIdNumber" Title="SpouceIdNumber" /> *@
-            @* <PropertyColumn Property="x => x.SpouceName" Title="SpouceName" /> *@
-            <PropertyColumn Property="x => x.Province" Title="Province" />
-            <PropertyColumn Property="x => x.District" Title="District" />
-            @* <PropertyColumn Property="x => x.Sector" Title="Sector" /> *@
-            @* <PropertyColumn Property="x => x.Cell" Title="Cell" />
-            <PropertyColumn Property="x => x.Village" Title="Village" /> *@
-            
-
+            @if (IsOrganizationSelected)
+            {
+                <PropertyColumn Property="x => x.CompanyName" Title="Company Name" />
+                <PropertyColumn Property="x => x.TIN" Title="TIN" />
+                <PropertyColumn Property="x => x.ContactPersonName" Title="Contact Person" />
+                <PropertyColumn Property="x => x.ContactPersonPhone" Title="Contact Phone" />
+                <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
+                <TemplateColumn Title="Total Debt" SortBy="x => x.TotalDebt">
+                    <CellTemplate>
+                        <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDebtDialog(context.Item.Id))" Style="font-weight: 700;">
+                            @context.Item.TotalDebt.ToString("N2")
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <PropertyColumn Property="x => x.Province" Title="Province" />
+                <PropertyColumn Property="x => x.District" Title="District" />
+            }
+            else
+            {
+                <TemplateColumn Title="Name">
+                    <CellTemplate>
+                        @if (!string.IsNullOrEmpty(context.Item.CompanyName))
+                        {
+                            <MudText Typo="Typo.body2">@context.Item.CompanyName</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2">@($"{context.Item.FirstName} {context.Item.LastName}")</MudText>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
+                <PropertyColumn Property="x => x.sex" Title="Sex" />
+                <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
+                <TemplateColumn Title="Total Debt" SortBy="x => x.TotalDebt">
+                    <CellTemplate>
+                        <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDebtDialog(context.Item.Id))" Style="font-weight: 700;">
+                            @context.Item.TotalDebt.ToString("N2")
+                        </MudButton>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
+                <PropertyColumn Property="x => x.Province" Title="Province" />
+                <PropertyColumn Property="x => x.District" Title="District" />
+            }
         </Columns>
         
         <PagerContent>
@@ -140,6 +155,9 @@
 
 @code {
      private string _searchString = "";
+     private string _selectedBorrowerType = "All";
+
+     private bool IsOrganizationSelected => _selectedBorrowerType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true;
 
        List<Borrower> _borrowers = new();
     private HashSet<Borrower> _selectedItems = new();
@@ -149,7 +167,10 @@
                     (x.FirstName != null && x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
                     (x.LastName != null && x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
                     (x.CompanyName != null && x.CompanyName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
-                    (x.Email != null && x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase)));
+                    (x.TIN != null && x.TIN.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.IdentificationNumber != null && x.IdentificationNumber.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Email != null && x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => _selectedBorrowerType == "All" || (x.BorrowerType != null && x.BorrowerType.Type == _selectedBorrowerType));
 
     private List<BorrowerTypeCount> _borrowerTypeCounts = new();
 
