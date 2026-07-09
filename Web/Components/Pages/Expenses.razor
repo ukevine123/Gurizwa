@@ -1,0 +1,106 @@
+@page "/Expenses"
+@using Microsoft.EntityFrameworkCore
+@using MudBlazor
+@using Domain.Entities
+@using Application.DTO
+@using Application.Interfaces
+@inject IExpenseService ExpenseService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<PageTitle>Expenses</PageTitle>
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudGrid Class="mb-4" Spacing="2">
+        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
+            @if (_selectedItems.Any())
+            {
+                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteExpense(_selectedItems.First().Id))" />
+                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+            }
+            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+        </MudItem>
+    </MudGrid>
+
+    <MudDataGrid T="ExpenseDTO" Items="@_expenses" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+        <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary">Expenses</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@OpenDialog">
+                Add Expense
+            </MudButton>
+        </ToolBarContent>
+
+        <Columns>
+            <SelectColumn T="ExpenseDTO" />
+            <PropertyColumn Property="x => x.ExpenseDate" Title="Date" Format="yyyy-MM-dd" />
+            <PropertyColumn Property="x => x.Category" Title="Category" />
+            <PropertyColumn Property="x => x.Description" Title="Description" />
+            <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+            <PropertyColumn Property="x => x.AccountName" Title="Account" />
+        </Columns>
+        
+        <PagerContent>
+            <MudDataGridPager T="ExpenseDTO" />
+        </PagerContent>
+    </MudDataGrid>
+</MudContainer>
+
+@code {
+    private List<ExpenseDTO> _expenses = new();
+    private HashSet<ExpenseDTO> _selectedItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExpenses();
+    }
+    
+    private async Task OpenDialog()
+    {
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await DialogService.ShowAsync<CreateExpenseDialog>("Add Expense", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadExpenses();
+        }
+    }
+    
+    private async Task OpenEditDialog(int id)
+    {
+        var parameters = new DialogParameters<CreateExpenseDialog> { { x => x.ExpenseId, id } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<CreateExpenseDialog>("Edit Expense", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadExpenses();
+        }
+    }
+
+    private async Task DeleteExpense(int id)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Delete Expense",
+            "Are you sure you want to delete this expense?",
+            yesText: "Delete", cancelText: "Cancel");
+            
+        if (result == true)
+        {
+            await ExpenseService.DeleteAsync(id);
+            _selectedItems.Clear();
+            await LoadExpenses();
+        }
+    }
+
+    private async Task LoadExpenses()
+    {
+        _expenses = await ExpenseService.GetAllAsync();
+        StateHasChanged();
+    }
+}

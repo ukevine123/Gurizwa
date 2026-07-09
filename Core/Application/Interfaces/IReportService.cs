@@ -22,6 +22,7 @@ namespace Application.Interfaces
         Task<List<InterestIncomeReportDTO>> GetInterestIncomeReportAsync();
         Task<List<PenaltyIncomeReportDTO>> GetPenaltyIncomeReportAsync();
         Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync();
+        Task<IncomeStatementReportDTO> GetIncomeStatementAsync(DateTime startDate, DateTime endDate);
         
         // Risk & Compliance
         Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync();

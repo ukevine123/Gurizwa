@@ -180,4 +180,24 @@ namespace Application.DTO
         public int DefaultHistory { get; set; }
         public string RiskRating { get; set; } = string.Empty;
     }
+
+    public class IncomeStatementReportDTO
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        
+        // Income
+        public decimal TotalInterestIncome { get; set; }
+        public decimal TotalProcessingFeeIncome { get; set; }
+        public decimal TotalPenaltyIncome { get; set; }
+        public decimal GrossIncome => TotalInterestIncome + TotalProcessingFeeIncome + TotalPenaltyIncome;
+        
+        // Deductions / Expenses
+        public decimal TotalWaiversAndWriteOffs { get; set; }
+        public decimal TotalOperatingExpenses { get; set; }
+        public decimal TotalDeductions => TotalWaiversAndWriteOffs + TotalOperatingExpenses;
+        
+        // Net
+        public decimal NetIncome => GrossIncome - TotalDeductions;
+    }
 }

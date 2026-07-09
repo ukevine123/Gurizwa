@@ -55,6 +55,7 @@ namespace Infrastructure.DependencyInjection
             services.AddScoped<IReportRepository, ReportRepository>();
             services.AddScoped<IWaiver, WaiverRepository>();
             services.AddScoped<IWaiverType, WaiverTypeRepository>();
+            services.AddScoped<IExpenseRepository, ExpenseRepository>();
 
             return services;
         }

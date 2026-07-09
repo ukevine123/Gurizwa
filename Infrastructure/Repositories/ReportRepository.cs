@@ -316,6 +316,88 @@ namespace Infrastructure.Repositories
         public async Task<List<PenaltyIncomeReportDTO>> GetPenaltyIncomeReportAsync() => await Task.FromResult(new List<PenaltyIncomeReportDTO>());
         public async Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync() => await Task.FromResult(new List<ProfitabilityReportDTO>());
 
+        public async Task<IncomeStatementReportDTO> GetIncomeStatementAsync(DateTime startDate, DateTime endDate)
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue) return new IncomeStatementReportDTO();
+
+            var start = startDate.Date;
+            var endExclusive = endDate.Date.AddDays(1);
+
+            // 1. Interest & Penalty Income (from Payments)
+            var payments = await dbContext.Payments
+                .Include(p => p.Disbursement)
+                .Where(p => p.PersonId == currentPersonId.Value &&
+                            p.IsActive &&
+                            p.PaymentDate >= start && p.PaymentDate < endExclusive &&
+                            (p.Status == "Completed" || p.Status == "Partial"))
+                .ToListAsync();
+
+            decimal totalInterest = 0;
+            decimal totalPenalty = 0;
+
+            foreach (var p in payments)
+            {
+                totalPenalty += p.PenaltyPaid;
+                
+                if (p.InterestPaid > 0)
+                {
+                    totalInterest += p.InterestPaid;
+                }
+                else if (p.Disbursement != null && p.Disbursement.TotalInstallments > 0)
+                {
+                    // Fallback calculation for payments recorded before the interest fix
+                    decimal totalExpectedInterest = p.Disbursement.PrincipalOffered * (p.Disbursement.InterestRate / 100);
+                    decimal scheduledInterest = totalExpectedInterest / p.Disbursement.TotalInstallments;
+                    totalInterest += Math.Min(p.Amount, scheduledInterest);
+                }
+            }
+
+            // 2. Processing Fee Income
+            // Some process fee deposits might not have their PersonId perfectly aligned if they were created before we forced user.Person.Id. 
+            // We can match them based on Account or LoanApplication ownership as well, but for simplicity, we check if they are in the date range.
+            var fees = await dbContext.ProcessFeeDeposits
+                .Include(f => f.LoanApplication)
+                .Where(f => (f.PersonId == currentPersonId.Value || f.LoanApplication.PersonId == currentPersonId.Value) &&
+                            f.DepositDate >= start && f.DepositDate < endExclusive)
+                .ToListAsync();
+
+            var totalFees = fees.Sum(f => f.Amount);
+
+            // 3. Waivers & Write-offs
+            var waivers = await dbContext.Waivers
+                .Where(w => w.CreatedBy == currentPersonId.Value && // Assuming CreatedBy or PersonId is trackable. Wait, Waiver doesn't have PersonId! We will filter by Disbursement.PersonId
+                            w.IsActive && w.Status == "Approved" &&
+                            w.ApprovedDate >= start && w.ApprovedDate < endExclusive)
+                .Include(w => w.Disbursement)
+                .ToListAsync();
+            
+            // Filter waivers manually if needed, assuming Disbursement is loaded.
+            var validWaivers = waivers.Where(w => w.Disbursement != null && (w.Disbursement.PersonId == currentPersonId.Value)).ToList();
+            var totalWaivers = validWaivers.Sum(w => w.Amount);
+
+            // 4. Operating Expenses
+            var expenses = await dbContext.Expenses
+                .Where(e => e.PersonId == currentPersonId.Value &&
+                            e.IsActive &&
+                            e.ExpenseDate >= start && e.ExpenseDate < endExclusive)
+                .ToListAsync();
+
+            var totalExpenses = expenses.Sum(e => e.Amount);
+
+            return new IncomeStatementReportDTO
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalInterestIncome = totalInterest,
+                TotalProcessingFeeIncome = totalFees,
+                TotalPenaltyIncome = totalPenalty,
+                TotalWaiversAndWriteOffs = totalWaivers,
+                TotalOperatingExpenses = totalExpenses
+            };
+        }
+
         // ── Risk & Compliance ──────────────────────────────────────────────────
         public async Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync() => await Task.FromResult(new List<CreditRiskReportDTO>());
         public async Task<List<NplReportDTO>> GetNplReportAsync() => await Task.FromResult(new List<NplReportDTO>());

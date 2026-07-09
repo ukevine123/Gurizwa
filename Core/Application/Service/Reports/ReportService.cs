@@ -49,6 +49,7 @@ namespace Application.Service.Reports
         public async Task<List<InterestIncomeReportDTO>> GetInterestIncomeReportAsync() => await _reportRepository.GetInterestIncomeReportAsync();
         public async Task<List<PenaltyIncomeReportDTO>> GetPenaltyIncomeReportAsync() => await _reportRepository.GetPenaltyIncomeReportAsync();
         public async Task<List<ProfitabilityReportDTO>> GetProfitabilityReportAsync() => await _reportRepository.GetProfitabilityReportAsync();
+        public async Task<IncomeStatementReportDTO> GetIncomeStatementAsync(DateTime startDate, DateTime endDate) => await _reportRepository.GetIncomeStatementAsync(startDate, endDate);
 
         // ── Risk & Compliance ──────────────────────────────────────────────────
         public async Task<List<CreditRiskReportDTO>> GetCreditRiskReportAsync() => await _reportRepository.GetCreditRiskReportAsync();

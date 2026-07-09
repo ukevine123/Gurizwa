@@ -76,13 +76,27 @@ namespace Infrastructure.Repositories
                 
                 account.Balance += paymentDTO.Amount;
 
-                // 7. Create Payment Record
+                // 7. Calculate Interest vs Principal
+                decimal interestPart = 0;
+                decimal principalPart = 0;
+                if (disbursement.TotalInstallments > 0)
+                {
+                    decimal totalInterest = disbursement.PrincipalOffered * (disbursement.InterestRate / 100);
+                    decimal scheduledInterest = totalInterest / disbursement.TotalInstallments;
+                    interestPart = Math.Min(paymentDTO.Amount, scheduledInterest);
+                    principalPart = paymentDTO.Amount - interestPart;
+                }
+
+                // 8. Create Payment Record
                 var payment = new Payment
                 {
                     DisbursementId = paymentDTO.DisbursementId,
                     AccountId = paymentDTO.AccountId,
                     PaymentTypeId = paymentDTO.PaymentTypeId,
                     Amount = paymentDTO.Amount,
+                    PrincipalPaid = principalPart,
+                    InterestPaid = interestPart,
+                    PenaltyPaid = 0,
                     PaymentDate = DateTime.Now,
                     IsActive = true,
                     CreatedAt = DateTime.Now,
@@ -182,13 +196,27 @@ namespace Infrastructure.Repositories
                 // We add ONLY the penaltyAmount. The shortfall is already part of the principal.
                 disbursement.Amount += penaltyAmount;
 
-                // 6. Create the Payment Record
+                // 6. Calculate Interest vs Principal
+                decimal interestPart = 0;
+                decimal principalPart = 0;
+                if (disbursement.TotalInstallments > 0)
+                {
+                    decimal totalInterest = disbursement.PrincipalOffered * (disbursement.InterestRate / 100);
+                    decimal scheduledInterest = totalInterest / disbursement.TotalInstallments;
+                    interestPart = Math.Min(paymentDTO.Amount, scheduledInterest);
+                    principalPart = paymentDTO.Amount - interestPart;
+                }
+
+                // 7. Create the Payment Record
                 var payment = new Payment
                 {
                     DisbursementId = paymentDTO.DisbursementId,
                     AccountId = paymentDTO.AccountId,
                     PaymentTypeId = paymentDTO.PaymentTypeId,
                     Amount = paymentDTO.Amount,
+                    PrincipalPaid = principalPart,
+                    InterestPaid = interestPart,
+                    PenaltyPaid = penaltyAmount,
                     PaymentDate = DateTime.Now,
                     IsActive = true,
                     CreatedAt = DateTime.Now,

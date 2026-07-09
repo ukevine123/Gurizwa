@@ -203,6 +203,27 @@
                 </div>
             </div>
         </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("IncomeStatement")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-green">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+                <div class="rc-title">Income Statement</div>
+                <div class="rc-desc">Portfolio P&L summary and operating expenses</div>
+                <div class="rc-meta">Live updates</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("IncomeStatement", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("IncomeStatement", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("IncomeStatement", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
+                </div>
+            </div>
+        </MudItem>
     </MudGrid>
 
     <style>
@@ -561,6 +582,87 @@
             </PagerContent>
         </MudDataGrid>
     }
+    else if (_activeReport == "IncomeStatement")
+    {
+        <MudPaper Class="pa-4 mb-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudDateRangePicker Label="Reporting Period" @bind-DateRange="_incomeStatementRange" />
+                </MudItem>
+                <MudItem xs="12" sm="4" Class="d-flex align-end">
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadIncomeStatement" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        @if (_incomeStatement != null)
+        {
+            <MudGrid Class="mb-6">
+                <MudItem xs="12" md="6">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Revenues (Income)</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText>Interest Income</MudText>
+                                <MudText><b>@_incomeStatement.TotalInterestIncome.ToString("N2")</b></MudText>
+                            </div>
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText>Processing Fees</MudText>
+                                <MudText><b>@_incomeStatement.TotalProcessingFeeIncome.ToString("N2")</b></MudText>
+                            </div>
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText>Penalty Income</MudText>
+                                <MudText><b>@_incomeStatement.TotalPenaltyIncome.ToString("N2")</b></MudText>
+                            </div>
+                            <MudDivider Class="my-2" />
+                            <div class="d-flex justify-space-between text-success">
+                                <MudText Typo="Typo.subtitle1"><b>Total Gross Income</b></MudText>
+                                <MudText Typo="Typo.subtitle1"><b>@_incomeStatement.GrossIncome.ToString("N2")</b></MudText>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                
+                <MudItem xs="12" md="6">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Expenses & Deductions</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText>Operating Expenses</MudText>
+                                <MudText><b>@_incomeStatement.TotalOperatingExpenses.ToString("N2")</b></MudText>
+                            </div>
+                            <div class="d-flex justify-space-between mb-2">
+                                <MudText>Waivers & Write-Offs</MudText>
+                                <MudText><b>@_incomeStatement.TotalWaiversAndWriteOffs.ToString("N2")</b></MudText>
+                            </div>
+                            <MudDivider Class="my-2" />
+                            <div class="d-flex justify-space-between text-error">
+                                <MudText Typo="Typo.subtitle1"><b>Total Deductions</b></MudText>
+                                <MudText Typo="Typo.subtitle1"><b>@_incomeStatement.TotalDeductions.ToString("N2")</b></MudText>
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudPaper Class="pa-6 rounded-xl text-center" Elevation="1" Style="background: var(--mud-palette-surface);">
+                        <MudText Typo="Typo.h5" Color="@(_incomeStatement.NetIncome >= 0 ? MudBlazor.Color.Success : MudBlazor.Color.Error)">
+                            <b>Net Income: @_incomeStatement.NetIncome.ToString("C")</b>
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">For the period @_incomeStatement.StartDate.ToString("MMM dd, yyyy") to @_incomeStatement.EndDate.ToString("MMM dd, yyyy")</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        }
+    }
 
 </MudContainer>
 
@@ -605,6 +707,10 @@
                 case "OverdueLoans": fileBytes = ExportData(_overdues, format, reportName); break;
                 case "CustomerPortfolios": fileBytes = ExportData(_customerPortfolios, format, reportName); break;
                 case "ApplicationStatuses": fileBytes = ExportData(_applicationStatuses, format, reportName); break;
+                case "IncomeStatement": 
+                    if (_incomeStatement != null)
+                        fileBytes = ExportData(new List<IncomeStatementReportDTO> { _incomeStatement }, format, reportName); 
+                    break;
             }
 
             if (fileBytes != null)
@@ -632,6 +738,17 @@
     private List<LoanMaturityReportDTO> _maturities = new();
     private List<UserActivityReportDTO> _activities = new();
     private List<UserDetailDTO> _subUsers = new();
+
+    private DateRange _incomeStatementRange = new DateRange(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1), DateTime.Now);
+    private IncomeStatementReportDTO? _incomeStatement;
+
+    private async Task LoadIncomeStatement()
+    {
+        if (_incomeStatementRange.Start.HasValue && _incomeStatementRange.End.HasValue)
+        {
+            _incomeStatement = await ReportService.GetIncomeStatementAsync(_incomeStatementRange.Start.Value, _incomeStatementRange.End.Value);
+        }
+    }
 
     private List<RepaymentScheduleReportDTO> _repaymentSchedules = new();
     private List<OverdueReportDTO> _overdues = new();
