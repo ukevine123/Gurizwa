@@ -173,9 +173,6 @@
         // Note: If you want to pass the new ID, ensure your service returns it.
         // For now, we close this dialog first.
         MudDialog.Close(DialogResult.Ok(Model));
-
-        // 3. Open the Requirements configuration dialog immediately
-        await OpenRequirementDialog();
     }
     catch (Exception ex)
     {
@@ -184,26 +181,7 @@
     }
 }
 
-private async Task OpenRequirementDialog()
-{
-    var options = new DialogOptions 
-    { 
-        CloseButton = true, 
-        MaxWidth = MaxWidth.Medium, 
-        FullWidth = true,
-        BackdropClick = false 
-    };
 
-    var selectedProduct = acctype.FirstOrDefault(p => p.Id == Model.LoanProductId);
-    string productName = selectedProduct?.ProductName ?? "Unknown Product";
-
-    var parameters = new DialogParameters 
-    { 
-        { "ProductName", productName } 
-    };
-
-    await DialogService.ShowAsync<LoanProductRequirementDialog>("Configure Requirements", parameters, options);
-}
     protected override async Task OnInitializedAsync()
     {
          try

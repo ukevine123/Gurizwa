@@ -201,6 +201,22 @@
         color: var(--mud-palette-text-primary) !important;
         transition: color 0.3s ease;
     }
+
+    /* Snackbar Customization: Make all non-error snackbars use Primary color to match buttons */
+    .mud-snackbar .mud-alert-filled-success,
+    .mud-snackbar .mud-alert-filled-warning,
+    .mud-snackbar .mud-alert-filled-info,
+    .mud-snackbar .mud-alert-filled-normal {
+        background-color: var(--mud-palette-primary) !important;
+        color: #FFFFFF !important;
+    }
+    
+    .mud-snackbar .mud-alert-filled-success .mud-icon-root,
+    .mud-snackbar .mud-alert-filled-warning .mud-icon-root,
+    .mud-snackbar .mud-alert-filled-info .mud-icon-root,
+    .mud-snackbar .mud-alert-filled-normal .mud-icon-root {
+        color: #FFFFFF !important;
+    }
 </style>
 
 <MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
@@ -231,7 +247,7 @@
                                 <MudText Typo="Typo.body2" Style="font-weight: 600;">@loan.BorrowerName (@loan.ApplicationCode)</MudText>
                                 <div class="d-flex justify-space-between align-center w-100">
                                     <MudText Typo="Typo.caption" Color="Color.Error">Due: @loan.DueDate.ToString("yyyy-MM-dd")</MudText>
-                                    <MudText Typo="Typo.caption" Style="font-weight: 600; color: var(--mud-palette-success);">Inst: $@loan.InstallmentAmount.ToString("N2")</MudText>
+                                    <MudText Typo="Typo.caption" Style="font-weight: 600; color: var(--mud-palette-success);">Inst: @loan.InstallmentAmount.ToString("N2")</MudText>
                                 </div>
                             </div>
                         </MudMenuItem>
@@ -345,6 +361,10 @@
                 @(_drawerOpen ? "Reports" : "")
             </MudNavLink>
 
+            <MudNavLink href="/IncomeStatement" Icon="@Icons.Material.Outlined.Receipt">
+                @(_drawerOpen ? "Income Statement" : "")
+            </MudNavLink>
+
             <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
                 <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
                 <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
@@ -373,7 +393,11 @@
             AppbarBackground = "rgba(255,255,255,0)",
             DrawerBackground = "#FFFFFF",
             TextPrimary = "#1B2559",
-            ActionDefault = "#A3AED0"
+            ActionDefault = "#A3AED0",
+            Success = "#05CD99",
+            Error = "#E31A1A",
+            Warning = "#FFB547",
+            Info = "#3182CE"
         },
         PaletteDark = new PaletteDark()
         {
@@ -383,7 +407,11 @@
             AppbarBackground = "#0B1139",
             DrawerBackground = "#111C44",
             TextPrimary = "#FFFFFF",
-            ActionDefault = "#FFFFFF"
+            ActionDefault = "#FFFFFF",
+            Success = "#05CD99",
+            Error = "#E31A1A",
+            Warning = "#FFB547",
+            Info = "#3182CE"
         }
     };
 

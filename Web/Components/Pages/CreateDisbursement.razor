@@ -265,7 +265,7 @@
         var modalityObj = PaymentModalities.FirstOrDefault(m => m.Id == Model.PaymentModalityId);
         string mode = modalityObj?.Mode?.ToLower() ?? "monthly";
 
-        for (int i = 0; i < Model.TotalInstallments; i++)
+        for (int i = 1; i <= Model.TotalInstallments; i++)
         {
             DateTime dueDate = mode switch {
                 "daily" => Model.StartDate.Value.AddDays(i),
@@ -276,7 +276,7 @@
             };
             
             rows.Add(new PreviewRow {
-                No = i + 1,
+                No = i,
                 DueDate = dueDate,
                 PrincipalPart = principalPart,
                 InterestPart = interestPart,

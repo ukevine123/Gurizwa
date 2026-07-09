@@ -54,6 +54,7 @@
                     <MudTh>Due Date</MudTh>
                     <MudTh>Principal</MudTh>
                     <MudTh>Interest</MudTh>
+                    <MudTh>Penalty</MudTh>
                     <MudTh>Scheduled Payment</MudTh>
                     <MudTh>Amount Paid</MudTh>
                     <MudTh>Remaining Balance</MudTh>
@@ -68,6 +69,7 @@
                     <MudTd>@context.DueDate.ToShortDateString()</MudTd>
                     <MudTd>@context.PrincipalScheduled.ToString("N2")</MudTd>
                     <MudTd>@context.InterestScheduled.ToString("N2")</MudTd>
+                    <MudTd>@context.PenaltyScheduled.ToString("N2")</MudTd>
                     <MudTd><b>@context.ScheduledPayment.ToString("N2")</b></MudTd>
                     <MudTd>@context.AmountPaid.ToString("N2")</MudTd>
                     <MudTd>@context.RemainingBalance.ToString("N2")</MudTd>
@@ -147,6 +149,7 @@
         public DateTime DueDate { get; set; }
         public decimal PrincipalScheduled { get; set; }
         public decimal InterestScheduled { get; set; }
+        public decimal PenaltyScheduled { get; set; }
         public decimal ScheduledPayment { get; set; }
         public decimal AmountPaid { get; set; }
         public decimal RemainingBalance { get; set; }
@@ -211,7 +214,11 @@
         decimal principalPart = disbursement.PrincipalOffered / disbursement.TotalInstallments;
         decimal totalInterest = disbursement.PrincipalOffered * (disbursement.InterestRate / 100);
         decimal interestPart = totalInterest / disbursement.TotalInstallments;
-        decimal scheduledPayment = (disbursement.PrincipalOffered + totalInterest) / disbursement.TotalInstallments;
+        
+        decimal totalPenalty = disbursement.Amount - (disbursement.PrincipalOffered + totalInterest);
+        decimal penaltyPart = totalPenalty / disbursement.TotalInstallments;
+        
+        decimal scheduledPayment = disbursement.Amount / disbursement.TotalInstallments;
         
         decimal remainingBalance = disbursement.Amount;
         var paymentsByInstallment = GetPaymentsByInstallment(disbursement.Id);
@@ -252,6 +259,7 @@
                 DueDate = dueDate,
                 PrincipalScheduled = principalPart,
                 InterestScheduled = interestPart,
+                PenaltyScheduled = penaltyPart,
                 ScheduledPayment = scheduledPayment,
                 AmountPaid = amountPaidForInstallment,
                 RemainingBalance = remainingBalance > 0 ? remainingBalance : 0,

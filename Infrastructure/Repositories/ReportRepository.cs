@@ -161,6 +161,7 @@ namespace Infrastructure.Repositories
                     Id = a.Id,
                     Action = a.Action,
                     EntityName = a.EntityName,
+                    EntityId = a.EntityId,
                     Description = a.Description,
                     UserName = a.UserName,
                     Timestamp = a.Timestamp

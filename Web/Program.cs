@@ -59,7 +59,10 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options => {
 
 // Core Services
 builder.Services.AddScoped<UserContext>();
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.SnackbarVariant = MudBlazor.Variant.Filled;
+});
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddControllers(); // Moved up from the bottom
 builder.Services.AddAuthorization(); // Moved up from the bottom

@@ -77,10 +77,7 @@ namespace Infrastructure.Repositories
             {
                 throw new ArgumentException("IdentificationNumber is required.");
             }
-            if (!Regex.IsMatch(borrowerDTO.IdentificationNumber, @"^\d+$"))
-            {
-                throw new ArgumentException("IdentificationNumber must contain only digits.");
-            }
+
             if (borrowerDTO.IdentificationNumber.Length > 16)
             {
                 throw new ArgumentException("IdentificationNumber must not be more than 16 digits.");

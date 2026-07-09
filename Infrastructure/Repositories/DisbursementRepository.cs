@@ -149,15 +149,13 @@ namespace Infrastructure.Repositories
                 
                 DateTime fixedStartDate = startDate.Date.AddHours(12);
                 int n = newInstallments > 0 ? newInstallments : 1;
-                int periods = n - 1;
-
                 DateTime calculatedEndDate = mode switch
                 {
-                    "daily" => fixedStartDate.AddDays(periods),
-                    "weekly" => fixedStartDate.AddDays(periods * 7),
-                    "monthly" => fixedStartDate.AddMonths(periods),
-                    "yearly" => fixedStartDate.AddYears(periods),
-                    _ => fixedStartDate.AddMonths(periods)
+                    "daily" => fixedStartDate.AddDays(n),
+                    "weekly" => fixedStartDate.AddDays(n * 7),
+                    "monthly" => fixedStartDate.AddMonths(n),
+                    "yearly" => fixedStartDate.AddYears(n),
+                    _ => fixedStartDate.AddMonths(n)
                 };
 
                 // 3. Create the New Disbursement entity
@@ -256,14 +254,13 @@ namespace Infrastructure.Repositories
                 decimal totalInterest = netPrincipal * (autoRate / 100);
                 decimal totalAmount = netPrincipal + totalInterest;
 
-                int periods = n - 1; 
                 DateTime calculatedEndDate = mode switch
                 {
-                    "daily" => startDate.AddDays(periods),
-                    "weekly" => startDate.AddDays(periods * 7),
-                    "monthly" => startDate.AddMonths(periods),
-                    "yearly" => startDate.AddYears(periods),
-                    _ => startDate.AddMonths(periods)
+                    "daily" => startDate.AddDays(n),
+                    "weekly" => startDate.AddDays(n * 7),
+                    "monthly" => startDate.AddMonths(n),
+                    "yearly" => startDate.AddYears(n),
+                    _ => startDate.AddMonths(n)
                 };
 
                 var disbursement = new Disbursement

@@ -12,8 +12,7 @@ namespace Application.DTO
         public Sex? sex{get;set;}
         public DateTime? DateOfBirth {get;set;}
         [Required]
-        [RegularExpression(@"^\d+$", ErrorMessage = "IdentificationNumber must contain only digits.")]
-        [StringLength(16, ErrorMessage = "IdentificationNumber must not be more than 16 digits.")]
+        [StringLength(16, ErrorMessage = "IdentificationNumber must not be more than 16 characters.")]
         public string IdentificationNumber{get;set;}
         public string Email {get;set;}
         public string PhoneNumber {get;set;}

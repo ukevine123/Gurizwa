@@ -443,6 +443,11 @@
     {
         try
         {
+            if (isOrganization)
+            {
+                Model.TIN = Model.IdentificationNumber;
+            }
+
             await BorrowerService.CreateBorrower(Model);
             Snackbar.Add("Borrower created successfully!", Severity.Info);
             MudDialog.Close(DialogResult.Ok(Model));
@@ -450,6 +455,7 @@
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
 }

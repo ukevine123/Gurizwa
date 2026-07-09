@@ -55,7 +55,7 @@ namespace Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await _identityService.LogoutAsync();
-            return Redirect("/account/logout");
+            return Redirect("/account/login");
         }
     }
 }

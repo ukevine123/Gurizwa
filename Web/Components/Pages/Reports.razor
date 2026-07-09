@@ -27,7 +27,6 @@
                 </div>
                 <div class="rc-title">Active Loans</div>
                 <div class="rc-desc">Overview of @_activeLoans.Count active loans and their balances</div>
-                <div class="rc-meta">Last run: 2h ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("ActiveLoans", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -48,7 +47,6 @@
                 </div>
                 <div class="rc-title">Disbursements</div>
                 <div class="rc-desc">Detailed breakdown of @_disbursements.Count loan disbursements</div>
-                <div class="rc-meta">Last run: 52 min ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("Disbursements", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -69,7 +67,6 @@
                 </div>
                 <div class="rc-title">Maturity Tracker</div>
                 <div class="rc-desc">Track @_maturities.Count loans reaching maturity dates</div>
-                <div class="rc-meta">Last run: 52 min ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("MaturityTracker", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -89,8 +86,7 @@
                     <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">User Activities</div>
-                <div class="rc-desc">Performance insights for @_activities.Count user activities</div>
-                <div class="rc-meta">Last run: 1d ago</div>
+                <div class="rc-desc">Performance insights for @(_activities.Select(a => a.UserName).Distinct().Count()) active users</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("UserActivities", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -114,7 +110,6 @@
                 </div>
                 <div class="rc-title">Repayment Schedules</div>
                 <div class="rc-desc">Health scores and @_repaymentSchedules.Count repayment schedules</div>
-                <div class="rc-meta">Last run: 3d ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("RepaymentSchedules", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -135,7 +130,6 @@
                 </div>
                 <div class="rc-title">Overdue Loans</div>
                 <div class="rc-desc">High level KPI summary for @_overdues.Count overdue loans</div>
-                <div class="rc-meta">Last run: 3d ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("OverdueLoans", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -156,7 +150,6 @@
                 </div>
                 <div class="rc-title">Customer Portfolios</div>
                 <div class="rc-desc">Detailed overview of @_customerPortfolios.Count customer portfolios</div>
-                <div class="rc-meta">Last run: 1h ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("CustomerPortfolios", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -177,7 +170,6 @@
                 </div>
                 <div class="rc-title">Application Statuses</div>
                 <div class="rc-desc">Analyze pipeline metrics for @_applicationStatuses.Count applications</div>
-                <div class="rc-meta">Last run: 45 min ago</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("ApplicationStatuses", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -201,7 +193,6 @@
                 </div>
                 <div class="rc-title">Upcoming Dues</div>
                 <div class="rc-desc">Filter upcoming dues by 5 or 7 days</div>
-                <div class="rc-meta">Live updates</div>
                 <div class="rc-footer">
                     <div class="rc-exports">
                         <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("UpcomingDues", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
@@ -387,7 +378,7 @@
     else if (_activeReport == "UserActivities")
     {
         var targetActivities = _activities.Where(a => string.IsNullOrEmpty(_activityUserSearch) || string.Equals(a.UserName, _activityUserSearch, StringComparison.OrdinalIgnoreCase)).ToList();
-        var appsCount = targetActivities.Count(a => (a.EntityName != null && a.EntityName.Contains("Application", StringComparison.OrdinalIgnoreCase)) || (a.Action != null && a.Action.Contains("Application", StringComparison.OrdinalIgnoreCase)));
+        var appsCount = targetActivities.Where(a => a.EntityName != null && a.EntityName.Contains("Application", StringComparison.OrdinalIgnoreCase)).Select(a => a.EntityId).Distinct().Count();
         var disbCount = targetActivities.Count(a => (a.EntityName != null && a.EntityName.Contains("Disbursement", StringComparison.OrdinalIgnoreCase)) || (a.Action != null && a.Action.Contains("Disbursed", StringComparison.OrdinalIgnoreCase)));
         var payCount = targetActivities.Count(a => (a.EntityName != null && a.EntityName.Contains("Payment", StringComparison.OrdinalIgnoreCase)) || (a.Action != null && (a.Action.Contains("Paid", StringComparison.OrdinalIgnoreCase) || a.Action.Contains("Deposit", StringComparison.OrdinalIgnoreCase))));
 
