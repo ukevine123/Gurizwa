@@ -76,10 +76,9 @@
             <PropertyColumn Property="x => x.Id" Title="ID" /> *@
             <TemplateColumn Title="FirstName">
                 <CellTemplate>
-                   
+                   @context.Item.FirstName
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.FirstName" Title="FirstName" />
             <PropertyColumn Property="x => x.LastName" Title="LastName" />
             <PropertyColumn Property="x => x.GuarantorType.Name" Title="GuarantorType" />
             <PropertyColumn Property="x => x.Identification" Title="Identification" />

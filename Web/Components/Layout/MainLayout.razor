@@ -29,7 +29,7 @@
 
     /* --- SIDE DRAWER STYLES (Theme Aware) --- */
     .dark-drawer {
-        background-color: #F4F7FE !important;
+        background-color: #FFFFFF !important;
         border-right: 1px solid #E3E6F0 !important;
         transition: background-color 0.3s ease, border-color 0.3s ease !important;
     }
@@ -397,7 +397,7 @@
             Success = "#05CD99",
             Error = "#E31A1A",
             Warning = "#FFB547",
-            Info = "#3182CE"
+            Info = "#3182CE",
         },
         PaletteDark = new PaletteDark()
         {
@@ -411,7 +411,8 @@
             Success = "#05CD99",
             Error = "#E31A1A",
             Warning = "#FFB547",
-            Info = "#3182CE"
+            Info = "#3182CE",
+
         }
     };
 
@@ -439,23 +440,6 @@
         } 
         catch { }
 
-        // Injecting mock data for UI testing if the lists are empty (or if the API failed)
-        if (!_dueIn5Days.Any() && !_dueIn7Days.Any())
-        {
-            var today = DateTime.Now.Date;
-            var mock1 = new RepaymentScheduleReportDTO { BorrowerName = "Jane Doe", ApplicationCode = "APP-2026-001", DueDate = today.AddDays(2), InstallmentAmount = 150.00m };
-            var mock2 = new RepaymentScheduleReportDTO { BorrowerName = "John Smith", ApplicationCode = "APP-2026-002", DueDate = today.AddDays(4), InstallmentAmount = 300.50m };
-            var mock3 = new RepaymentScheduleReportDTO { BorrowerName = "Alice Johnson", ApplicationCode = "APP-2026-003", DueDate = today.AddDays(6), InstallmentAmount = 50.00m };
-            
-            _dueIn5Days.Add(mock1);
-            _dueIn5Days.Add(mock2);
-            _dueIn5Days = _dueIn5Days.OrderBy(s => s.DueDate).ToList();
-
-            _dueIn7Days.Add(mock1);
-            _dueIn7Days.Add(mock2);
-            _dueIn7Days.Add(mock3);
-            _dueIn7Days = _dueIn7Days.OrderBy(s => s.DueDate).ToList();
-        }
     }
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;

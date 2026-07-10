@@ -220,26 +220,81 @@ namespace Infrastructure.Repositories
             var activeLoans = await dbContext.Disbursements
                 .Include(d => d.LoanApplication).ThenInclude(la => la.Borrower)
                 .Include(d => d.LoanApplication).ThenInclude(la => la.LoanProductSetting).ThenInclude(lps => lps.LoanProduct)
+                .Include(d => d.PaymentModality)
                 .Include(d => d.Payments)
                 .Where(d => d.IsActive && (d.PersonId == currentPersonId.Value || d.LoanApplication.PersonId == currentPersonId.Value))
                 .ToListAsync();
 
-            return activeLoans.Select(d => new RepaymentScheduleReportDTO
+            var reports = new List<RepaymentScheduleReportDTO>();
+
+            foreach (var d in activeLoans)
             {
-                LoanId = d.LoanApplicationId,
-                ApplicationCode = d.LoanApplication.ApplicationCode,
-                BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
-                LoanType = d.LoanApplication.LoanProductSetting.LoanProduct.ProductName,
-                PrincipalAmount = d.Amount,
-                InterestRate = d.InterestRate,
-                TotalInstallments = d.TotalInstallments,
-                InstallmentNumber = 1, // Simulated for dashboard summary
-                DueDate = d.StartDate.AddMonths(1), // Simulated next due date
-                InstallmentAmount = d.TotalInstallments > 0 ? (d.Amount / d.TotalInstallments) : 0,
-                AmountPaid = d.Payments.Where(p => p.IsActive).Sum(p => p.Amount),
-                Balance = Math.Max(0, d.Amount - d.Payments.Where(p => p.IsActive).Sum(p => p.Amount)),
-                Status = "Pending"
-            }).ToList();
+                int totalInstallments = d.TotalInstallments > 0 ? d.TotalInstallments : 1;
+                decimal totalDuePerInstallment = d.Amount / totalInstallments;
+                string mode = (d.PaymentModality?.Mode ?? "monthly").ToLower();
+                decimal totalCollected = d.Payments.Where(p => p.IsActive).Sum(p => p.Amount);
+                decimal runningPaidAmount = totalCollected;
+                decimal balance = Math.Max(0, d.Amount - totalCollected);
+
+                if (balance <= 0.01m)
+                {
+                     // Fully paid, no upcoming due for this loan
+                     continue;
+                }
+
+                int nextInstallmentNumber = 1;
+                DateTime nextDueDate = d.StartDate;
+                decimal nextInstallmentAmount = totalDuePerInstallment;
+
+                for (int i = 0; i < totalInstallments; i++)
+                {
+                    DateTime dueDate = mode switch
+                    {
+                        "daily" => d.StartDate.AddDays(i),
+                        "weekly" => d.StartDate.AddDays(i * 7),
+                        "monthly" => d.StartDate.AddMonths(i),
+                        _ => d.StartDate.AddMonths(i)
+                    };
+
+                    if (runningPaidAmount >= totalDuePerInstallment)
+                    {
+                        runningPaidAmount -= totalDuePerInstallment;
+                    }
+                    else if (runningPaidAmount > 0)
+                    {
+                        nextInstallmentNumber = i + 1;
+                        nextDueDate = dueDate;
+                        nextInstallmentAmount = totalDuePerInstallment - runningPaidAmount;
+                        break; 
+                    }
+                    else
+                    {
+                        nextInstallmentNumber = i + 1;
+                        nextDueDate = dueDate;
+                        nextInstallmentAmount = totalDuePerInstallment;
+                        break;
+                    }
+                }
+
+                reports.Add(new RepaymentScheduleReportDTO
+                {
+                    LoanId = d.LoanApplicationId,
+                    ApplicationCode = d.LoanApplication.ApplicationCode,
+                    BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
+                    LoanType = d.LoanApplication.LoanProductSetting.LoanProduct.ProductName,
+                    PrincipalAmount = d.Amount,
+                    InterestRate = d.InterestRate,
+                    TotalInstallments = totalInstallments,
+                    InstallmentNumber = nextInstallmentNumber,
+                    DueDate = nextDueDate,
+                    InstallmentAmount = nextInstallmentAmount,
+                    AmountPaid = totalCollected,
+                    Balance = balance,
+                    Status = "Pending"
+                });
+            }
+
+            return reports;
         }
 
         public async Task<List<OverdueReportDTO>> GetOverdueReportAsync()

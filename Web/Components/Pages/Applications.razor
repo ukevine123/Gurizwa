@@ -93,7 +93,18 @@
             <HierarchyColumn T="LoanApplication" />
             @* <PropertyColumn Property="x => x.Id" Title="ID" /> *@
            <PropertyColumn Property="x => x.LoanProductSettingId" Title="Product" />
-            <PropertyColumn Property="x => x.Borrower.FirstName" Title="Borrower" />
+            <TemplateColumn Title="Borrower">
+                <CellTemplate>
+                    @if (!string.IsNullOrEmpty(context.Item.Borrower?.CompanyName))
+                    {
+                        @context.Item.Borrower?.CompanyName
+                    }
+                    else
+                    {
+                        @($"{context.Item.Borrower?.FirstName} {context.Item.Borrower?.LastName}".Trim())
+                    }
+                </CellTemplate>
+            </TemplateColumn>
             <PropertyColumn Property="x => x.PaymentModality.Mode" Title="Payment Method" />
             <PropertyColumn Property="x => x.AmountRequested" Title="AmountRequested" />
             <PropertyColumn Property="x => x.PreferredDate" Title="PreferredDate" Format="yyyy-MM-dd" />

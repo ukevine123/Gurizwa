@@ -50,10 +50,15 @@
             
             <TemplateColumn Title="Borrower">
                 <CellTemplate>
-                    <MudText Typo="Typo.body2">
+                    @if (!string.IsNullOrEmpty(context.Item.LoanApplication?.Borrower?.CompanyName))
+                    {
+                        @context.Item.LoanApplication?.Borrower?.CompanyName
+                    }
+                    else
+                    {
                         <b>@context.Item.LoanApplication?.Borrower?.FirstName</b> 
                         @context.Item.LoanApplication?.Borrower?.LastName
-                    </MudText>
+                    }
                 </CellTemplate>
             </TemplateColumn>
 
