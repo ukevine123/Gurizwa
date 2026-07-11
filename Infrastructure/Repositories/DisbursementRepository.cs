@@ -113,9 +113,8 @@ namespace Infrastructure.Repositories
                 LoanApplicationId = app.Id,
                 PaymentModalityId = app.PaymentModalityId,
                 InterestRate = rate,
-                PrincipalOffered = app.AmountRequested - feeDeposited,
+                PrincipalOffered = app.AmountRequested,
                 TotalInstallments = 1 
-                
             };
         }
 
@@ -230,10 +229,9 @@ namespace Infrastructure.Repositories
                 
                 if (loanApp == null) throw new InvalidOperationException("Loan Application not found.");
 
-                int autoModalityId = loanApp.PaymentModalityId;
-                decimal autoRate = loanApp.LoanProductSetting?.InterestRate ?? 0;
-                decimal autoFee = loanApp.LoanProductSetting?.ProcessingFee ?? 0;
-                decimal netPrincipal = loanApp.AmountRequested - autoFee;
+                int autoModalityId = disbursementDTO.PaymentModalityId;
+                decimal autoRate = disbursementDTO.InterestRate;
+                decimal netPrincipal = disbursementDTO.PrincipalOffered;
 
                 var account = await context.Accounts.FirstOrDefaultAsync(a => a.Id == disbursementDTO.AccountId);
                 if (account == null) throw new InvalidOperationException("Source account not found.");
@@ -251,8 +249,7 @@ namespace Infrastructure.Repositories
 
                 int n = disbursementDTO.TotalInstallments > 0 ? disbursementDTO.TotalInstallments : 1;
 
-                decimal totalInterest = netPrincipal * (autoRate / 100);
-                decimal totalAmount = netPrincipal + totalInterest;
+                decimal totalAmount = disbursementDTO.Amount;
 
                 DateTime calculatedEndDate = mode switch
                 {

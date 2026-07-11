@@ -126,6 +126,12 @@ namespace Infrastructure.Data
                 .HasForeignKey(g => g.PersonId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            builder.Entity<Guarantor>()
+                .HasOne(g => g.LoanApplication)
+                .WithMany()
+                .HasForeignKey(g => g.LoanApplicationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             builder.Entity<Account>()
                 .HasOne(a => a.Person)
                 .WithMany(p => p.Accounts)
@@ -154,6 +160,24 @@ namespace Infrastructure.Data
                 .HasOne(b => b.Person)
                 .WithMany(p => p.Borrowers)
                 .HasForeignKey(b => b.PersonId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Penality>()
+                .HasOne(p => p.Person)
+                .WithMany(p => p.Penalities)
+                .HasForeignKey(p => p.PersonId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Penality>()
+                .HasOne(p => p.Reason)
+                .WithMany()
+                .HasForeignKey(p => p.ReasonId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Payment>()
+                .HasOne(p => p.Person)
+                .WithMany(p => p.Payments)
+                .HasForeignKey(p => p.PersonId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.Entity<Expense>()
