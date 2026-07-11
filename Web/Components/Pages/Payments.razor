@@ -38,7 +38,7 @@
                     @foreach (var disb in _disbursements)
                     {
                         <MudSelectItem T="int" Value="@disb.Id">
-                            @disb.LoanApplication?.Borrower?.FirstName @disb.LoanApplication?.Borrower?.LastName - 
+                            @(disb.LoanApplication?.Borrower != null ? (!string.IsNullOrEmpty(disb.LoanApplication.Borrower.CompanyName) ? disb.LoanApplication.Borrower.CompanyName : $"{disb.LoanApplication.Borrower.FirstName} {disb.LoanApplication.Borrower.LastName}") : "") - 
                             @disb.LoanApplication?.ApplicationCode (Principal: @disb.PrincipalOffered.ToString("N"))
                         </MudSelectItem>
                     }
@@ -97,7 +97,7 @@
             <TemplateColumn Title="Borrower">
                 <CellTemplate>
                     <MudText Typo="Typo.body2" Style="font-weight: 600;">
-                        @context.Item.Disbursement?.LoanApplication?.Borrower?.FirstName @context.Item.Disbursement?.LoanApplication?.Borrower?.LastName
+                        @(context.Item.Disbursement?.LoanApplication?.Borrower != null ? (!string.IsNullOrEmpty(context.Item.Disbursement.LoanApplication.Borrower.CompanyName) ? context.Item.Disbursement.LoanApplication.Borrower.CompanyName : $"{context.Item.Disbursement.LoanApplication.Borrower.FirstName} {context.Item.Disbursement.LoanApplication.Borrower.LastName}") : "")
                     </MudText>
                 </CellTemplate>
             </TemplateColumn>

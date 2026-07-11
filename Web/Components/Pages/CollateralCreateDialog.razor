@@ -52,9 +52,9 @@
         
         @foreach (var app in _loanApplications)
         {
-            
-            @* Convert app.Id to string using .ToString() *@
-            <MudSelectItem T="int" Value="@app.Id">@app.ApplicationCode</MudSelectItem>
+            <MudSelectItem T="int" Value="@app.Id">
+                @app.ApplicationCode - @(!string.IsNullOrWhiteSpace(app.Borrower?.CompanyName) ? app.Borrower.CompanyName : $"{app.Borrower?.FirstName} {app.Borrower?.LastName}")
+            </MudSelectItem>
         }
     </MudSelect>
 </MudItem>

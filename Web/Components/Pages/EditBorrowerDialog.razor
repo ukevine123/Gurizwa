@@ -2,6 +2,7 @@
 @using Application.Services.BorrowerTypes
 
 @using Domain.Entities
+@using Domain.ValueObjects
 @using Application.DTO
 @using Application.Interfaces
 @using MudBlazor
@@ -28,31 +29,73 @@
                 <DataAnnotationsValidator />
                 <MudStack Spacing="3">
                     
-                    <MudTextField Label="FirstName" @bind-Value="_editModel.FirstName" 
-                                  Variant="Variant.Outlined" For="@(() => _editModel.FirstName)" />
+                    <MudSelect T="int"
+                               Label="Borrower Type"
+                               Value="_editModel.BorrowerTypeId"
+                               ValueChanged="OnBorrowerTypeChanged"
+                               Variant="Variant.Outlined"
+                               For="@(() => _editModel.BorrowerTypeId)">
+                        @if (_borrowerType != null)
+                        {
+                            foreach (var type in _borrowerType)
+                            {
+                                <MudSelectItem T="int" Value="@type.Id">@type.Type</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
 
-                    <MudTextField Label="BorrowerTypeId" @bind-Value="_editModel.BorrowerTypeId" 
-                                  Variant="Variant.Outlined" For="@(() => _editModel.BorrowerTypeId)" />
+                    @if (!isOrganization)
+                    {
+                        <MudTextField Label="First Name" @bind-Value="_editModel.FirstName" 
+                                      Variant="Variant.Outlined" For="@(() => _editModel.FirstName)" />
 
-                    <MudTextField Label="sex" @bind-Value="_editModel.sex" 
-                                     Variant="Variant.Outlined" For="@(() => _editModel.sex)" />
+                        <MudTextField Label="Last Name" @bind-Value="_editModel.LastName" 
+                                      Variant="Variant.Outlined" For="@(() => _editModel.LastName)" />
 
-                    <MudTextField Label="DateOfBirth" @bind-Value="_editModel.DateOfBirth" 
-                                     Variant="Variant.Outlined" For="@(() => _editModel.DateOfBirth)" />
+                        <MudSelect T="Sex?" Label="Sex" @bind-Value="_editModel.sex" 
+                                   Variant="Variant.Outlined" For="@(() => _editModel.sex)">
+                            <MudSelectItem T="Sex?" Disabled="true">-- Select Sex --</MudSelectItem>
+                            @foreach (Sex item in Enum.GetValues(typeof(Sex)))
+                            {
+                                <MudSelectItem T="Sex?" Value="item">@item.ToString()</MudSelectItem>
+                            }
+                        </MudSelect>
 
-                    <MudTextField Label="Maritalstatus" @bind-Value="_editModel.Maritalstatus" 
-                                     Variant="Variant.Outlined" For="@(() => _editModel.Maritalstatus)" />
+                        <MudDatePicker Label="Date Of Birth" @bind-Value="_editModel.DateOfBirth" 
+                                       Variant="Variant.Outlined" For="@(() => _editModel.DateOfBirth)" />
 
-                    <MudTextField Label="SpouceIdNumber" @bind-Value="_editModel.SpouceIdNumber" 
-                                     Variant="Variant.Outlined" For="@(() => _editModel.SpouceIdNumber)" />
+                        <MudSelect T="Maritalstatus?" Label="Marital Status" @bind-Value="_editModel.Maritalstatus" 
+                                   Variant="Variant.Outlined" For="@(() => _editModel.Maritalstatus)">
+                            <MudSelectItem T="Maritalstatus?" Disabled="true">-- Select Marital Status --</MudSelectItem>
+                            @foreach (Maritalstatus item in Enum.GetValues(typeof(Maritalstatus)))
+                            {
+                                <MudSelectItem T="Maritalstatus?" Value="item">@item.ToString()</MudSelectItem>
+                            }
+                        </MudSelect>
 
-                    <MudTextField Label="SpouceName" @bind-Value="_editModel.SpouceName" 
-                                     Variant="Variant.Outlined" For="@(() => _editModel.SpouceName)" />
+                        @if (_editModel.Maritalstatus == Maritalstatus.Married)
+                        {
+                            <MudTextField Label="Spouse ID Number" @bind-Value="_editModel.SpouceIdNumber" 
+                                          Variant="Variant.Outlined" For="@(() => _editModel.SpouceIdNumber)" />
 
-                    @* <MudSelect T="string" Label="Status" @bind-Value="_editModel.Status" Variant="Variant.Outlined">
-                        <MudSelectItem Value="@("Active")">Active</MudSelectItem>
-                        <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
-                    </MudSelect> *@
+                            <MudTextField Label="Spouse Name" @bind-Value="_editModel.SpouceName" 
+                                          Variant="Variant.Outlined" For="@(() => _editModel.SpouceName)" />
+                        }
+                    }
+                    else
+                    {
+                        <MudTextField Label="Company Name" @bind-Value="_editModel.CompanyName" 
+                                      Variant="Variant.Outlined" For="@(() => _editModel.CompanyName)" />
+
+                        <MudTextField Label="TIN" @bind-Value="_editModel.TIN" 
+                                      Variant="Variant.Outlined" For="@(() => _editModel.TIN)" />
+
+                        <MudTextField Label="Contact Person Name" @bind-Value="_editModel.ContactPersonName" 
+                                      Variant="Variant.Outlined" For="@(() => _editModel.ContactPersonName)" />
+
+                        <MudTextField Label="Contact Person Phone" @bind-Value="_editModel.ContactPersonPhone" 
+                                      Variant="Variant.Outlined" For="@(() => _editModel.ContactPersonPhone)" />
+                    }
 
                 </MudStack>
             </EditForm>
@@ -70,6 +113,21 @@
 
     private UpdateBorrowerDTO _editModel = new();
     private List<BorrowerType> _borrowerType;
+    private bool isOrganization = false;
+
+    private void OnBorrowerTypeChanged(int typeId)
+    {
+        _editModel.BorrowerTypeId = typeId;
+        var type = _borrowerType?.FirstOrDefault(t => t.Id == typeId);
+        if (type != null && type.Type.Equals("Organization", StringComparison.OrdinalIgnoreCase))
+        {
+            isOrganization = true;
+        }
+        else
+        {
+            isOrganization = false;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,9 +144,9 @@
                 FirstName = _borrower.FirstName,
                 LastName = _borrower.LastName,
                 BorrowerTypeId = _borrower.BorrowerTypeId,
-                sex = _borrower.sex ?? Domain.ValueObjects.Sex.Male,
+                sex = _borrower.sex ?? Sex.Male,
                 DateOfBirth = _borrower.DateOfBirth ?? DateTime.Now,
-                Maritalstatus = _borrower.Maritalstatus ?? Domain.ValueObjects.Maritalstatus.Single,
+                Maritalstatus = _borrower.Maritalstatus ?? Maritalstatus.Single,
                 SpouceIdNumber = _borrower.SpouceIdNumber,
                 SpouceName = _borrower.SpouceName,
                 CompanyName = _borrower.CompanyName,
@@ -96,6 +154,12 @@
                 ContactPersonName = _borrower.ContactPersonName,
                 ContactPersonPhone = _borrower.ContactPersonPhone
             };
+
+            var type = _borrowerType?.FirstOrDefault(t => t.Id == _editModel.BorrowerTypeId);
+            if (type != null && type.Type.Equals("Organization", StringComparison.OrdinalIgnoreCase))
+            {
+                isOrganization = true;
+            }
         }
     }
 

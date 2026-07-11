@@ -50,7 +50,7 @@
                             <MudSelectItem T="int" Value="@d.Id">
                                 <div class="d-flex justify-space-between" style="width: 100%;">
                                     <MudText Typo="Typo.body2">
-                                        <b>@(d.LoanApplication?.Borrower != null ? $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}" : $"Ref #{d.Id}")</b>
+                                        <b>@(d.LoanApplication?.Borrower != null ? (!string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}") : $"Ref #{d.Id}")</b>
                                     </MudText>
                                     <MudText Typo="Typo.body2" Color="Color.Success" Style="font-weight:700" Class="ml-4">
                                         @installmentAmount.ToString("N2")
