@@ -43,7 +43,7 @@ namespace Infrastructure.Repositories
             {
                 LoanId = d.LoanApplicationId,
                 ApplicationCode = d.LoanApplication.ApplicationCode,
-                BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
+                BorrowerName = !string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
                 PrincipalBalance = Math.Max(0, d.Amount - d.Payments.Where(p => p.IsActive).Sum(p => p.Amount)),
                 InterestRate = d.InterestRate,
                 TenureMonths = d.TotalInstallments,
@@ -87,7 +87,7 @@ namespace Infrastructure.Repositories
             {
                 LoanId = d.LoanApplicationId,
                 ApplicationCode = d.LoanApplication.ApplicationCode,
-                BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
+                BorrowerName = !string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
                 AmountDisbursed = d.PrincipalOffered,
                 LoanType = d.LoanApplication.LoanProductSetting.LoanProduct.ProductName,
                 Branch = d.Account?.Provider ?? d.Account?.Name ?? "Main Branch",
@@ -122,7 +122,7 @@ namespace Infrastructure.Repositories
             {
                 LoanId = d.LoanApplicationId,
                 ApplicationCode = d.LoanApplication.ApplicationCode,
-                BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
+                BorrowerName = !string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
                 MaturityDate = d.EndDate,
                 RemainingBalance = Math.Max(0, d.Amount - d.Payments.Where(p => p.IsActive).Sum(p => p.Amount)),
                 Status = d.EndDate < DateTime.Now ? "Matured" : "Nearing Maturity"
@@ -280,7 +280,7 @@ namespace Infrastructure.Repositories
                 {
                     LoanId = d.LoanApplicationId,
                     ApplicationCode = d.LoanApplication.ApplicationCode,
-                    BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
+                    BorrowerName = !string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
                     LoanType = d.LoanApplication.LoanProductSetting.LoanProduct.ProductName,
                     PrincipalAmount = d.Amount,
                     InterestRate = d.InterestRate,
@@ -324,7 +324,7 @@ namespace Infrastructure.Repositories
                     {
                         LoanId = d.LoanApplicationId,
                         ApplicationCode = d.LoanApplication.ApplicationCode,
-                        BorrowerName = $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
+                        BorrowerName = !string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}",
                         LoanType = d.LoanApplication.LoanProductSetting.LoanProduct.ProductName,
                         PrincipalAmount = d.Amount,
                         OutstandingBalance = balance,
@@ -503,7 +503,7 @@ namespace Infrastructure.Repositories
                 portfolio.Add(new CustomerPortfolioReportDTO
                 {
                     BorrowerId = b.Id,
-                    BorrowerName = $"{b.FirstName} {b.LastName}",
+                    BorrowerName = !string.IsNullOrEmpty(b.CompanyName) ? b.CompanyName : $"{b.FirstName} {b.LastName}",
                     ActiveLoans = activeLoans,
                     ClosedLoans = closedLoans,
                     TotalOutstanding = outstanding,
@@ -528,7 +528,7 @@ namespace Infrastructure.Repositories
             {
                 ApplicationId = la.Id,
                 ApplicationCode = la.ApplicationCode,
-                BorrowerName = $"{la.Borrower.FirstName} {la.Borrower.LastName}",
+                BorrowerName = !string.IsNullOrEmpty(la.Borrower.CompanyName) ? la.Borrower.CompanyName : $"{la.Borrower.FirstName} {la.Borrower.LastName}",
                 Status = la.Status.ToString(),
                 ApplicationDate = la.DateofApplication,
                 ProcessingDays = (DateTime.Now - la.DateofApplication).Days
