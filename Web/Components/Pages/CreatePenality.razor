@@ -46,7 +46,7 @@
                         @foreach (var loan in _loanApplications)
                         {
                             <MudSelectItem Value="@loan.Id">
-                                <b>#@loan.Id</b> - @(loan.Borrower?.FirstName) @(loan.Borrower?.LastName)
+                                <b>#@loan.Id</b> - @(loan.Borrower != null ? (!string.IsNullOrEmpty(loan.Borrower.CompanyName) ? loan.Borrower.CompanyName : $"{loan.Borrower.FirstName} {loan.Borrower.LastName}") : "")
                             </MudSelectItem>
                         }
                     </MudSelect>

@@ -32,7 +32,7 @@
 
         <MudGrid Spacing="2">
             <MudItem xs="12" sm="6">
-                <MudSelect T="int" Label="Select Loan/Disbursement" Value="SelectedDisbursementId"
+                <MudSelect T="int" Label="Select Loan Disbursement" Value="SelectedDisbursementId"
                           ValueChanged="OnDisbursementSelected" Variant="Variant.Outlined" Margin="Margin.Dense">
                     <MudSelectItem T="int" Value="0">-- Select a Loan --</MudSelectItem>
                     @foreach (var disb in _disbursements)
@@ -93,7 +93,6 @@
 
     <MudDataGrid T="Payment" Items="@GetPaymentsWithRemainingBalance()" Elevation="0" Class="rounded-xl border shadow-sm">
         <Columns>
-            <PropertyColumn Property="x => x.Id" Title="ID" />
             <TemplateColumn Title="Borrower">
                 <CellTemplate>
                     <MudText Typo="Typo.body2" Style="font-weight: 600;">

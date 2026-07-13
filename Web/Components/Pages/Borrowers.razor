@@ -104,7 +104,7 @@
                 <PropertyColumn Property="x => x.TIN" Title="TIN" />
                 <PropertyColumn Property="x => x.ContactPersonName" Title="Contact Person" />
                 <PropertyColumn Property="x => x.ContactPersonPhone" Title="Contact Phone" />
-                <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
+                <PropertyColumn Property="x => x.BorrowerType.Type" Title="Borrower type" />
                 <TemplateColumn Title="Total Debt" SortBy="x => x.TotalDebt">
                     <CellTemplate>
                         <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDebtDialog(context.Item.Id))" Style="font-weight: 700;">
@@ -130,9 +130,9 @@
                         }
                     </CellTemplate>
                 </TemplateColumn>
-                <PropertyColumn Property="x => x.BorrowerType.Type" Title="BorrowerType" />
+                <PropertyColumn Property="x => x.BorrowerType.Type" Title="Borrower type" />
                 <PropertyColumn Property="x => x.sex" Title="Sex" />
-                <PropertyColumn Property="x => x.IdentificationNumber" Title="IDNumber" />
+                <PropertyColumn Property="x => x.IdentificationNumber" Title="ID number" />
                 <TemplateColumn Title="Total Debt" SortBy="x => x.TotalDebt">
                     <CellTemplate>
                         <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="@(() => OpenDebtDialog(context.Item.Id))" Style="font-weight: 700;">
@@ -141,7 +141,7 @@
                     </CellTemplate>
                 </TemplateColumn>
                 <PropertyColumn Property="x => x.Email" Title="Email" />
-                <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
+                <PropertyColumn Property="x => x.PhoneNumber" Title="Phone number" />
                 <PropertyColumn Property="x => x.Province" Title="Province" />
                 <PropertyColumn Property="x => x.District" Title="District" />
             }

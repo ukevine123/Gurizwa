@@ -95,7 +95,6 @@
         <Columns>
             <SelectColumn T="Account" />
             <HierarchyColumn T="Account" />
-            <PropertyColumn Property="x => x.Id" Title="ID" />
             <TemplateColumn>
                 <CellTemplate>
                     @* <MudStack Row="true" AlignItems="AlignItems.Center">
@@ -106,8 +105,8 @@
             </TemplateColumn>
             <PropertyColumn Property="x => x.Name" Title="Name" />
             <PropertyColumn Property="x => x.Provider" Title="Provider" />
-            <PropertyColumn Property="x => x.AccountType.AccountTypeName" Title="AccountType" />
-             <PropertyColumn Property="x => x.AccountNumber" Title="AccountNumber" />
+            <PropertyColumn Property="x => x.AccountType.AccountTypeName" Title="Account type" />
+             <PropertyColumn Property="x => x.AccountNumber" Title="Account number" />
               <PropertyColumn Property="x => x.Balance" Title="Balance" Format="N2" />
               <PropertyColumn Property="x => x.Currency" Title="Currency" />
           </Columns>

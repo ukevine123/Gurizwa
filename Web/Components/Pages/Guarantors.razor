@@ -74,18 +74,18 @@
             <SelectColumn T="Guarantor" />
             @* <HierarchyColumn T="Guarantor" />
             <PropertyColumn Property="x => x.Id" Title="ID" /> *@
-            <TemplateColumn Title="FirstName">
+            <TemplateColumn Title="First name">
                 <CellTemplate>
                    @context.Item.FirstName
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.LastName" Title="LastName" />
-            <PropertyColumn Property="x => x.GuarantorType.Name" Title="GuarantorType" />
-            <PropertyColumn Property="x => x.Identification" Title="Identification" />
-            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="LoanApplication" />
+            <PropertyColumn Property="x => x.LastName" Title="Last  name" />
+            <PropertyColumn Property="x => x.GuarantorType.Name" Title="Guarantor type" />
+            <PropertyColumn Property="x => x.Identification" Title="ID number" />
+            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Loan Application" />
             @* <PropertyColumn Property="x => x.Email" Title="Email" />
             <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" /> *@
-            <PropertyColumn Property="x => x.PhoneNumber" Title="PhoneNumber" />
+            <PropertyColumn Property="x => x.PhoneNumber" Title="Phone number" />
             <PropertyColumn Property="x => x.Province" Title="Province" />
             <PropertyColumn Property="x => x.District" Title="District" />
             @* <PropertyColumn Property="x => x.Sector" Title="Sector" />
