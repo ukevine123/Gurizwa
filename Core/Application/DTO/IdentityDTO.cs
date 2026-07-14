@@ -3,22 +3,18 @@ using Domain.ValueObjects;
 
 namespace Application.DTO
 {
-    public class RegisterUserDTO
+    public class RegisterUserDTO : IValidatableObject
     {
-        [Required(ErrorMessage = "First name is required.")]
          public string FirstName { get; set; } = string.Empty;
-       [Required(ErrorMessage = "Last name is required.")]
-        public string LastName { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Email is required.")]
+         public string LastName { get; set; } = string.Empty;
+         [Required(ErrorMessage = "Email is required.")]
          [EmailAddress(ErrorMessage = "Invalid email Address.")]
          public string Email { get; set; } = string.Empty;
          public string Status { get; set; } = string.Empty; 
-         [Required(ErrorMessage = "Date of birth is required.")]
          public DateTime? DateOfBirth { get; set; }
          public string Country { get; set; }
          public string City { get; set; }
          public string Street { get; set; }
-         [Required(ErrorMessage = "Sex is required.")]
          public Sex Sex { get; set; }
 
         
@@ -31,6 +27,35 @@ namespace Application.DTO
          public string Role { get; set;}
          public int PersonId { get; set; }
 
+         // Organization specific fields
+         public string TenantType { get; set; } = "Personal"; // "Personal" or "Organization"
+         public string CompanyName { get; set; } = string.Empty;
+         public string TinNumber { get; set; } = string.Empty;
+         public string ContactPerson { get; set; } = string.Empty;
+
+         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+         {
+             if (TenantType == "Personal")
+             {
+                 if (string.IsNullOrWhiteSpace(FirstName))
+                     yield return new ValidationResult("First name is required.", new[] { nameof(FirstName) });
+                 if (string.IsNullOrWhiteSpace(LastName))
+                     yield return new ValidationResult("Last name is required.", new[] { nameof(LastName) });
+                 if (!DateOfBirth.HasValue)
+                     yield return new ValidationResult("Date of birth is required.", new[] { nameof(DateOfBirth) });
+             }
+             else if (TenantType == "Organization")
+             {
+                 if (string.IsNullOrWhiteSpace(CompanyName))
+                     yield return new ValidationResult("Company name is required.", new[] { nameof(CompanyName) });
+                 if (string.IsNullOrWhiteSpace(TinNumber))
+                     yield return new ValidationResult("TIN number is required.", new[] { nameof(TinNumber) });
+                 if (string.IsNullOrWhiteSpace(ContactPerson))
+                     yield return new ValidationResult("Contact person is required.", new[] { nameof(ContactPerson) });
+                 if (string.IsNullOrWhiteSpace(PhoneNumber))
+                     yield return new ValidationResult("Phone number is required.", new[] { nameof(PhoneNumber) });
+             }
+         }
     }
      public class UserDetailDTO
     {

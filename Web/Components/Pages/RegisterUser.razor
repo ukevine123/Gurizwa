@@ -166,43 +166,66 @@
                         <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4" Variant="Variant.Outlined">@ErrorMessage</MudAlert>
                     }
 
+                    <MudRadioGroup @bind-Value="Model.TenantType" Class="mb-4 d-flex justify-center">
+                        <MudRadio Value="@("Personal")" Color="Color.Primary">Personal</MudRadio>
+                        <MudRadio Value="@("Organization")" Color="Color.Primary">Organization</MudRadio>
+                    </MudRadioGroup>
+
                     @* Compact Name Row *@
                     <MudGrid Spacing="2" Class="mb-4">
-                        <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.FirstName" Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.FirstName)" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.LastName)" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudSelect T="Sex"
-                                       Label="Sex"
-                                       @bind-Value="Model.Sex"
-                                       Variant="Variant.Outlined"
-                                       Dense="true"
-                                       Margin="Margin.Dense"
-                                       For="@(() => Model.Sex)">
-                                @foreach (Sex item in Enum.GetValues(typeof(Sex)))
-                                {
-                                    <MudSelectItem T="Sex" Value="item">@item.ToString()</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.DateOfBirth)" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.Country" Label="Country" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Country)" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.City" Label="City" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.City)" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.Street" Label="Street" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Street)" />
-                        </MudItem>
-                         <MudItem  xs="6">
-                           <MudTextField @bind-Value="Model.PhoneNumber"  Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Placeholder="+079 456 7890" For="@(() => Model.PhoneNumber)" />
-                         </MudItem>
+                        @if (Model.TenantType == "Personal")
+                        {
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.FirstName" Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.FirstName)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.LastName)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudSelect T="Sex"
+                                           Label="Sex"
+                                           @bind-Value="Model.Sex"
+                                           Variant="Variant.Outlined"
+                                           Dense="true"
+                                           Margin="Margin.Dense"
+                                           For="@(() => Model.Sex)">
+                                    @foreach (Sex item in Enum.GetValues(typeof(Sex)))
+                                    {
+                                        <MudSelectItem T="Sex" Value="item">@item.ToString()</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudDatePicker Label="Date of Birth" @bind-Date="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.DateOfBirth)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.Country" Label="Country" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Country)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.City" Label="City" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.City)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.Street" Label="Street" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.Street)" />
+                            </MudItem>
+                            <MudItem  xs="6">
+                               <MudTextField @bind-Value="Model.PhoneNumber"  Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Placeholder="+079 456 7890" For="@(() => Model.PhoneNumber)" />
+                            </MudItem>
+                        }
+                        else
+                        {
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="Model.CompanyName" Label="Company Name" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.CompanyName)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.TinNumber" Label="TIN Number" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.TinNumber)" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.ContactPerson" Label="Contact Person" Variant="Variant.Outlined" Margin="Margin.Dense" For="@(() => Model.ContactPerson)" />
+                            </MudItem>
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="Model.PhoneNumber" Label="Contact Person Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" Placeholder="+079 456 7890" For="@(() => Model.PhoneNumber)" />
+                            </MudItem>
+                        }
                     </MudGrid>
 
                     <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" For="@(() => Model.Email)" />

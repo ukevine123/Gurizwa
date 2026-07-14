@@ -16,6 +16,7 @@
 @inject ILoanApplicationService LoanService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JS
+@inject IDialogService DialogService
 @inject IUserContext UserContext
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Authorization
@@ -175,8 +176,9 @@
                             <MudListItem Icon="@Icons.Material.Filled.AttachFile">
                                 <div class="d-flex align-center justify-space-between">
                                     <MudText>@doc.DocumentName</MudText>
-                                    <div>
-                                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="mr-2" OnClick="@(() => ViewDocument(doc))">View</MudButton>
+                                    <div class="d-flex gap-2">
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ViewDocument(doc))">View</MudButton>
+                                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Size="Size.Small" OnClick="@(() => DownloadDocument(doc))">Download</MudButton>
                                     </div>
                                 </div>
                             </MudListItem>
@@ -331,34 +333,102 @@
         var url = $"data:application/pdf;base64,{base64}"; 
         await JS.InvokeVoidAsync("open", url, "_blank");
     } *@
-   private async Task ViewDocument(ProvidedDocument doc)
-{
-    var fullDoc = await DocumentRepo.GetProvidedDocumentById(doc.Id);
-    if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
+    private async Task ViewDocument(ProvidedDocument doc)
     {
-        Snackbar.Add("File is empty.", Severity.Error);
-        return;
+        var fullDoc = await DocumentRepo.GetProvidedDocumentById(doc.Id);
+        if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
+        {
+            Snackbar.Add("File is empty.", Severity.Error);
+            return;
+        }
+
+        byte[] fileData = fullDoc.DocumentFile;
+        try 
+        {
+            string possibleString = System.Text.Encoding.UTF8.GetString(fileData);
+            if (possibleString.Contains("base64,"))
+            {
+                var base64Data = possibleString.Split(',')[1];
+                fileData = Convert.FromBase64String(base64Data);
+            }
+            else 
+            {
+                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
+                if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
+                {
+                    fileData = buffer.Slice(0, bytesParsed).ToArray();
+                }
+            }
+        } 
+        catch { }
+
+        string mimeType = GetMimeType(fileData);
+        string base64 = Convert.ToBase64String(fileData);
+        string url = $"data:{mimeType};base64,{base64}";
+
+        var parameters = new DialogParameters 
+        { 
+            ["Url"] = url, 
+            ["MimeType"] = mimeType,
+            ["FileName"] = doc.DocumentName 
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        DialogService.Show<DocumentViewerDialog>(doc.DocumentName ?? "View Document", parameters, options);
     }
 
-    byte[] fileData = fullDoc.DocumentFile;
-
-    // Check if the file is accidentally saved as a Base64 string inside the byte array
-    // (Common if you used a JS uploader previously)
-    string possibleBase64 = System.Text.Encoding.UTF8.GetString(fileData);
-    if (possibleBase64.Contains("base64,"))
+    private async Task DownloadDocument(ProvidedDocument doc)
     {
-        // Strip the header (e.g., "data:application/pdf;base64,") and convert
-        var base64Data = possibleBase64.Split(',')[1];
-        fileData = Convert.FromBase64String(base64Data);
+        await ProcessDocument(doc, "triggerFileDownload");
     }
 
-    using var stream = new MemoryStream(fileData);
-    using var streamRef = new DotNetStreamReference(stream);
-    
-    string mimeType = GetMimeType(fileData);
+    private async Task ProcessDocument(ProvidedDocument doc, string jsFunction)
+    {
+        var fullDoc = await DocumentRepo.GetProvidedDocumentById(doc.Id);
+        if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
+        {
+            Snackbar.Add("File is empty.", Severity.Error);
+            return;
+        }
 
-    await JS.InvokeVoidAsync("downloadFileFromStream", doc.DocumentName ?? "document.pdf", streamRef, mimeType);
-}
+        byte[] fileData = fullDoc.DocumentFile;
+
+        try 
+        {
+            string possibleString = System.Text.Encoding.UTF8.GetString(fileData);
+            if (possibleString.Contains("base64,"))
+            {
+                var base64Data = possibleString.Split(',')[1];
+                fileData = Convert.FromBase64String(base64Data);
+            }
+            else 
+            {
+                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
+                if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
+                {
+                    fileData = buffer.Slice(0, bytesParsed).ToArray();
+                }
+            }
+        } 
+        catch 
+        {
+            // Ignore if it's a binary file or not valid base64
+        }
+
+        using var stream = new MemoryStream(fileData);
+        using var streamRef = new DotNetStreamReference(stream);
+        
+        string mimeType = GetMimeType(fileData);
+        string fileName = doc.DocumentName ?? "document";
+        
+        if (!fileName.Contains("."))
+        {
+            if (mimeType == "application/pdf") fileName += ".pdf";
+            else if (mimeType == "image/jpeg") fileName += ".jpg";
+            else if (mimeType == "image/png") fileName += ".png";
+        }
+
+        await JS.InvokeVoidAsync(jsFunction, fileName, streamRef, mimeType);
+    }
 
 private string GetMimeType(byte[] fileData)
 {

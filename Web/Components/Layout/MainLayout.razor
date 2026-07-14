@@ -365,10 +365,22 @@
                 @(_drawerOpen ? "Reports" : "")
             </MudNavLink>
 
-            <MudNavGroup Title="Settings" Icon="@Icons.Material.Outlined.Tune" Expanded="false">
+            <!-- <MudNavGroup Title="Settings" Icon="@Icons.Material.Outlined.Tune" Expanded="false">
                 <MudNavLink Href="/Settings" Icon="@Icons.Material.Outlined.DisplaySettings">Settings</MudNavLink>
                 <MudNavLink Href="/Users" Icon="@Icons.Material.Outlined.ManageAccounts">Users</MudNavLink>
-            </MudNavGroup>
+            </MudNavGroup> -->
+
+<MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+    <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">
+        @(!IsMini ? "Settings" : "")
+    </MudNavLink>
+    @if (CanViewUsersMenu)
+    {
+        <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
+            @(!IsMini ? "Users" : "")
+        </MudNavLink>
+    }
+</MudNavGroup>
         </MudNavMenu>
     </MudDrawer>
 
@@ -417,6 +429,14 @@
 
     private List<RepaymentScheduleReportDTO> _dueIn5Days = new();
     private List<RepaymentScheduleReportDTO> _dueIn7Days = new();
+
+    public bool IsMini { get; set; }
+
+    private bool IsDeveloper =>
+    string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+    string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+
+    private bool CanViewUsersMenu => UserContext.IsAuthenticated && (UserContext.PrimaryRole == "Tenant" || IsDeveloper);
 
     protected override async Task OnInitializedAsync()
     {
