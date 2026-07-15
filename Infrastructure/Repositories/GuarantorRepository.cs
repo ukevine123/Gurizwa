@@ -84,8 +84,12 @@ namespace Infrastructure.Repositories
                 District = guarantorDTO.District,
                 Sector = guarantorDTO.Sector,
                 Cell = guarantorDTO.Cell,
-                Village=guarantorDTO.Village
- 
+                Village = guarantorDTO.Village,
+                // Organization-specific fields
+                CompanyName = guarantorDTO.CompanyName,
+                TIN = guarantorDTO.TIN,
+                ContactPersonName = guarantorDTO.ContactPersonName,
+                ContactPersonPhone = guarantorDTO.ContactPersonPhone
             };
             dbContext.Guarantors.Add(_guarantor);
             dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
@@ -120,6 +124,11 @@ namespace Infrastructure.Repositories
                 _guarantor.Sector = guarantorDTO.Sector;
                 _guarantor.Cell = guarantorDTO.Cell;
                 _guarantor.Village = guarantorDTO.Village;
+                // Organization-specific fields
+                _guarantor.CompanyName = guarantorDTO.CompanyName;
+                _guarantor.TIN = guarantorDTO.TIN;
+                _guarantor.ContactPersonName = guarantorDTO.ContactPersonName;
+                _guarantor.ContactPersonPhone = guarantorDTO.ContactPersonPhone;
 
                 dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
                     _userContext,

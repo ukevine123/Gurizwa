@@ -51,5 +51,11 @@ namespace Domain.Entities
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public int? CreatedBy { get; set; }
         public int? UpdatedBy { get; set; }
+
+        /// <summary>
+        /// Tenant owner — used to scope waivers per user/tenant (multi-tenancy).
+        /// </summary>
+        public int? PersonId { get; set; }
+        public Person? Person { get; set; }
     }
 }

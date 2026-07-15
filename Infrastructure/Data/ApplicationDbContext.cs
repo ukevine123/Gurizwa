@@ -185,6 +185,13 @@ namespace Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(e => e.PersonId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Waiver>()
+                .HasOne(w => w.Person)
+                .WithMany()
+                .HasForeignKey(w => w.PersonId)
+                .OnDelete(DeleteBehavior.NoAction);
+
     // Disable cascade delete between Borrower and ProcessFeeDeposits
        
             // 3. Set Decimal Precision globally
