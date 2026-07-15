@@ -3,7 +3,7 @@ namespace Domain.Entities
     public class PaymentType
     {
         public int Id { get; set; }
-        public string PaymentTypeName { get; set; }
+        public string? PaymentTypeName { get; set; }
         public bool IsActive { get; set; }
          public Person Person {get;set;}
          public int PersonId {get;set;}

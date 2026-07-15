@@ -655,9 +655,9 @@
                 <MudItem xs="12">
                     <MudPaper Class="pa-6 rounded-xl text-center" Elevation="1" Style="background: var(--mud-palette-surface);">
                         <MudText Typo="Typo.h5" Color="@(_incomeStatement.NetIncome >= 0 ? MudBlazor.Color.Success : MudBlazor.Color.Error)">
-                            <b>Net Income: @_incomeStatement.NetIncome.ToString("C")</b>
+                            <b>Net Income: @_incomeStatement.NetIncome.ToString("N2")</b>
                         </MudText>
-                        <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">For the period @_incomeStatement.StartDate.ToString("MMM dd, yyyy") to @_incomeStatement.EndDate.ToString("MMM dd, yyyy")</MudText>
+                        <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">For the period @_incomeStatement.StartDate.ToString("yyyy-MM-dd") to @_incomeStatement.EndDate.ToString("yyyy-MM-dd")</MudText>
                     </MudPaper>
                 </MudItem>
             </MudGrid>

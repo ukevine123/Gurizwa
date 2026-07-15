@@ -92,7 +92,7 @@
                 @* --- DUE DATE --- *@
                 <MudItem xs="12" sm="6">
                     <MudTextField T="string" Label="Scheduled Due Date" 
-                                  Value="@(ExpectedDueDate == DateTime.MinValue ? "Select a loan" : ExpectedDueDate.ToString("MMMM dd, yyyy"))"
+                                  Value="@(ExpectedDueDate == DateTime.MinValue ? "Select a loan" : ExpectedDueDate.ToString("yyyy-MM-dd"))"
                                   Variant="Variant.Outlined" Margin="Margin.Dense"
                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Event"
                                   ReadOnly="true" HelperText="Determined by payment schedule" />

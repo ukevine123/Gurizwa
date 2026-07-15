@@ -63,7 +63,7 @@
             </HeaderContent>
             <RowTemplate>
                 <MudTd><b>#@context.No</b></MudTd>
-                <MudTd>@context.DueDate.ToString("MMM dd, yyyy")</MudTd>
+                <MudTd>@context.DueDate.ToString("yyyy-MM-dd")</MudTd>
                 <MudTd>@context.TotalAmount.ToString("n")</MudTd>
                 <MudTd>
                     <MudText Color="@(context.RemainingAmount > 0 ? Color.Error : Color.Success)" 

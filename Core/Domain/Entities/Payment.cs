@@ -16,7 +16,7 @@ public class Payment
     public decimal InterestPaid { get; set; } = 0;
     public decimal PenaltyPaid { get; set; } = 0;
     public DateTime PaymentDate { get; set; }
-    public string Status { get; set; } = "Completed"; // "Completed", "Partial", "Void"
+    public string? Status { get; set; } = "Completed"; // "Completed", "Partial", "Void"
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
