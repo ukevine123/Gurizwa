@@ -318,58 +318,69 @@
             </MudNavLink>
 
 
-            <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
+            <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.AccountBalance">
                 @(_drawerOpen ? "Account" : "")
             </MudNavLink>
 
-            <MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Paid">
-                @(_drawerOpen ? "LoanProducts" : "")
+            <MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Storefront">
+                @(_drawerOpen ? "Loan Products" : "")
             </MudNavLink>
 
-            <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
+            <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.Groups">
                 @(_drawerOpen ? "Borrowers" : "")
             </MudNavLink>
 
-            <MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
-                <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment"> Loan Application</MudNavLink>
-                <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">Guarantors</MudNavLink>
-                <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">Collateral</MudNavLink>
-                <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">Documents</MudNavLink>
+            <MudNavGroup Title="Application" Icon="@Icons.Material.Outlined.LibraryBooks" Expanded="false">
+                <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.PostAdd"> Loan Application</MudNavLink>
+                <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.VerifiedUser">Guarantors</MudNavLink>
+                <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Inventory">Collateral</MudNavLink>
+                <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.FolderOpen">Documents</MudNavLink>
             </MudNavGroup>
 
-            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+            <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.RequestPage">
                 @(_drawerOpen ? "Process Fee" : "")
             </MudNavLink>
 
-            <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
+            <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.SendToMobile">
                 @(_drawerOpen ? "Disbursement" : "")
             </MudNavLink>
 
-            <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
+            <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Payments">
                 @(_drawerOpen ? "Payments" : "")
             </MudNavLink>
 
-            <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.Money">
+            <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.GppBad">
                 @(_drawerOpen ? "Penality" : "")
             </MudNavLink>
 
-            <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
+            <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.RemoveModerator">
                   @(_drawerOpen ? "Waivers" : "")
             </MudNavLink>
             
-            <MudNavLink Href="/Expenses" Icon="@Icons.Material.Outlined.Receipt">
+            <MudNavLink Href="/Expenses" Icon="@Icons.Material.Outlined.ReceiptLong">
                 @(_drawerOpen ? "Expenses" : "")
             </MudNavLink>
             
-            <MudNavLink href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+            <MudNavLink href="/Reports" Icon="@Icons.Material.Outlined.Assessment">
                 @(_drawerOpen ? "Reports" : "")
             </MudNavLink>
 
-            <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
-                <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
-                <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+            <!-- <MudNavGroup Title="Settings" Icon="@Icons.Material.Outlined.Tune" Expanded="false">
+                <MudNavLink Href="/Settings" Icon="@Icons.Material.Outlined.DisplaySettings">Settings</MudNavLink>
+                <MudNavLink Href="/Users" Icon="@Icons.Material.Outlined.ManageAccounts">Users</MudNavLink>
+            </MudNavGroup> -->
 
-            </MudNavGroup>
+<MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+    <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">
+        @(!IsMini ? "Settings" : "")
+    </MudNavLink>
+    @if (CanViewUsersMenu)
+    {
+        <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
+            @(!IsMini ? "Users" : "")
+        </MudNavLink>
+    }
+</MudNavGroup>
         </MudNavMenu>
     </MudDrawer>
 
@@ -418,6 +429,14 @@
 
     private List<RepaymentScheduleReportDTO> _dueIn5Days = new();
     private List<RepaymentScheduleReportDTO> _dueIn7Days = new();
+
+    public bool IsMini { get; set; }
+
+    private bool IsDeveloper =>
+    string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+    string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+
+    private bool CanViewUsersMenu => UserContext.IsAuthenticated && (UserContext.PrimaryRole == "Tenant" || IsDeveloper);
 
     protected override async Task OnInitializedAsync()
     {

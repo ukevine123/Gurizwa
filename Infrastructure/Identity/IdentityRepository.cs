@@ -76,37 +76,42 @@ namespace Infrastructure.Identity
                     Console.WriteLine($"[RegisterUser] User already exists: {dto.Email}");
                     throw new InvalidOperationException($"A user with email '{dto.Email}' already exists.");
                 }
+                bool isOrg = dto.TenantType == "Organization";
+
                 var _person = new Person
                     {
-                        FirstName = dto.FirstName,
-                        LastName = dto.LastName,
-                        Sex = dto.Sex.ToString(),
-                        Status = "Active",
-                        DateOfBirth = dto.DateOfBirth ?? DateTime.Now,
+                        // For Organization: store CompanyName in FirstName, ContactPerson in LastName
+                        FirstName  = isOrg ? dto.CompanyName  : dto.FirstName,
+                        LastName   = isOrg ? dto.ContactPerson : dto.LastName,
+                        Sex        = isOrg ? "N/A"             : dto.Sex.ToString(),
+                        Status     = "Active",
+                        DateOfBirth = isOrg ? DateTime.MinValue : (dto.DateOfBirth ?? DateTime.Now),
                         phoneNumber = dto.PhoneNumber,
-                        Email = dto.Email,
-                        Country = dto.Country,
-                        
-                        CreatedBy=dto.Email, 
-                        UpdateBy=dto.Email,
-                                
+                        Email       = dto.Email,
+                        Country     = isOrg ? string.Empty : (dto.Country ?? string.Empty),
 
+                        TenantType    = dto.TenantType,
+                        CompanyName   = dto.CompanyName,
+                        TinNumber     = dto.TinNumber,
+                        ContactPerson = dto.ContactPerson,
+                        
+                        CreatedBy = dto.Email, 
+                        UpdateBy  = dto.Email,
                     };
                     _dbContext.Persons.Add(_person);
                     _dbContext.SaveChanges();
 
                 var newUser = new User
                 {
-                    FirstName = dto.FirstName,
-                    LastName = dto.LastName,
-                    Email = dto.Email,
-                    UserName = dto.Email,
-                     PersonId = _person.Id,
-                    PhoneNumber = dto.PhoneNumber,
+                    FirstName      = isOrg ? dto.CompanyName  : dto.FirstName,
+                    LastName       = isOrg ? dto.ContactPerson : dto.LastName,
+                    Email          = dto.Email,
+                    UserName       = dto.Email,
+                    PersonId       = _person.Id,
+                    PhoneNumber    = dto.PhoneNumber,
                     EmailConfirmed = true, // Set to true for immediate access
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                    
+                    CreatedAt      = DateTime.UtcNow,
+                    UpdatedAt      = DateTime.UtcNow
                 };
 
                 Console.WriteLine($"[RegisterUser] Creating user with UserManager...");

@@ -62,7 +62,7 @@
             <MudText Typo="Typo.h5" Color="Color.Primary">Application</MudText>
             <MudSpacer />
 
-            <MudMenu Label="Add LoanApplication"
+            <MudMenu Label="Add Loan application"
                      Variant="Variant.Filled"
                      EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
                      Color="Color.Primary">
@@ -82,7 +82,7 @@
           <ToolBarContent>
             @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
             <MudSpacer />
-            <MudMenu Label="Add LoanApplication" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
+            <MudMenu Label="Add Loan Application" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
                 <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
                 <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
             </MudMenu>
@@ -106,8 +106,8 @@
                 </CellTemplate>
             </TemplateColumn>
             <PropertyColumn Property="x => x.PaymentModality.Mode" Title="Payment Method" />
-            <PropertyColumn Property="x => x.AmountRequested" Title="AmountRequested" />
-            <PropertyColumn Property="x => x.PreferredDate" Title="PreferredDate" Format="yyyy-MM-dd" />
+            <PropertyColumn Property="x => x.AmountRequested" Title="Amount requested" />
+            <PropertyColumn Property="x => x.PreferredDate" Title="Preferred Date" Format="yyyy-MM-dd" />
             
             <TemplateColumn Title="Status" SortBy="x => x.Status">
                 <CellTemplate>

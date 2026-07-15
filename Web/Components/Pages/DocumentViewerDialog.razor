@@ -1,0 +1,58 @@
+@using MudBlazor
+@inject IJSRuntime JS
+
+<MudDialog>
+    <DialogContent>
+        @if (MimeType.StartsWith("image/"))
+        {
+            <div class="d-flex justify-center">
+                <img src="@Url" style="max-width: 100%; max-height: 70vh; object-fit: contain;" />
+            </div>
+        }
+        else if (MimeType == "application/pdf")
+        {
+            <iframe src="@Url" style="width: 100%; height: 75vh;" frameborder="0"></iframe>
+        }
+        else
+        {
+            <div class="d-flex flex-column align-center justify-center pa-8">
+                <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Style="font-size: 64px;" Color="Color.Default" Class="mb-4" />
+                <MudText Typo="Typo.h6" Class="mb-2">Preview Not Available</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6 text-center">
+                    Web browsers do not natively support previewing Microsoft Office documents (Word, Excel, PowerPoint) or generic binary files. Please download the file to view it on your device.
+                </MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Download" OnClick="DownloadFile">
+                    Download @(FileName ?? "File")
+                </MudButton>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Default" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public string Url { get; set; }
+    [Parameter] public string MimeType { get; set; }
+    [Parameter] public string FileName { get; set; }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task DownloadFile()
+    {
+        var script = $@"
+            var a = document.createElement('a');
+            a.href = '{Url}';
+            a.download = '{FileName ?? "download"}';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        ";
+        await JS.InvokeVoidAsync("eval", script);
+    }
+}

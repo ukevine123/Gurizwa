@@ -14,6 +14,12 @@ namespace Domain.Entities
         public string Country{get;set;}
         public string Status{get;set;}
 
+        // Organization specific fields
+        public string TenantType { get; set; }
+        public string CompanyName { get; set; }
+        public string TinNumber { get; set; }
+        public string ContactPerson { get; set; }
+
             //mult tenant 
         public List<Account> Accounts {get;set;}
         public List<LoanApplication> LoanApplications {get;set;}

@@ -1,4 +1,8 @@
 @namespace Web.Components.Layout
+@using System
+@using Application.Interfaces
+
+@inject IUserContext UserContext
 
 <style>
     .mud-nav-link.active {
@@ -16,6 +20,12 @@
 
 @code {
     [Parameter] public bool IsMini { get; set; }
+
+    private bool IsDeveloper =>
+        string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+
+    private bool CanViewUsersMenu => UserContext.IsAuthenticated && (UserContext.PrimaryRole == "Tenant" || IsDeveloper);
 }
 
 <MudNavMenu>
@@ -103,10 +113,11 @@
     <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">
         @(!IsMini ? "Settings" : "")
     </MudNavLink>
-    <AuthorizeView Roles="Tenant">
+    @if (CanViewUsersMenu)
+    {
         <MudNavLink Href="/Users" Icon="@Icons.Material.Filled.People">
             @(!IsMini ? "Users" : "")
         </MudNavLink>
-    </AuthorizeView>
+    }
 </MudNavGroup>
 </MudNavMenu>
