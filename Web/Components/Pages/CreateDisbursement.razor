@@ -161,7 +161,7 @@
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd>@row.No</MudTd>
-                                <MudTd>@row.DueDate.ToShortDateString()</MudTd>
+                                <MudTd>@row.DueDate.ToString("yyyy-MM-dd")</MudTd>
                                 <MudTd>@row.PrincipalPart.ToString("N2")</MudTd>
                                 <MudTd>@row.InterestPart.ToString("N2")</MudTd>
                                 <MudTd><b>@row.TotalAmount.ToString("N2")</b></MudTd>

@@ -66,7 +66,7 @@
                             @context.InstallmentNo
                         </MudText>
                     </MudTd>
-                    <MudTd>@context.DueDate.ToShortDateString()</MudTd>
+                    <MudTd>@context.DueDate.ToString("yyyy-MM-dd")</MudTd>
                     <MudTd>@context.PrincipalScheduled.ToString("N2")</MudTd>
                     <MudTd>@context.InterestScheduled.ToString("N2")</MudTd>
                     <MudTd>@context.PenaltyScheduled.ToString("N2")</MudTd>
@@ -115,7 +115,7 @@
                     </MudText>
                 </CellTemplate>
             </TemplateColumn>
-            <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="MMM dd, yyyy" />
+            <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="yyyy-MM-dd" />
             <TemplateColumn Title="Account">
                 <CellTemplate>
                     <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Info">

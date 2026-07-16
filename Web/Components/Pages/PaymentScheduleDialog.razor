@@ -39,7 +39,7 @@
                             <div style="font-weight: 800; color: #4318FF;">@context.Amount.ToString("N2")</div>
                         </MudTd>
                         <MudTd DataLabel="Date">
-                            <div style="color: #A3AED0; font-size: 12px;">@context.PaymentDate.ToString("MMM dd, yyyy")</div>
+                            <div style="color: #A3AED0; font-size: 12px;">@context.PaymentDate.ToString("yyyy-MM-dd")</div>
                         </MudTd>
                         <MudTd DataLabel="Status">
                             <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Error)" Variant="Variant.Text" Style="font-weight: 700; font-size: 10px;">

@@ -18,13 +18,13 @@ namespace Domain.Entities
         public int LoanApplicationId {get;set;}
         public LoanApplication LoanApplication {get;set;}
         public DateTime DateOfBirth {get;set;}
-        public string Email {get;set;}
-        public string PhoneNumber {get;set;}
-        public string Province {get;set;}
-        public string District {get;set;}
-        public string Sector {get;set;}
-        public string Cell {get;set;}
-        public string Village {get;set;}
+        public string? Email {get;set;}
+        public string? PhoneNumber {get;set;}
+        public string? Province {get;set;}
+        public string? District {get;set;}
+        public string? Sector {get;set;}
+        public string? Cell {get;set;}
+        public string? Village {get;set;}
 
         // Organization-specific fields (mirroring Borrower entity)
         public string? CompanyName {get;set;}

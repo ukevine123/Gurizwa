@@ -9,12 +9,12 @@ namespace Domain.Entities
         public int WaiverTypeId { get; set; }
         public WaiverType WaiverType { get; set; } = default!;
         
-        public string WaiverTypeName { get; set; } // "FeeWaiver" or "LoanWaiveOff"
+        public string? WaiverTypeName { get; set; } // "FeeWaiver" or "LoanWaiveOff"
 
         /// <summary>
         /// The loan component being waived: "Penalty", "Interest", or "Principal"
         /// </summary>
-        public string Component { get; set; } = "Penalty";
+        public string? Component { get; set; } = "Penalty";
         
         /// <summary>
         /// Amount being waived (from WaiverType.OutstandingAmount)
@@ -24,17 +24,17 @@ namespace Domain.Entities
         /// <summary>
         /// Reason for the waiver (e.g., "Natural Disaster", "Government Initiative", "Goodwill")
         /// </summary>
-        public string Reason { get; set; }
+        public string? Reason { get; set; }
         
         /// <summary>
         /// Detailed description of the waiver
         /// </summary>
-        public string Description { get; set; }
+        public string? Description { get; set; }
         
         /// <summary>
         /// Status of the waiver: "Pending", "Approved", "Rejected"
         /// </summary>
-        public string Status { get; set; } = "Pending";
+        public string? Status { get; set; } = "Pending";
         
         /// <summary>
         /// Who approved the waiver

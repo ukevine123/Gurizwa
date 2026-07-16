@@ -11,7 +11,7 @@ namespace Domain.Entities
         public DateTime Date { get; set; }
         public int ReasonId { get; set; }
         public Reason Reason { get; set; } = default!;
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
