@@ -26,10 +26,11 @@ namespace Infrastructure.Repositories
             {
                 return new List<Requirement>();
             }
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             return await dbContext.Requirements
             .Include(i => i.RequiredDocument)
             .Include(i => i.LoanProduct)
-            .Where(i => i.PersonId == _userContext.PersonId) // Filter by the logged-in user's PersonId
+            .Where(i => i.PersonId == settingsPersonId) // Filter by settingsPersonId
             .ToListAsync();
         }
 
@@ -40,10 +41,11 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
-              return await dbContext.Requirements
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
+            return await dbContext.Requirements
             .Include(i => i.RequiredDocument)
             .Include(i => i.LoanProduct)
-            .Where(i => i.PersonId == _userContext.PersonId) // Filter by the logged-in user's PersonId
+            .Where(i => i.PersonId == settingsPersonId) // Filter by settingsPersonId
             .FirstOrDefaultAsync(i => i.Id == id);
         }
 

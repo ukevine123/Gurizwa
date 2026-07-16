@@ -1,13 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Application.Interfaces;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Identity
 {
-   
     public class UserContext : IUserContext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -133,5 +137,73 @@ namespace Infrastructure.Identity
 
         /// <inheritdoc />
         public bool IsSubUser => ParentUserId.HasValue;
+
+        /// <inheritdoc />
+        public async Task<List<int>> GetAllowedPersonIdsAsync()
+        {
+            var personIds = new List<int>();
+            var myPersonId = PersonId;
+            if (myPersonId.HasValue)
+            {
+                personIds.Add(myPersonId.Value);
+            }
+
+            // If the user is a manager (no ParentUserId), they can also see all their sub-users' data
+            if (IsAuthenticated && !ParentUserId.HasValue && Id.HasValue)
+            {
+                try
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var dbContextFactory = scope.ServiceProvider.GetService<IDbContextFactory<ApplicationDbContext>>();
+                    if (dbContextFactory != null)
+                    {
+                        using var db = await dbContextFactory.CreateDbContextAsync();
+                        var agentPersonIds = await db.Users
+                            .Where(u => u.ParentUserId == Id.Value)
+                            .Select(u => u.PersonId)
+                            .ToListAsync();
+                        personIds.AddRange(agentPersonIds);
+                    }
+                }
+                catch
+                {
+                    // Fallback to self
+                }
+            }
+
+            return personIds.Distinct().ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task<int?> GetSettingsPersonIdAsync()
+        {
+            // If Agent (has ParentUserId), retrieve the Manager's PersonId
+            if (IsAuthenticated && ParentUserId.HasValue)
+            {
+                try
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var dbContextFactory = scope.ServiceProvider.GetService<IDbContextFactory<ApplicationDbContext>>();
+                    if (dbContextFactory != null)
+                    {
+                        using var db = await dbContextFactory.CreateDbContextAsync();
+                        var parentUser = await db.Users
+                            .Where(u => u.Id == ParentUserId.Value)
+                            .Select(u => new { u.PersonId })
+                            .FirstOrDefaultAsync();
+                        if (parentUser != null)
+                        {
+                            return parentUser.PersonId;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fallback to self
+                }
+            }
+
+            return PersonId;
+        }
     }
 }

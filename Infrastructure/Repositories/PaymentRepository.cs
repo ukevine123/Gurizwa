@@ -49,11 +49,12 @@ namespace Infrastructure.Repositories
             try
             {
                 // 1. Fetch Disbursement
+                var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 var disbursement = await context.Disbursements
                 
                     .Include(d => d.LoanApplication)
                     .Include(d => d.Payments)
-                     .Where(a => a.PersonId == _userContext.PersonId)
+                     .Where(a => allowedPersonIds.Contains(a.PersonId))
                     .FirstOrDefaultAsync(d => d.Id == paymentDTO.DisbursementId);
 
                 if (disbursement == null) throw new Exception("Disbursement not found.");
@@ -308,8 +309,9 @@ namespace Infrastructure.Repositories
         {
             return new List<Payment>();
         }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await context.Payments
-                .Where(a => a.PersonId == _userContext.PersonId)
+                .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .Include(i => i.Disbursement).ThenInclude(d => d.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.Account)
                 .Include(i => i.PaymentType)
@@ -324,8 +326,9 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await context.Payments
-                .Where(a => a.PersonId == _userContext.PersonId)
+                .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .Include(i => i.Account)
                 .Include(i => i.PaymentType)
                 .FirstOrDefaultAsync(i => i.Id == id);

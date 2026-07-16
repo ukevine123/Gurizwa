@@ -22,9 +22,10 @@ namespace Infrastructure.Repositories
             {
                 if (_userContext.PersonId == null) return null;
                 using var context = await _contextFactory.CreateDbContextAsync();
+                var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.PersonId == _userContext.PersonId)
+                    .Where(w => w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .FirstOrDefaultAsync(w => w.Id == id && w.IsActive);
             }
             catch (Exception ex)
@@ -40,9 +41,10 @@ namespace Infrastructure.Repositories
             {
                 if (_userContext.PersonId == null) return new List<Waiver>();
                 using var context = await _contextFactory.CreateDbContextAsync();
+                var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.IsActive && w.PersonId == _userContext.PersonId)
+                    .Where(w => w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
             }
@@ -59,9 +61,10 @@ namespace Infrastructure.Repositories
             {
                 if (_userContext.PersonId == null) return new List<Waiver>();
                 using var context = await _contextFactory.CreateDbContextAsync();
+                var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.DisbursementId == disbursementId && w.IsActive && w.PersonId == _userContext.PersonId)
+                    .Where(w => w.DisbursementId == disbursementId && w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
             }
@@ -78,9 +81,10 @@ namespace Infrastructure.Repositories
             {
                 if (_userContext.PersonId == null) return new List<Waiver>();
                 using var context = await _contextFactory.CreateDbContextAsync();
+                var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.Status == "Pending" && w.IsActive && w.PersonId == _userContext.PersonId)
+                    .Where(w => w.Status == "Pending" && w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
             }
@@ -97,9 +101,10 @@ namespace Infrastructure.Repositories
             {
                 if (_userContext.PersonId == null) return new List<Waiver>();
                 using var context = await _contextFactory.CreateDbContextAsync();
+                var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.Status == "Approved" && w.IsActive && w.PersonId == _userContext.PersonId)
+                    .Where(w => w.Status == "Approved" && w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.ApprovedDate)
                     .ToListAsync();
             }

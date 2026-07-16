@@ -32,7 +32,7 @@ namespace Web.Controllers
 
                 if (result)
                 {
-                    var redirect = string.IsNullOrEmpty(returnUrl) ? "/dashboard" : returnUrl;
+                    var redirect = string.IsNullOrEmpty(returnUrl) ? "/Home" : returnUrl;
                     return Redirect(redirect);
                 }
 

@@ -25,11 +25,12 @@ namespace Infrastructure.Repositories
             {
                 return new List<LoanApplication>();
             }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await dbContext.LoanApplications
                 .Include(a => a.LoanProductSetting)
                 .Include(a => a.Borrower)
                 .Include(a => a.PaymentModality)
-                .Where(a => a.PersonId == _userContext.PersonId)
+                .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .ToListAsync();
         }
         public async Task <LoanApplication> GetLoanApplicationById(int Id)
@@ -39,11 +40,12 @@ namespace Infrastructure.Repositories
                 return null;
             }
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await dbContext.LoanApplications
                 .Include(a => a.LoanProductSetting)
                 .Include(a => a.Borrower)
                 .Include(a => a.PaymentModality)
-                .Where(a => a.PersonId == _userContext.PersonId)
+                .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .FirstOrDefaultAsync(a => a.Id == Id); 
         }
          public async Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)

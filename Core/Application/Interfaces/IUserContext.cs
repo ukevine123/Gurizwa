@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Application.Interfaces
 {
     /// <summary>
@@ -45,5 +48,15 @@ namespace Application.Interfaces
         /// Returns true if this user is a sub-user (Agent) created by a Manager.
         /// </summary>
         bool IsSubUser { get; }
+
+        /// <summary>
+        /// Gets the list of Person IDs whose data this user is allowed to view (self + agents).
+        /// </summary>
+        Task<List<int>> GetAllowedPersonIdsAsync();
+
+        /// <summary>
+        /// Gets the Person ID to use for global configurations / settings.
+        /// </summary>
+        Task<int?> GetSettingsPersonIdAsync();
     }
-}
+}

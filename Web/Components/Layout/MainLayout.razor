@@ -300,19 +300,23 @@
                Class="@("py-4 dark-drawer " + (_isDarkMode ? "dark-mode" : ""))">
                
         
-        <div class="d-flex align-center justify-center mb-10 mt-2 px-4">
+        <a href="/Home" class="d-flex align-center justify-center mb-10 mt-2 px-4" style="text-decoration: none;">
             <div style="width: 56px; height: 40px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; border-radius: 8px;">
                 <img src="/Images/guriza_logo.png" style="width: 56px; height: auto;" alt="Guriza Logo" />
             </div>
             @if (_drawerOpen)
             {
                 <div class="d-flex flex-column ml-3 justify-center">
-                    <MudText Typo="Typo.h5" Class="brand-title" Style="letter-spacing: 1px;">GURIZA</MudText>
+                    <MudText Typo="Typo.h5" Class="brand-title" Style="letter-spacing: 1px; color: #1B2559;">GURIZA</MudText>
                 </div>
             }
-        </div>
+        </a>
 
         <MudNavMenu>
+            <MudNavLink href="/Home" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">
+                @(_drawerOpen ? "Home Hub" : "")
+            </MudNavLink>
+
             <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
                 @(_drawerOpen ? "Dashboard" : "")
             </MudNavLink>

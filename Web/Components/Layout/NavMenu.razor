@@ -29,6 +29,10 @@
 }
 
 <MudNavMenu>
+    <MudNavLink href="/Home" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Home">
+        @(!IsMini ? "Home Hub" : "")
+    </MudNavLink>
+
     <MudNavLink href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Dashboard">
         @(!IsMini ? "Dashboard" : "")
     </MudNavLink>

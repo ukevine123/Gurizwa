@@ -26,9 +26,10 @@ namespace Infrastructure.Repositories
             {
                 return new List<LoanProduct>();
             }
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             // Use ToListAsync() since the method is async
             return await dbContext.LoanProducts
-             .Where(a => a.PersonId == _userContext.PersonId)
+             .Where(a => a.PersonId == settingsPersonId)
             .ToListAsync();
         }
 
@@ -40,10 +41,11 @@ namespace Infrastructure.Repositories
     {
         return null;
     }
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             // FIX 3: Change 'Id' to 'id' to match the parameter name
             return await dbContext.LoanProducts
-             .Where(a => a.PersonId == _userContext.PersonId) // Ensure ownership
-             .FirstOrDefaultAsync(a => a.Id == id); 
+              .Where(a => a.PersonId == settingsPersonId) // Ensure ownership
+              .FirstOrDefaultAsync(a => a.Id == id); 
         }
 
         public async Task<LoanProduct> CreateLoanProductAsync(LoanProductCreateDTO LoanProductDTO)

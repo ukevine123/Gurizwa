@@ -28,9 +28,10 @@ namespace Infrastructure.Repositories
             }
         using var dbContext = await _contextFactory.CreateDbContextAsync();
         
+        var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
         var borrowers = await dbContext.Borrowers
             .Include(a => a.BorrowerType)
-            .Where(a => a.PersonId == _userContext.PersonId)
+            .Where(a => allowedPersonIds.Contains(a.PersonId))
             .ToListAsync();
 
         var borrowerIds = borrowers.Select(b => b.Id).ToList();
@@ -66,8 +67,9 @@ namespace Infrastructure.Repositories
             }
             using var dbContext = await _contextFactory.CreateDbContextAsync();
             
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await dbContext.Borrowers
-            .Where(a => a.PersonId == _userContext.PersonId) 
+            .Where(a => allowedPersonIds.Contains(a.PersonId)) 
             .FirstOrDefaultAsync(t => t.Id == Id);
         }
          public async Task CreateBorrower(CreateBorrowerDTO borrowerDTO)

@@ -25,8 +25,9 @@ namespace Infrastructure.Repositories
                 return new List<PaymentModality>();
             }
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             return await dbContext.PaymentModalities
-            .Where(a => a.PersonId == _userContext.PersonId) 
+            .Where(a => a.PersonId == settingsPersonId) 
             .ToListAsync();
         }
 
@@ -37,9 +38,10 @@ namespace Infrastructure.Repositories
                 return new PaymentModality();
             }
             using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             // Changed to FirstOrDefaultAsync to maintain a fully async flow
             return await dbContext.PaymentModalities
-            .Where(a => a.PersonId == _userContext.PersonId) 
+            .Where(a => a.PersonId == settingsPersonId) 
             .FirstOrDefaultAsync(t => t.Id == Id);
         }
 

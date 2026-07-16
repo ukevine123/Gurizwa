@@ -25,8 +25,9 @@ namespace Infrastructure.Repositories
             {
                 return new List<ProvidedDocument>();
             }
+        var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
         return await dbContext.ProvidedDocuments
-           .Where(a => a.PersonId == _userContext.PersonId)
+           .Where(a => allowedPersonIds.Contains(a.PersonId))
            .Select(a => new ProvidedDocument {
                Id = a.Id,
                DocumentName = a.DocumentName,
@@ -46,8 +47,9 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await dbContext.ProvidedDocuments
-            .Where(a => a.PersonId == _userContext.PersonId) 
+            .Where(a => allowedPersonIds.Contains(a.PersonId)) 
             .Include(d => d.LoanApplication)
             .FirstOrDefaultAsync(t => t.Id == Id);
         }

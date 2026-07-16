@@ -26,8 +26,9 @@ namespace Infrastructure.Repositories
             {
                 return new List<RequiredDocument>();
             }
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             return await dbContext.RequiredDocuments
-            .Where(a => a.PersonId == _userContext.PersonId)
+            .Where(a => a.PersonId == settingsPersonId)
             .ToListAsync();
         }
 
@@ -38,8 +39,9 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
+            var settingsPersonId = await _userContext.GetSettingsPersonIdAsync();
             return await dbContext.RequiredDocuments
-            .Where(a => a.PersonId == _userContext.PersonId) 
+            .Where(a => a.PersonId == settingsPersonId) 
             .FirstOrDefaultAsync(c => c.Id == id);
         }
 

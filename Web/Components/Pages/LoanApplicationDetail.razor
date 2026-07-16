@@ -20,6 +20,7 @@
 @inject IUserContext UserContext
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @attribute [Authorize(Roles = "Manager")]
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
