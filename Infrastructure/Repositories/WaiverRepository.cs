@@ -7,19 +7,24 @@ namespace Infrastructure.Repositories
 {
     public class WaiverRepository : IWaiver
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+        private readonly IUserContext _userContext;
 
-        public WaiverRepository(ApplicationDbContext context)
+        public WaiverRepository(IDbContextFactory<ApplicationDbContext> contextFactory, IUserContext userContext)
         {
-            _context = context;
+            _contextFactory = contextFactory;
+            _userContext = userContext;
         }
 
         public async Task<Waiver> GetWaiverByIdAsync(int id)
         {
             try
             {
-                return await _context.Waivers
+                if (_userContext.PersonId == null) return null;
+                using var context = await _contextFactory.CreateDbContextAsync();
+                return await context.Waivers
                     .Include(w => w.Disbursement)
+                    .Where(w => w.PersonId == _userContext.PersonId)
                     .FirstOrDefaultAsync(w => w.Id == id && w.IsActive);
             }
             catch (Exception ex)
@@ -33,9 +38,11 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _context.Waivers
+                if (_userContext.PersonId == null) return new List<Waiver>();
+                using var context = await _contextFactory.CreateDbContextAsync();
+                return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.IsActive)
+                    .Where(w => w.IsActive && w.PersonId == _userContext.PersonId)
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
             }
@@ -50,9 +57,11 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _context.Waivers
+                if (_userContext.PersonId == null) return new List<Waiver>();
+                using var context = await _contextFactory.CreateDbContextAsync();
+                return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.DisbursementId == disbursementId && w.IsActive)
+                    .Where(w => w.DisbursementId == disbursementId && w.IsActive && w.PersonId == _userContext.PersonId)
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
             }
@@ -67,9 +76,11 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _context.Waivers
+                if (_userContext.PersonId == null) return new List<Waiver>();
+                using var context = await _contextFactory.CreateDbContextAsync();
+                return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.Status == "Pending" && w.IsActive)
+                    .Where(w => w.Status == "Pending" && w.IsActive && w.PersonId == _userContext.PersonId)
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
             }
@@ -84,9 +95,11 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                return await _context.Waivers
+                if (_userContext.PersonId == null) return new List<Waiver>();
+                using var context = await _contextFactory.CreateDbContextAsync();
+                return await context.Waivers
                     .Include(w => w.Disbursement)
-                    .Where(w => w.Status == "Approved" && w.IsActive)
+                    .Where(w => w.Status == "Approved" && w.IsActive && w.PersonId == _userContext.PersonId)
                     .OrderByDescending(w => w.ApprovedDate)
                     .ToListAsync();
             }
@@ -101,10 +114,16 @@ namespace Infrastructure.Repositories
         {
             try
             {
+                if (_userContext.PersonId == null)
+                    throw new Exception("User not authenticated");
+
+                using var context = await _contextFactory.CreateDbContextAsync();
+
+                waiver.PersonId = _userContext.PersonId.Value;
                 waiver.CreatedAt = DateTime.Now;
                 waiver.UpdatedAt = DateTime.Now;
-                _context.Waivers.Add(waiver);
-                await _context.SaveChangesAsync();
+                context.Waivers.Add(waiver);
+                await context.SaveChangesAsync();
                 Console.WriteLine($"[CreateWaiver] Waiver created successfully with ID: {waiver.Id}");
                 return waiver;
             }
@@ -119,9 +138,10 @@ namespace Infrastructure.Repositories
         {
             try
             {
+                using var context = await _contextFactory.CreateDbContextAsync();
                 waiver.UpdatedAt = DateTime.Now;
-                _context.Waivers.Update(waiver);
-                await _context.SaveChangesAsync();
+                context.Waivers.Update(waiver);
+                await context.SaveChangesAsync();
                 Console.WriteLine($"[UpdateWaiver] Waiver updated successfully with ID: {waiver.Id}");
                 return waiver;
             }
@@ -166,9 +186,11 @@ namespace Infrastructure.Repositories
                     return false;
                 }
 
+                using var context = await _contextFactory.CreateDbContextAsync();
+
                 if (waiver.Disbursement != null)
                 {
-                    var disbursement = await _context.Disbursements.FindAsync(waiver.DisbursementId);
+                    var disbursement = await context.Disbursements.FindAsync(waiver.DisbursementId);
                     if (disbursement != null)
                     {
                         if (waiver.Component == "Principal")
@@ -182,7 +204,7 @@ namespace Infrastructure.Repositories
                         }
                         else if (waiver.Component == "Penalty")
                         {
-                            var penalty = await _context.Penalties
+                            var penalty = await context.Penalties
                                 .Where(p => p.LoanApplicationId == waiver.Disbursement.LoanApplicationId && p.IsActive)
                                 .OrderByDescending(p => p.Date)
                                 .FirstOrDefaultAsync();
@@ -190,13 +212,13 @@ namespace Infrastructure.Repositories
                             if (penalty != null)
                             {
                                 penalty.Amount = Math.Max(0, penalty.Amount - waiver.Amount);
-                                _context.Penalties.Update(penalty);
+                                context.Penalties.Update(penalty);
                             }
 
                             disbursement.Amount = Math.Max(0, disbursement.Amount - waiver.Amount);
                         }
 
-                        _context.Disbursements.Update(disbursement);
+                        context.Disbursements.Update(disbursement);
                     }
                 }
 

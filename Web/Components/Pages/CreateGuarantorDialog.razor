@@ -46,7 +46,8 @@
                     <MudSelect T="int"
                                Label="Guarantor Type"
                                Placeholder="--Select Guarantor Type--"
-                               @bind-Value="Model.GuarantorTypeId"
+                               Value="Model.GuarantorTypeId"
+                               ValueChanged="OnGuarantorTypeChanged"
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
@@ -84,19 +85,57 @@
                     </MudSelect>
                 </MudItem>
 
+<<<<<<< HEAD
+                @* ── Individual fields ── *@
+                @if (!isOrganization)
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="LastName" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.LastName" For="@(() => Model.LastName)" />
+                    </MudItem>
+                }
+                else
+                {
+                    @* ── Organization fields ── *@
+                    <MudItem xs="12">
+                        <MudTextField Label="Company Name"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      @bind-Value="Model.CompanyName"
+                                      For="@(() => Model.CompanyName)" />
+                    </MudItem>
+                }
+=======
                 <MudItem xs="6">
                     <MudTextField Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" />
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.LastName" For="@(() => Model.LastName)" />
                 </MudItem>
+>>>>>>> 0839bd372877862a1799a2b117b5dbd7b5173a86
 
-                <MudItem xs="6"> 
-                    <MudDatePicker Label="Date Of Birth" @bind-Value="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
-                </MudItem>
+                @if (!isOrganization)
+                {
+                    <MudItem xs="6"> 
+                        <MudDatePicker Label="Date Of Birth" @bind-Value="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
+                    </MudItem>
+                }
 
                 <MudItem xs="6">
+<<<<<<< HEAD
+                    <MudTextField Label="@(isOrganization ? "TIN / Registration No." : "IdentificationNumber")"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  @bind-Value="Model.Identification"
+                                  For="@(() => Model.Identification)"
+                                  Immediate="true"
+                                  MaxLength="16"
+                                  Counter="16"/>
+=======
                     <MudTextField Label="ID number" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Identification" For="@(() => Model.Identification)"  Immediate="true" MaxLength="16"Counter="16"/> 
+>>>>>>> 0839bd372877862a1799a2b117b5dbd7b5173a86
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Email" For="@(() => Model.Email)" />
@@ -104,7 +143,29 @@
                 <MudItem xs="6">
                     <MudTextField Label="Phone number" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.PhoneNumber" For="@(() => Model.PhoneNumber)" />
                 </MudItem>
-                                    
+
+                @if (!isOrganization)
+                {
+                    @* nothing extra for individual *@
+                }
+                else
+                {
+                    <MudItem xs="6">
+                        <MudTextField Label="Contact Person Name"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      @bind-Value="Model.ContactPersonName"
+                                      For="@(() => Model.ContactPersonName)" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Contact Person Phone"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      @bind-Value="Model.ContactPersonPhone"
+                                      For="@(() => Model.ContactPersonPhone)" />
+                    </MudItem>
+                }
+
                 <MudItem xs="6">
     <MudSelect T="string"
                Value="Model.Province" 
@@ -225,6 +286,15 @@
     [Parameter] public bool IsReadOnly { get; set; } = false;
 
     public Sex sex { get; set; }
+
+    private bool isOrganization = false;
+
+    private void OnGuarantorTypeChanged(int typeId)
+    {
+        Model.GuarantorTypeId = typeId;
+        var type = guarantorType.FirstOrDefault(t => t.Id == typeId);
+        isOrganization = type != null && type.Name.Contains("Organization", StringComparison.OrdinalIgnoreCase);
+    }
    
     private List<Province> _provinces = new();
     private List<District> _districts = new();
@@ -336,6 +406,12 @@
     {
         try
         {
+            // If organization, copy identification number to TIN field (same as Borrower pattern)
+            if (isOrganization)
+            {
+                Model.TIN = Model.Identification;
+            }
+
             await GuarantorService.CreateGuarantor(Model);
             Snackbar.Add("Guarantor created successfully!", Severity.Info);
             MudDialog.Close(DialogResult.Ok(Model));
@@ -343,6 +419,7 @@
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
 }
