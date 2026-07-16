@@ -132,15 +132,21 @@ namespace Infrastructure.Repositories
         public async Task<List<UserActivityReportDTO>> GetUserActivityReportAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
-            var currentUserId = _userContext.Id?.ToString();
-            if (string.IsNullOrWhiteSpace(currentUserId))
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue)
             {
                 return new List<UserActivityReportDTO>();
             }
 
+            var allowedUserIdsInt = await dbContext.Users
+                .Where(u => u.PersonId == currentPersonId.Value)
+                .Select(u => u.Id)
+                .ToListAsync();
+            var allowedUserIds = allowedUserIdsInt.Select(id => id.ToString()).ToList();
+
             var query = dbContext.ActivityLogs
                 .AsNoTracking()
-                .Where(a => a.UserId == currentUserId)
+                .Where(a => allowedUserIds.Contains(a.UserId))
                 .AsQueryable();
 
             if (startDate.HasValue)
@@ -172,17 +178,23 @@ namespace Infrastructure.Repositories
         public async Task<List<ActivityHeatmapDTO>> GetActivityHeatmapAsync(int days = 365)
         {
             using var dbContext = await _contextFactory.CreateDbContextAsync();
-            var currentUserId = _userContext.Id?.ToString();
-            if (string.IsNullOrWhiteSpace(currentUserId))
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue)
             {
                 return new List<ActivityHeatmapDTO>();
             }
+
+            var allowedUserIdsInt = await dbContext.Users
+                .Where(u => u.PersonId == currentPersonId.Value)
+                .Select(u => u.Id)
+                .ToListAsync();
+            var allowedUserIds = allowedUserIdsInt.Select(id => id.ToString()).ToList();
 
             var startDate = DateTime.UtcNow.Date.AddDays(-days);
 
             var logs = await dbContext.ActivityLogs
                 .AsNoTracking()
-                .Where(a => a.UserId == currentUserId && a.Timestamp >= startDate)
+                .Where(a => allowedUserIds.Contains(a.UserId) && a.Timestamp >= startDate)
                 .Select(a => new { a.Timestamp.Date })
                 .ToListAsync();
 

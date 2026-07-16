@@ -85,7 +85,6 @@
                     </MudSelect>
                 </MudItem>
 
-<<<<<<< HEAD
                 @* ── Individual fields ── *@
                 @if (!isOrganization)
                 {
@@ -107,14 +106,6 @@
                                       For="@(() => Model.CompanyName)" />
                     </MudItem>
                 }
-=======
-                <MudItem xs="6">
-                    <MudTextField Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" />
-                </MudItem>
-                <MudItem xs="6">
-                    <MudTextField Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.LastName" For="@(() => Model.LastName)" />
-                </MudItem>
->>>>>>> 0839bd372877862a1799a2b117b5dbd7b5173a86
 
                 @if (!isOrganization)
                 {
@@ -124,7 +115,6 @@
                 }
 
                 <MudItem xs="6">
-<<<<<<< HEAD
                     <MudTextField Label="@(isOrganization ? "TIN / Registration No." : "IdentificationNumber")"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Dense"
@@ -133,9 +123,6 @@
                                   Immediate="true"
                                   MaxLength="16"
                                   Counter="16"/>
-=======
-                    <MudTextField Label="ID number" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Identification" For="@(() => Model.Identification)"  Immediate="true" MaxLength="16"Counter="16"/> 
->>>>>>> 0839bd372877862a1799a2b117b5dbd7b5173a86
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.Email" For="@(() => Model.Email)" />

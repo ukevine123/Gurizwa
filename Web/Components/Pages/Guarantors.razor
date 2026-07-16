@@ -19,6 +19,22 @@
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
+        <MudItem xs="12" sm="4">
+            <MudTextField @bind-Value="_searchString" Placeholder="Search guarantor..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
+        </MudItem>
+
+        <MudItem xs="12" sm="4">
+            <MudSelect T="string" @bind-Value="_selectedGuarantorType" Label="Guarantor Type" AnchorOrigin="Origin.BottomCenter" Clearable="false">
+                <MudSelectItem Value="@("All")">All</MudSelectItem>
+                @if (_guarantorTypeCounts != null)
+                {
+                    @foreach (var bt in _guarantorTypeCounts.Where(c => c.GuarantorType != null).Select(c => c.GuarantorType).Distinct())
+                    {
+                        <MudSelectItem Value="@bt">@bt</MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudItem>
 
         <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
@@ -30,15 +46,36 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteGuarantor" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
+            @* <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton> *@
+            @* <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton> *@
      
         </MudItem>
     </MudGrid>
 
-    @* 3. THE DATAGRID *@
-    <MudDataGrid T="Guarantor" Items="@_guarantor" MultiSelection="true" @bind-SelectedItems="_selectedItems"
-                 Hover="true" Elevation="0" Class="rounded-xl border-none">
+    @* 3. GUARANTOR TYPE SUMMARY CARDS *@
+    <MudGrid Class="mb-4" Spacing="2">
+        @if (_guarantorTypeCounts != null && _guarantorTypeCounts.Any())
+        {
+            @foreach (var typeCount in _guarantorTypeCounts)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Elevation="2" Class="pa-4">
+                        <MudCardContent>
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@typeCount.GuarantorType</MudText>
+                                <MudText Typo="Typo.h6" Style="font-weight: 600;">@typeCount.Count</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Info">Guarantors</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+
+    @* 4. THE DATAGRID *@
+    <MudDataGrid T="Guarantor" Items="@FilteredGuarantors" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+                 Hover="true" Elevation="0" Class="rounded-xl border-none" Filterable="true">
 
                   <ToolBarContent>
             <MudText Typo="Typo.h5" Color="Color.Primary">Guarantor</MudText>
@@ -72,27 +109,40 @@
 
         <Columns>
             <SelectColumn T="Guarantor" />
-            @* <HierarchyColumn T="Guarantor" />
-            <PropertyColumn Property="x => x.Id" Title="ID" /> *@
-            <TemplateColumn Title="First name">
-                <CellTemplate>
-                   @context.Item.FirstName
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.LastName" Title="Last  name" />
-            <PropertyColumn Property="x => x.GuarantorType.Name" Title="Guarantor type" />
-            <PropertyColumn Property="x => x.Identification" Title="ID number" />
-            <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Loan Application" />
-            @* <PropertyColumn Property="x => x.Email" Title="Email" />
-            <PropertyColumn Property="x => x.DateOfBirth" Title="DateOfBirth" /> *@
-            <PropertyColumn Property="x => x.PhoneNumber" Title="Phone number" />
-            <PropertyColumn Property="x => x.Province" Title="Province" />
-            <PropertyColumn Property="x => x.District" Title="District" />
-            @* <PropertyColumn Property="x => x.Sector" Title="Sector" />
-            <PropertyColumn Property="x => x.Cell" Title="Cell" />
-            <PropertyColumn Property="x => x.Village" Title="Village" /> *@
-            
-
+            @if (IsOrganizationSelected)
+            {
+                <PropertyColumn Property="x => x.CompanyName" Title="Company Name" />
+                <PropertyColumn Property="x => x.TIN" Title="TIN" />
+                <PropertyColumn Property="x => x.ContactPersonName" Title="Contact Person" />
+                <PropertyColumn Property="x => x.ContactPersonPhone" Title="Contact Phone" />
+                <PropertyColumn Property="x => x.GuarantorType.Name" Title="Guarantor type" />
+                <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Loan Application" />
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <PropertyColumn Property="x => x.Province" Title="Province" />
+                <PropertyColumn Property="x => x.District" Title="District" />
+            }
+            else
+            {
+                <TemplateColumn Title="Name">
+                    <CellTemplate>
+                        @if (!string.IsNullOrEmpty(context.Item.CompanyName))
+                        {
+                            <MudText Typo="Typo.body2">@context.Item.CompanyName</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2">@($"{context.Item.FirstName} {context.Item.LastName}")</MudText>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.GuarantorType.Name" Title="Guarantor type" />
+                <PropertyColumn Property="x => x.Identification" Title="ID number" />
+                <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Loan Application" />
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <PropertyColumn Property="x => x.PhoneNumber" Title="Phone number" />
+                <PropertyColumn Property="x => x.Province" Title="Province" />
+                <PropertyColumn Property="x => x.District" Title="District" />
+            }
         </Columns>
         
         <PagerContent>
@@ -103,15 +153,31 @@
 
 @code {
      private string _searchString = "";
+    private string _selectedGuarantorType = "All";
 
-    private IEnumerable<Guarantor> FilteredGuarantor => _guarantor
+     private bool IsOrganizationSelected => _selectedGuarantorType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true;
+
+    private IEnumerable<Guarantor> FilteredGuarantors => _guarantor
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
-                    x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-                    x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+                    (x.FirstName != null && x.FirstName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.LastName != null && x.LastName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.CompanyName != null && x.CompanyName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.TIN != null && x.TIN.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Identification != null && x.Identification.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Email != null && x.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => _selectedGuarantorType == "All" || (x.GuarantorType != null && x.GuarantorType.Name == _selectedGuarantorType));
      //s
        List<Guarantor> _guarantor = new();
     private HashSet<Guarantor> _selectedItems = new();
+
+    private List<GuarantorTypeCount> _guarantorTypeCounts = new();
+
+    private class GuarantorTypeCount
+    {
+        public string? GuarantorType { get; set; }
+        public int Count { get; set; }
+    }
+
 
       protected override async Task OnInitializedAsync()
     {
@@ -134,6 +200,18 @@
      private async Task LoadGuarantor()
     {
         _guarantor = await GuarantorService.GetAllGuarantorsAsync();
+        
+        // Calculate guarantor type counts
+        _guarantorTypeCounts = _guarantor
+            .Where(b => b.GuarantorType != null)
+            .GroupBy(b => b.GuarantorType.Name)
+            .Select(g => new GuarantorTypeCount
+            {
+                GuarantorType = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+            
         StateHasChanged();
     }
         private Color GetStatusColor(LoanStatus status)

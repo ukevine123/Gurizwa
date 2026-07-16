@@ -113,7 +113,7 @@ namespace Infrastructure.Repositories
                 LoanApplicationId = app.Id,
                 PaymentModalityId = app.PaymentModalityId,
                 InterestRate = rate,
-                PrincipalOffered = app.AmountRequested,
+                PrincipalOffered = app.AmountRequested - feeDeposited,
                 TotalInstallments = 1 
             };
         }

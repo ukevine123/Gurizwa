@@ -136,7 +136,16 @@
                     <MudTh>Phone</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Name">@context.FirstName @context.LastName</MudTd>
+                    <MudTd DataLabel="Name">
+                        @if (!string.IsNullOrEmpty(context.CompanyName))
+                        {
+                            @context.CompanyName
+                        }
+                        else
+                        {
+                            @($"{context.FirstName} {context.LastName}")
+                        }
+                    </MudTd>
                     <MudTd DataLabel="ID Number">@context.Identification</MudTd>
                     <MudTd DataLabel="Phone">@context.PhoneNumber</MudTd>
                 </RowTemplate>
