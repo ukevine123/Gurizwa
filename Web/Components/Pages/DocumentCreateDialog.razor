@@ -1,10 +1,10 @@
-
-@using  Application.DTO
+@using Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
 @using Application.Services.LoanApplications
 @using Domain.Entities
 @using Application.Services.ProvidedDocuments
+@using Application.Services.Requirements
 @using MudBlazor
 @using MudBlazor.Services
 @using Microsoft.AspNetCore.Components
@@ -14,11 +14,11 @@
 @inject NavigationManager Navigation
 @inject IProvidedDocumentService ProvidedDocumentService
 @inject ILoanApplicationService LoanApplicationService
+@inject IRequirementService RequirementService
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-
-<MudDialog Style=" overflow:hidden;">
+<MudDialog Style="overflow:hidden;">
 
     <DialogContent>
 
@@ -30,11 +30,11 @@
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
 
                 <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
-                         Style="color:white; font-size:1.0rem;" />
+                          Style="color:white; font-size:1.0rem;" />
 
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle1"
-                             Style="color:white; font-weight:700;">
+                              Style="color:white; font-weight:700;">
                         Add Document
                     </MudText>
                     
@@ -47,94 +47,163 @@
         <EditForm Model="Model" OnValidSubmit="onValidSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <MudStack Spacing="2">
-                <!-- SECTION : BASIC INFO -->
-                @* <MudText Typo="Typo.caption"
-                         Style="color:#9E9E9E; font-weight:600;
-                         letter-spacing:.08em; text-transform:uppercase;">
-                    Basic Information *@
-                @* </MudText> *@
+            <MudStack Spacing="3">
+                
+                <!-- Loan Application Selection -->
+                <MudSelect T="int"
+                           Label="Loan Application"
+                           Placeholder="--Select Loan Application--"
+                           Value="Model.LoanApplicationId"
+                           ValueChanged="OnLoanApplicationChanged"
+                           Variant="Variant.Outlined"
+                           Dense="true"
+                           Margin="Margin.Dense"
+                           AdornmentIcon="@Icons.Material.Filled.Category"
+                           AdornmentColor="Color.Primary">
+                    <MudSelectItem T="int" Value="0">--Select Loan Application--</MudSelectItem>
+                    @if (_Loan != null)
+                    {
+                        @foreach (var item in _Loan)
+                        {
+                            <MudSelectItem T="int" Value="@item.Id">@item.ApplicationCode</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
 
-                 <MudItem xs="6">
-                    <MudSelect T="int"
-            Label="PaymentModality"
-            Placeholder="--Select Loan Application--"
-            @bind-Value="Model.LoanApplicationId"
-            Variant="Variant.Outlined"
-            Dense="true"
-            Margin="Margin.Dense"
-            AdornmentIcon="@Icons.Material.Filled.Category"
-            AdornmentColor="Color.Primary">
+                <!-- Dynamic List of Required Documents -->
+                @if (Model.LoanApplicationId > 0)
+                {
+                    <MudPaper Class="pa-4 rounded-lg" Elevation="0" Style="border: 1px solid #e0e0e0; background-color: #fafafa; max-height: 250px; overflow-y: auto;">
+                        <MudText Typo="Typo.subtitle2" Class="mb-3" Style="font-weight: 700; color: #5a55e6;">
+                            Required Documents Checklist
+                        </MudText>
+                        
+                        @if (_uploadStates.Any())
+                        {
+                            <MudStack Spacing="2">
+                                @foreach (var state in _uploadStates)
+                                {
+                                    <div class="d-flex align-center justify-space-between py-2 px-3 rounded-lg" style="background-color: white; border: 1px solid #eaeaea;">
+                                        <MudStack Spacing="0" Style="flex: 1; max-width: 60%;">
+                                            <MudText Typo="Typo.body2" Style="font-weight: 600; color: #1B2559;">
+                                                @state.RequiredDoc.DocumentName
+                                            </MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                Type: @state.RequiredDoc.DocumentType
+                                            </MudText>
+                                            @if (!string.IsNullOrEmpty(state.FileName))
+                                            {
+                                                <MudText Typo="Typo.caption" Color="Color.Success" Class="d-flex align-center gap-1 mt-1">
+                                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
+                                                    @state.FileName
+                                                </MudText>
+                                            }
+                                        </MudStack>
 
-            <MudSelectItem T="int" Value="0">--Select Loan Application-- --</MudSelectItem>
+                                        <div class="d-flex align-center gap-2">
+                                            @if (!string.IsNullOrEmpty(state.FileName))
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                               Color="Color.Error" 
+                                                               Size="Size.Small" 
+                                                               OnClick="@(() => CancelUpload(state))" />
+                                            }
+                                            else
+                                            {
+                                                <MudFileUpload T="IBrowserFile" OnFilesChanged="@((e) => UploadDocument(e, state))">
+                                                    <ActivatorContent>
+                                                        <MudButton Variant="Variant.Outlined"
+                                                                   Color="Color.Primary"
+                                                                   Size="Size.Small"
+                                                                   StartIcon="@Icons.Material.Filled.CloudUpload">
+                                                            Upload
+                                                        </MudButton>
+                                                    </ActivatorContent>
+                                                </MudFileUpload>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </MudStack>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="font-italic">
+                                No specific required documents configured for this loan application type.
+                            </MudText>
+                        }
+                    </MudPaper>
 
-    
-        @if (_Loan != null)
-        {
-            @foreach (var item in _Loan)
-            {
-                @* <MudSelectItem T="int" Value="@item.Id">@item.Borrower.FirstName @item.Borrower.LastName</MudSelectItem> *@
-                <MudSelectItem T="int" Value="@item.Id">@item.ApplicationCode</MudSelectItem>
-
-            }
-        }
-    </MudSelect>
- </MudItem>
-
-               <MudGrid Spacing="1" Class="align-items-center">
-
-                    <MudItem xs="6">
-                        <MudTextField Label="DocumentName"
-                                      Variant="Variant.Outlined"
-                                      Margin="Margin.Dense"
-                                      @bind-Value="Model.DocumentName"
-                                      For="@(() => Model.DocumentName)" />
-                                      
-                    </MudItem>
-
-                     
-                 <MudItem xs="6">
-    @* 1. Remove the 'For' attribute here to stop the CS0029 error *@
-    <MudFileUpload T="IBrowserFile" OnFilesChanged="UploadDocument">
-        <ActivatorContent>
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.CloudUpload">
-                @(Model.DocumentFile == null ? "Upload Document" : "File Selected")
-            </MudButton>
-        </ActivatorContent>
-    </MudFileUpload>
-
-    @* 2. Manually add a validation message if you want to show 'Required' errors *@
-    <MudValidationMessage For="@(() => Model.DocumentFile)" />
-
-    @if (Model.DocumentFile != null)
-    {
-        <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Success">
-            Successfully captured binary data.
-        </MudText>
-    }
-</MudItem>
-
-                </MudGrid>
+                    <!-- Custom / Additional Documents -->
+                    <MudPaper Class="pa-4 rounded-lg mt-1" Elevation="0" Style="border: 1px solid #e0e0e0; background-color: #fafafa;">
+                        <MudText Typo="Typo.subtitle2" Class="mb-3" Style="font-weight: 700; color: #1B2559;">
+                            Upload Additional Document (Optional)
+                        </MudText>
+                        <MudGrid Spacing="2" Class="align-center">
+                            <MudItem xs="6">
+                                <MudTextField Label="Document Name"
+                                               Variant="Variant.Outlined"
+                                               Margin="Margin.Dense"
+                                               @bind-Value="_customDocName" />
+                            </MudItem>
+                            <MudItem xs="6" Class="d-flex align-center gap-2">
+                                @if (!string.IsNullOrEmpty(_customDocFileName))
+                                {
+                                    <MudStack Spacing="0" Style="flex: 1;">
+                                        <MudText Typo="Typo.caption" Color="Color.Success" Class="d-flex align-center gap-1">
+                                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
+                                            @_customDocFileName
+                                        </MudText>
+                                    </MudStack>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                                   Color="Color.Error" 
+                                                   Size="Size.Small" 
+                                                   OnClick="CancelCustomUpload" />
+                                }
+                                else
+                                {
+                                    <MudFileUpload T="IBrowserFile" OnFilesChanged="UploadCustomDocument">
+                                        <ActivatorContent>
+                                            <MudButton Variant="Variant.Outlined"
+                                                       Color="Color.Primary"
+                                                       Size="Size.Small"
+                                                       StartIcon="@Icons.Material.Filled.CloudUpload">
+                                                Choose File
+                                            </MudButton>
+                                        </ActivatorContent>
+                                    </MudFileUpload>
+                                }
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mt-2">
+                        Please select a Loan Application to view required documents and start uploading.
+                    </MudAlert>
+                }
             </MudStack>
         </EditForm>
     </DialogContent>
     <DialogActions>
-
         <MudStack Row="true" Spacing="2" Style="width:100%;" Class="px-2 pb-2">
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       Size="Size.Small"
+                       OnClick="Cancel"
+                       Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px; border-radius:8px;">
+                Cancel
+            </MudButton>
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        Size="Size.Small"
                        StartIcon="@Icons.Material.Filled.Save"
                        FullWidth="true"
-                       ButtonType="ButtonType.Submit"
                        OnClick="onValidSubmit"
                        Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px; flex:1; border-radius:8px;">
-
-                Add Document
+                Finish & Save
             </MudButton>
-
         </MudStack>
     </DialogActions>
 
@@ -146,19 +215,135 @@
     private CreateProvidedDocumentDTO Model {get;set;} = new ();
     private string ErrorMessage { get; set; }
     private List<LoanApplication> _Loan = new List<LoanApplication>();
+
+    // Checklist state
+    private List<RequiredDocumentUploadState> _uploadStates = new();
+
+    // Custom document state
+    private string _customDocName = "";
+    private byte[] _customDocFile = null;
+    private string _customDocFileName = "";
+
+    private class RequiredDocumentUploadState
+    {
+        public RequiredDocument RequiredDoc { get; set; }
+        public byte[] FileBytes { get; set; }
+        public string FileName { get; set; }
+    }
+
+    private void CancelUpload(RequiredDocumentUploadState state)
+    {
+        state.FileBytes = null;
+        state.FileName = null;
+    }
+
+    private void CancelCustomUpload()
+    {
+        _customDocFile = null;
+        _customDocFileName = null;
+    }
+
+    private async Task OnLoanApplicationChanged(int loanApplicationId)
+    {
+        Model.LoanApplicationId = loanApplicationId;
+        _uploadStates.Clear();
+        CancelCustomUpload();
+        _customDocName = "";
+
+        if (loanApplicationId > 0)
+        {
+            try
+            {
+                var selectedLoan = _Loan.FirstOrDefault(l => l.Id == loanApplicationId);
+                if (selectedLoan != null && selectedLoan.LoanProductSetting != null)
+                {
+                    var allRequirements = await RequirementService.GetAllRequirementsAsync();
+                    var requirements = allRequirements
+                        .Where(r => r.LoanProductId == selectedLoan.LoanProductSetting.LoanProductId && r.RequiredDocument != null)
+                        .Select(r => r.RequiredDocument)
+                        .GroupBy(d => d.Id)
+                        .Select(g => g.First())
+                        .ToList();
+
+                    foreach (var doc in requirements)
+                    {
+                        _uploadStates.Add(new RequiredDocumentUploadState
+                        {
+                            RequiredDoc = doc
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error loading required documents: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
     private async Task onValidSubmit()
     {
+        if (Model.LoanApplicationId <= 0)
+        {
+            Snackbar.Add("Please select a loan application.", Severity.Warning);
+            return;
+        }
+
         try
         {
-            await ProvidedDocumentService.CreateProvidedDocument(Model);
-            Snackbar.Add("Document created successfully!", Severity.Info);
+            bool uploadedAny = false;
+
+            // 1. Upload all selected required documents
+            foreach (var state in _uploadStates)
+            {
+                if (state.FileBytes != null)
+                {
+                    var dto = new CreateProvidedDocumentDTO
+                    {
+                        LoanApplicationId = Model.LoanApplicationId,
+                        DocumentName = state.RequiredDoc.DocumentName ?? "Required Document",
+                        DocumentFile = state.FileBytes
+                    };
+                    await ProvidedDocumentService.CreateProvidedDocument(dto);
+                    uploadedAny = true;
+                }
+            }
+
+            // 2. Upload custom/additional document if any
+            if (_customDocFile != null)
+            {
+                if (string.IsNullOrWhiteSpace(_customDocName))
+                {
+                    Snackbar.Add("Please enter a name for the custom document.", Severity.Warning);
+                    return;
+                }
+
+                var dto = new CreateProvidedDocumentDTO
+                {
+                    LoanApplicationId = Model.LoanApplicationId,
+                    DocumentName = _customDocName,
+                    DocumentFile = _customDocFile
+                };
+                await ProvidedDocumentService.CreateProvidedDocument(dto);
+                uploadedAny = true;
+            }
+
+            if (!uploadedAny)
+            {
+                Snackbar.Add("Please select or choose at least one document to upload.", Severity.Warning);
+                return;
+            }
+
+            Snackbar.Add("Documents uploaded successfully!", Severity.Success);
             MudDialog.Close(DialogResult.Ok(Model));
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            Snackbar.Add($"Error saving documents: {ex.Message}", Severity.Error);
         }
     }
+
     protected override async Task OnInitializedAsync()
     {
         try 
@@ -174,32 +359,50 @@
             Snackbar.Add($"Error loading Loan Applications: {ex.Message}", Severity.Error);
         }
     }
-private async Task UploadDocument(InputFileChangeEventArgs e)
-{
-    var file = e.File;
-    if (file != null)
+
+    private async Task UploadDocument(InputFileChangeEventArgs e, RequiredDocumentUploadState state)
     {
-        // 1. Set a maximum allowed size (e.g., 5MB)
-        long maxFileSize = 1024 * 1024 * 5;
-
-        // 2. Read the file stream
-        using var stream = file.OpenReadStream(maxFileSize);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-
-        // 3. Assign the byte array to your model
-        Model.DocumentFile = ms.ToArray();
-        
-        // Optional: Automatically fill the name field if it's empty
-        if (string.IsNullOrEmpty(Model.DocumentName))
+        var file = e.File;
+        if (file != null)
         {
-            Model.DocumentName = file.Name;
+            try
+            {
+                long maxFileSize = 1024 * 1024 * 5; // 5MB limit
+                using var stream = file.OpenReadStream(maxFileSize);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                state.FileBytes = ms.ToArray();
+                state.FileName = file.Name;
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error reading file: {ex.Message}", Severity.Error);
+            }
         }
     }
-}   
 
+    private async Task UploadCustomDocument(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                long maxFileSize = 1024 * 1024 * 5; // 5MB limit
+                using var stream = file.OpenReadStream(maxFileSize);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                _customDocFile = ms.ToArray();
+                _customDocFileName = file.Name;
+                if (string.IsNullOrEmpty(_customDocName))
+                {
+                    _customDocName = file.Name;
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error reading file: {ex.Message}", Severity.Error);
+            }
+        }
+    }
 }
-
-      
-    
-
