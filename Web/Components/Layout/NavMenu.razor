@@ -123,5 +123,11 @@
             @(!IsMini ? "Users" : "")
         </MudNavLink>
     }
+    @if (IsDeveloper)
+    {
+        <MudNavLink Href="/tenants/pending" Icon="@Icons.Material.Filled.DomainVerification">
+            @(!IsMini ? "Pending Tenants" : "")
+        </MudNavLink>
+    }
 </MudNavGroup>
 </MudNavMenu>

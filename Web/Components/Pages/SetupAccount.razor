@@ -1,0 +1,153 @@
+@page "/account/setup"
+@attribute [AllowAnonymous]
+@layout AuthLayout
+@using Application.DTO
+@using Application.Services.Users
+@inject IIdentityService IdentityService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Setup Account</PageTitle>
+
+<div class="setup-container">
+    <div class="setup-card">
+        <div class="text-center mb-4">
+            <h2>Welcome to Digital Loan Platform</h2>
+            <p class="text-muted">Set up your password to complete your account registration.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        @if (isSuccess)
+        {
+            <div class="alert alert-success">
+                Your account has been set up successfully. Redirecting to login...
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@setupModel" OnValidSubmit="HandleSetup" class="setup-form">
+                <DataAnnotationsValidator />
+                
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <InputText @bind-Value="setupModel.Email" class="form-control" readonly="@(!string.IsNullOrEmpty(Email))" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <InputText type="password" @bind-Value="setupModel.Password" class="form-control" placeholder="Enter new password" />
+                    <ValidationMessage For="@(() => setupModel.Password)" class="text-danger" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Confirm Password</label>
+                    <InputText type="password" @bind-Value="setupModel.ConfirmPassword" class="form-control" placeholder="Confirm new password" />
+                    <ValidationMessage For="@(() => setupModel.ConfirmPassword)" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Setting up...</span>
+                    }
+                    else
+                    {
+                        <span>Complete Setup</span>
+                    }
+                </button>
+            </EditForm>
+        }
+    </div>
+</div>
+
+<style>
+    .setup-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: #f8f9fa;
+        padding: 2rem;
+    }
+    .setup-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        width: 100%;
+        max-width: 450px;
+    }
+    .setup-card h2 {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.5rem;
+    }
+    .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+    }
+    .btn-primary {
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Email { get; set; }
+
+    private SetupTenantUserDTO setupModel = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+    private bool isSuccess = false;
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(Email))
+        {
+            setupModel.Email = Email;
+        }
+        else
+        {
+            errorMessage = "Invalid setup link. Missing email parameter.";
+        }
+    }
+
+    private async Task HandleSetup()
+    {
+        if (string.IsNullOrEmpty(setupModel.Email))
+        {
+            errorMessage = "Email is required.";
+            return;
+        }
+
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            await IdentityService.SetupTenantUserAsync(setupModel);
+            
+            isSuccess = true;
+            StateHasChanged();
+
+            // Wait 2 seconds so the user can read the success message, then redirect
+            await Task.Delay(2000);
+            NavigationManager.NavigateTo($"/account/login?success=Account+setup+successful.+Please+log+in.", true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -108,6 +108,7 @@ namespace Infrastructure.Identity
                     Email          = dto.Email,
                     UserName       = dto.Email,
                     PersonId       = _person.Id,
+                    TenantId       = dto.TenantId,
                     PhoneNumber    = dto.PhoneNumber,
                     EmailConfirmed = true, // Set to true for immediate access
                     CreatedAt      = DateTime.UtcNow,
@@ -438,6 +439,95 @@ namespace Infrastructure.Identity
             catch (Exception ex)
             {
                 Console.WriteLine($"[ApproveUser] Error: {ex.Message}");
+                throw;
+            }
+        }
+
+        // ═══════════════════════════════════════════════
+        //  TENANT ACCOUNT SETUP
+        // ═══════════════════════════════════════════════
+
+        public async Task SetupTenantUserAsync(SetupTenantUserDTO dto)
+        {
+            try
+            {
+                Console.WriteLine($"[SetupTenantUser] Setting up account for: {dto.Email}");
+
+                var tenant = await _dbContext.Tenants.FirstOrDefaultAsync(t => t.Email == dto.Email);
+                if (tenant == null)
+                {
+                    throw new InvalidOperationException($"No tenant found with email '{dto.Email}'.");
+                }
+
+                if (!tenant.IsApproved)
+                {
+                    throw new InvalidOperationException("Your tenant account is not yet approved.");
+                }
+
+                var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+                if (existingUser != null)
+                {
+                    throw new InvalidOperationException($"An account for '{dto.Email}' has already been set up.");
+                }
+
+                bool isOrg = tenant.TenantType == "Organization";
+
+                var person = new Person
+                {
+                    FirstName = isOrg ? tenant.CompanyName : tenant.FirstName,
+                    LastName = isOrg ? "Admin" : tenant.LastName, // Or some default
+                    Sex = isOrg ? "N/A" : "Unknown",
+                    Status = "Active",
+                    DateOfBirth = DateTime.Now,
+                    phoneNumber = tenant.PhoneNumber,
+                    Email = tenant.Email,
+                    Country = tenant.Location ?? string.Empty,
+
+                    TenantType = tenant.TenantType,
+                    CompanyName = tenant.CompanyName,
+                    
+                    CreatedBy = dto.Email,
+                    UpdateBy = dto.Email,
+                };
+                
+                _dbContext.Persons.Add(person);
+                await _dbContext.SaveChangesAsync();
+
+                var newUser = new User
+                {
+                    FirstName = isOrg ? tenant.CompanyName : tenant.FirstName,
+                    LastName = isOrg ? "Admin" : tenant.LastName,
+                    Email = dto.Email,
+                    UserName = dto.Email,
+                    PersonId = person.Id,
+                    TenantId = tenant.Id,
+                    PhoneNumber = tenant.PhoneNumber,
+                    EmailConfirmed = true,
+                    IsApproved = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(newUser, dto.Password);
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to setup account: {errors}");
+                }
+
+                // Create and assign "Tenant" role if it doesn't exist
+                if (!await _roleManager.RoleExistsAsync("Tenant"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole<int>("Tenant"));
+                }
+                await _userManager.AddToRoleAsync(newUser, "Tenant");
+
+                Console.WriteLine($"[SetupTenantUser] Account successfully set up for: {dto.Email}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SetupTenantUser] Error: {ex.Message}");
                 throw;
             }
         }

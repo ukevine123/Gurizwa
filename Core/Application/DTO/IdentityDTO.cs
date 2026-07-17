@@ -32,6 +32,7 @@ namespace Application.DTO
          public string CompanyName { get; set; } = string.Empty;
          public string TinNumber { get; set; } = string.Empty;
          public string ContactPerson { get; set; } = string.Empty;
+         public int? TenantId { get; set; }
 
          public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
          {
@@ -133,6 +134,22 @@ namespace Application.DTO
         [Required(ErrorMessage = "Password is required.")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
         public string Password { get; set; } = string.Empty;
+    }
+
+    public class SetupTenantUserDTO
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        [MinLength(8, ErrorMessage = "Password must be at least 8 characters long.")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirm Password is required.")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 
 }

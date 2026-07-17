@@ -384,6 +384,12 @@
             @(!IsMini ? "Users" : "")
         </MudNavLink>
     }
+    @if (IsDeveloper)
+    {
+        <MudNavLink Href="/tenants" Icon="@Icons.Material.Filled.PeopleAlt">
+            @(!IsMini ? "Tenants" : "")
+        </MudNavLink>
+    }
 </MudNavGroup>
         </MudNavMenu>
     </MudDrawer>

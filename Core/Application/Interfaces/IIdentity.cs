@@ -23,7 +23,7 @@ namespace Application.Interfaces
             
             Task<List<string>> GetRolesAsync(int parentPersonId);
             Task CreateRoleAsync(string roleName, int parentPersonId);
-
+            Task SetupTenantUserAsync(SetupTenantUserDTO dto);
              /// <summary>
         /// Gets the current authenticated user's profile, or null if not authenticated.
         /// </summary>

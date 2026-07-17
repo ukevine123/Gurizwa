@@ -1,0 +1,135 @@
+@using Application.DTO
+@using MudBlazor
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Tenant Type</MudText>
+                <MudText Typo="Typo.body1">@Tenant.TenantType</MudText>
+            </MudItem>
+            
+            @if (Tenant.TenantType == "Organization")
+            {
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Company Name</MudText>
+                    <MudText Typo="Typo.body1">@Tenant.CompanyName</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact First Name</MudText>
+                    <MudText Typo="Typo.body1">@Tenant.FirstName</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact Last Name</MudText>
+                    <MudText Typo="Typo.body1">@Tenant.LastName</MudText>
+                </MudItem>
+            }
+            else
+            {
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">First Name</MudText>
+                    <MudText Typo="Typo.body1">@Tenant.FirstName</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Last Name</MudText>
+                    <MudText Typo="Typo.body1">@Tenant.LastName</MudText>
+                </MudItem>
+            }
+
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Email</MudText>
+                <MudText Typo="Typo.body1">@Tenant.Email</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Phone Number</MudText>
+                <MudText Typo="Typo.body1">@Tenant.PhoneNumber</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Location</MudText>
+                <MudText Typo="Typo.body1">@Tenant.Location</MudText>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary">Registration Date</MudText>
+                <MudText Typo="Typo.body1">@Tenant.CreatedAt.ToString("g")</MudText>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-2">Attached Documents</MudText>
+                @if (Tenant.Documents != null && Tenant.Documents.Any())
+                {
+                    <MudList T="string" Dense="true">
+                        @foreach (var doc in Tenant.Documents)
+                        {
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.AttachFile">
+                                <div class="d-flex align-center">
+                                    <MudText>@doc.DocumentName</MudText>
+                                    <MudSpacer />
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ViewDocument(doc))">
+                                        View
+                                    </MudButton>
+                                </div>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">No documents attached.</MudText>
+                }
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Default">Cancel</MudButton>
+        <MudButton OnClick="Reject" Color="Color.Error" Variant="Variant.Outlined">Reject</MudButton>
+        <MudButton OnClick="Approve" Color="Color.Success" Variant="Variant.Filled">Approve</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public TenantDTO Tenant { get; set; }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Approve()
+    {
+        MudDialog.Close(DialogResult.Ok("Approve"));
+    }
+
+    private void Reject()
+    {
+        MudDialog.Close(DialogResult.Ok("Reject"));
+    }
+
+    private void ViewDocument(TenantDocumentDTO doc)
+    {
+        if (doc.DocumentFile != null && doc.DocumentFile.Length > 0)
+        {
+            var base64 = Convert.ToBase64String(doc.DocumentFile);
+            var extension = System.IO.Path.GetExtension(doc.DocumentName).ToLower();
+            string mimeType = "application/octet-stream";
+            
+            if (extension == ".pdf") mimeType = "application/pdf";
+            else if (extension == ".png") mimeType = "image/png";
+            else if (extension == ".jpg" || extension == ".jpeg") mimeType = "image/jpeg";
+            
+            var url = $"data:{mimeType};base64,{base64}";
+            
+            var parameters = new DialogParameters
+            {
+                { "Url", url },
+                { "MimeType", mimeType },
+                { "FileName", doc.DocumentName }
+            };
+
+            var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+            DialogService.Show<DocumentViewerDialog>("Document Viewer", parameters, options);
+        }
+    }
+}

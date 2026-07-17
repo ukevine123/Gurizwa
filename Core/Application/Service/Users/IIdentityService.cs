@@ -81,5 +81,10 @@ namespace Application.Services.Users
             await _identity.UpdateUser(id, dto);
         }
 
+        public async Task SetupTenantUserAsync(SetupTenantUserDTO dto)
+        {
+            await _identity.SetupTenantUserAsync(dto);
+        }
+
     }
 }

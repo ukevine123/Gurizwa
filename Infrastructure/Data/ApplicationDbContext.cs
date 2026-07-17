@@ -46,6 +46,8 @@ namespace Infrastructure.Data
         public DbSet<Waiver> Waivers { get; set; }
         public DbSet<WaiverType> WaiverTypes { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<TenantDocument> TenantDocuments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -191,6 +193,18 @@ namespace Infrastructure.Data
                 .WithMany()
                 .HasForeignKey(w => w.PersonId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<User>()
+                .HasOne(u => u.Tenant)
+                .WithMany()
+                .HasForeignKey(u => u.TenantId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<TenantDocument>()
+                .HasOne(td => td.Tenant)
+                .WithMany(t => t.TenantDocuments)
+                .HasForeignKey(td => td.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
 
     // Disable cascade delete between Borrower and ProcessFeeDeposits
        

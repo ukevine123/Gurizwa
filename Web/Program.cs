@@ -102,6 +102,9 @@ builder.Services.AddScoped<IExpenseService, ExpenseService>();
 // File/Location Services
 builder.Services.AddSingleton<IFileProvider>(builder.Environment.WebRootFileProvider);
 builder.Services.AddSingleton<ILocationService, JsonLocationService>();
+builder.Services.AddScoped<Application.Interfaces.IEmailService, Infrastructure.Services.EmailService>();
+builder.Services.AddScoped<Application.Interfaces.ITenant, Infrastructure.Repositories.TenantRepository>();
+builder.Services.AddScoped<Application.Services.Tenants.ITenantService, Application.Services.Tenants.TenantService>();
 
 // --- 2. BUILD THE APP ---
 var app = builder.Build();

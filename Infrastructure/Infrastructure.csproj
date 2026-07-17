@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
     <PackageReference Include="QuestPDF" Version="2026.7.0" />
+    <PackageReference Include="MailKit" Version="4.4.0" />
   </ItemGroup>
     <ItemGroup>
      <ProjectReference Include="..\Core\Application\Application.csproj" />

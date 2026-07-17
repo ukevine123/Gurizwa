@@ -15,6 +15,9 @@ namespace Infrastructure.Identity
         public User ParentUser { get; set; }
         public ICollection<User> SubUsers { get; set; } = new List<User>();
 
+        public int? TenantId { get; set; }
+        public Tenant Tenant { get; set; }
+
         // Auditing fields
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

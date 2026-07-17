@@ -19,6 +19,6 @@ namespace Application.Services.Users
     Task DeleteSubUserAsync(int subUserId, int parentUserId);
             Task<List<string>> GetRolesAsync(int parentPersonId);
             Task CreateRoleAsync(string roleName, int parentPersonId);
-   
+            Task SetupTenantUserAsync(SetupTenantUserDTO dto);
     }   
 }

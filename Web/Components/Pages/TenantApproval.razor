@@ -1,0 +1,163 @@
+@page "/tenants"
+@using Application.DTO
+@using Application.Services.Tenants
+@using Application.Interfaces
+@inject ITenantService TenantService
+@inject ISnackbar Snackbar
+@inject IUserContext UserContext
+@inject IDialogService DialogService
+
+<PageTitle>Tenant Management</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Tenant Management</MudText>
+
+@if (!IsDeveloper)
+{
+    <MudAlert Severity="Severity.Error">You do not have permission to view this page.</MudAlert>
+}
+else if (_isLoading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else
+{
+    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+        <MudTabPanel Text="Pending" BadgeData='"!"' BadgeColor="Color.Error" Icon="@Icons.Material.Filled.PendingActions">
+            @RenderTenantTable(_pendingTenants, true)
+        </MudTabPanel>
+        <MudTabPanel Text="Approved" Icon="@Icons.Material.Filled.CheckCircle">
+            @RenderTenantTable(_approvedTenants, false)
+        </MudTabPanel>
+        <MudTabPanel Text="Rejected" Icon="@Icons.Material.Filled.Cancel">
+            @RenderTenantTable(_rejectedTenants, false)
+        </MudTabPanel>
+    </MudTabs>
+}
+
+@code {
+    private RenderFragment RenderTenantTable(IEnumerable<TenantDTO> tenants, bool showActions) => __builder =>
+    {
+        if (!tenants.Any())
+        {
+            <MudAlert Severity="Severity.Info">No tenants found in this category.</MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@tenants" Hover="true" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Type</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Email</MudTh>
+                    <MudTh>Phone</MudTh>
+                    <MudTh>Location</MudTh>
+                    <MudTh>Documents</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Type">@context.TenantType</MudTd>
+                    <MudTd DataLabel="Name">
+                        @(context.TenantType == "Organization" ? context.CompanyName : $"{context.FirstName} {context.LastName}")
+                    </MudTd>
+                    <MudTd DataLabel="Email">@context.Email</MudTd>
+                    <MudTd DataLabel="Phone">@context.PhoneNumber</MudTd>
+                    <MudTd DataLabel="Location">@context.Location</MudTd>
+                    <MudTd DataLabel="Documents">
+                        @foreach (var doc in context.Documents)
+                        {
+                            <div class="mb-1">
+                                <MudIcon Icon="@Icons.Material.Filled.AttachFile" Size="Size.Small" /> @doc.DocumentName
+                            </div>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton Color="Color.Info" Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => ViewDetails(context, showActions))" Class="mr-2">View Details</MudButton>
+                        @if (showActions)
+                        {
+                            <MudButton Color="Color.Success" Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => ApproveTenant(context.Id))" Class="mr-2">Approve</MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => RejectTenant(context.Id))">Reject</MudButton>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    };
+
+    private List<TenantDTO> _allTenants = new();
+    private IEnumerable<TenantDTO> _pendingTenants => _allTenants.Where(t => t.Status == "Pending");
+    private IEnumerable<TenantDTO> _approvedTenants => _allTenants.Where(t => t.Status == "Approved");
+    private IEnumerable<TenantDTO> _rejectedTenants => _allTenants.Where(t => t.Status == "Rejected");
+    
+    private bool _isLoading = true;
+
+    private bool IsDeveloper =>
+        string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsDeveloper)
+        {
+            await LoadTenants();
+        }
+        else
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadTenants()
+    {
+        _isLoading = true;
+        _allTenants = await TenantService.GetAllTenantsAsync();
+        _isLoading = false;
+    }
+
+    private async Task ViewDetails(TenantDTO tenant, bool showActions)
+    {
+        var parameters = new DialogParameters { ["Tenant"] = tenant };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        
+        var dialog = DialogService.Show<TenantDetailDialog>("Tenant Details", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && showActions)
+        {
+            if (result.Data.ToString() == "Approve")
+            {
+                await ApproveTenant(tenant.Id);
+            }
+            else if (result.Data.ToString() == "Reject")
+            {
+                await RejectTenant(tenant.Id);
+            }
+        }
+    }
+
+    private async Task ApproveTenant(int id)
+    {
+        var success = await TenantService.ApproveTenantAsync(id);
+        if (success)
+        {
+            Snackbar.Add("Tenant approved successfully. An email has been sent.", Severity.Success);
+            await LoadTenants();
+        }
+        else
+        {
+            Snackbar.Add("Failed to approve tenant.", Severity.Error);
+        }
+    }
+
+    private async Task RejectTenant(int id)
+    {
+        var success = await TenantService.RejectTenantAsync(id);
+        if (success)
+        {
+            Snackbar.Add("Tenant rejected.", Severity.Warning);
+            await LoadTenants();
+        }
+        else
+        {
+            Snackbar.Add("Failed to reject tenant.", Severity.Error);
+        }
+    }
+}

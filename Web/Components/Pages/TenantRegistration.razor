@@ -1,0 +1,201 @@
+@page "/register"
+@attribute [AllowAnonymous]
+@layout AuthLayout
+@using Application.DTO
+@using Application.Services.Tenants
+@inject ITenantService TenantService
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Forms
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .success-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    .success-card {
+        background: white;
+        border-radius: 20px;
+        padding: 48px 40px;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    }
+</style>
+
+<PageTitle>Tenant Registration | GURIZA</PageTitle>
+
+@if (_registrationSuccess)
+{
+    <div class="success-overlay">
+        <div class="success-card">
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#3b5bdb; font-size: 4rem;" Class="mb-4" />
+            <MudText Typo="Typo.h5" Style="font-weight: 800; margin-bottom: 8px;">Registration Received!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Style="margin-bottom: 32px;">
+                Your registration has been submitted and is pending administrator approval. We will notify you via email once approved.
+            </MudText>
+            <MudButton Variant="Variant.Filled" FullWidth="true" Style="background: #02086b; color: white; border-radius: 25px;" OnClick='() => NavigationManager.NavigateTo("/account/login")'>
+                Return to Login
+            </MudButton>
+        </div>
+    </div>
+}
+
+<MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center pa-0" Style="height: 100vh; background-color: #f5f5f5;">
+    <MudPaper Elevation="4" Class="d-flex" Style="width: 900px; height: 680px; border-radius: 24px; overflow: hidden;">
+        
+        <MudGrid Spacing="0">
+            <MudItem md="5" Class="d-none d-md-flex flex-column align-center justify-center pa-8" Style="background-color: #1a1512; color: white;">
+                <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
+                    Join <br /> GURIZA
+                </MudText>
+            </MudItem>
+
+            <MudItem xs="12" md="7" Class="pa-8 d-flex flex-column" Style="background-color: white; height: 100%; overflow-y: auto;">
+                <div class="d-flex align-center mb-6">
+                    <MudText Typo="Typo.h6" Style="font-weight: 900; font-family: 'Arial Black', 'Montserrat', sans-serif;">GURIZA</MudText>
+                    <MudSpacer />
+                    <MudLink href="/account/login" Underline="Underline.None" Color="Color.Primary" Style="font-size: 0.85rem; font-weight: 600;">Sign In</MudLink>
+                </div>
+
+                <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Tenant Registration</MudText>
+
+                <EditForm Model="@Model" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4">@ErrorMessage</MudAlert>
+                    }
+
+                    <MudRadioGroup @bind-Value="Model.TenantType" Class="mb-4 d-flex justify-center">
+                        <MudRadio Value="@("Personal")" Color="Color.Primary">Personal</MudRadio>
+                        <MudRadio Value="@("Organization")" Color="Color.Primary">Organization</MudRadio>
+                    </MudRadioGroup>
+
+                    <MudGrid Spacing="2" Class="mb-4">
+                        @if (Model.TenantType == "Personal")
+                        {
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.FirstName" Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            </MudItem>
+                        }
+                        else
+                        {
+                            <MudItem xs="12">
+                                <MudTextField @bind-Value="Model.CompanyName" Label="Company Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.FirstName" Label="Contact First Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudTextField @bind-Value="Model.LastName" Label="Contact Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            </MudItem>
+                        }
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.PhoneNumber" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudTextField @bind-Value="Model.Location" Label="Location (City/Country)" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Upload Required Documents</MudText>
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".pdf,.png,.jpg,.jpeg">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                                Attach Files
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    
+                    @if (Model.Documents.Count > 0)
+                    {
+                        <MudList T="string" Dense="true" Class="mt-2">
+                            @foreach (var file in Model.Documents)
+                            {
+                                <MudListItem T="string" Icon="@Icons.Material.Filled.AttachFile">@file.FileName</MudListItem>
+                            }
+                        </MudList>
+                    }
+
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" FullWidth="true" Disabled="@_isProcessing" Class="py-3 shadow-none mt-6" Style="background: #02086b; color: white; border-radius: 25px; font-weight: 700;">
+                        @if (_isProcessing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        }
+                        <span>Submit Registration</span>
+                    </MudButton>
+                </EditForm>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private TenantRegistrationDTO Model { get; set; } = new();
+    private string ErrorMessage { get; set; } = string.Empty;
+    private bool _isProcessing = false;
+    private bool _registrationSuccess = false;
+
+    private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        foreach (var file in files)
+        {
+            try
+            {
+                using var ms = new MemoryStream();
+                await file.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(ms);
+                Model.Documents.Add(new TenantDocumentUploadDTO { FileName = file.Name, Content = ms.ToArray() });
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to upload file {file.Name}: {ex.Message}";
+            }
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        if (_isProcessing) return;
+        _isProcessing = true;
+        try
+        {
+            var success = await TenantService.RegisterTenantAsync(Model);
+            if (success)
+            {
+                _registrationSuccess = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally { _isProcessing = false; }
+    }
+}
