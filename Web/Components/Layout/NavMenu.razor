@@ -23,9 +23,21 @@
 
     private bool IsDeveloper =>
         string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(UserContext.Email, "nyiraminaniclarisse88@gmail.com", StringComparison.OrdinalIgnoreCase);
 
     private bool CanViewUsersMenu => UserContext.IsAuthenticated && (UserContext.PrimaryRole == "Tenant" || IsDeveloper);
+
+    private bool HasRole(string roleName)
+    {
+        if (UserContext.PrimaryRole == "Tenant" || IsDeveloper)
+            return true;
+
+        return UserContext.Roles.Any(r => 
+            string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase) || 
+            r.EndsWith("_" + roleName, StringComparison.OrdinalIgnoreCase)
+        );
+    }
 }
 
 <MudNavMenu>
@@ -37,81 +49,90 @@
         @(!IsMini ? "Dashboard" : "")
     </MudNavLink>
 
-     <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
-        @(!IsMini ? "Account" : "")
-    </MudNavLink>
-    
-    @* <MudNavLink href="/loans" Icon="@Icons.Material.Outlined.AccountBalanceWallet">
-        @(!IsMini ? "My Loans" : "")
-    </MudNavLink> *@
+    @if (HasRole("Accountant"))
+    {
+        <MudNavLink href="/accounts" Icon="@Icons.Material.Outlined.ManageAccounts">
+            @(!IsMini ? "Account" : "")
+        </MudNavLink>
+    }
 
-<MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Paid">
-        @(!IsMini ? "LoanProducts" : "")
-    </MudNavLink>
+    @if (HasRole("Loan Officer") || HasRole("LoanOfficer"))
+    {
+        <MudNavLink href="/loanProducts" Icon="@Icons.Material.Outlined.Paid">
+            @(!IsMini ? "LoanProducts" : "")
+        </MudNavLink>
+    }
 
-    <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
-        @(!IsMini ? "Borrowers" : "")
-    </MudNavLink>
+    @if (HasRole("Loan Officer") || HasRole("LoanOfficer") || HasRole("Staff"))
+    {
+        <MudNavLink href="/Borrower" Icon="@Icons.Material.Outlined.People">
+            @(!IsMini ? "Borrowers" : "")
+        </MudNavLink>
 
-    @* <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
-        @(!IsMini ? "Documents" : "")
-</MudNavLink> *@
-    @* <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
-        @(!IsMini ? "Application" : "")
-    </MudNavLink> *@
+        <MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
+            <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
+                @(!IsMini ? "Application" : "")
+            </MudNavLink>
+            <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
+                @(!IsMini ? "Guarantors" : "")
+            </MudNavLink>
+            <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
+                @(!IsMini ? "Collateral" : "")
+            </MudNavLink>
+            <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
+                @(!IsMini ? "Documents" : "")
+            </MudNavLink>
+        </MudNavGroup>
+    }
 
-<MudNavGroup Title="Application" Icon="@Icons.Material.Filled.Assignment" Expanded="false">
-    <MudNavLink href="/LoanApplication" Icon="@Icons.Material.Outlined.Assignment">
-        @(!IsMini ? "Application" : "")
-    </MudNavLink>
-     <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
-        @(!IsMini ? "Guarantors" : "")
-    </MudNavLink>
-    <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Collateral" : "")
-    </MudNavLink>
-    <MudNavLink href="/ProvidedDocuments" Icon="@Icons.Material.Outlined.Description">
-        @(!IsMini ? "Documents" : "")
-</MudNavLink>
+    @if (HasRole("Accountant"))
+    {
+        <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
+            @(!IsMini ? "Process Fee Deposits" : "")
+        </MudNavLink>
+    }
 
-</MudNavGroup>
+    @if (HasRole("Accountant") || HasRole("Loan Officer") || HasRole("LoanOfficer"))
+    {
+        <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
+            @(!IsMini ? "Disbursement" : "")
+        </MudNavLink>
+    }
 
-    <MudNavLink href="/ProcessFeeDeposits" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Process Fee Deposits" : "")
-    </MudNavLink>
+    @if (HasRole("Accountant") || HasRole("Staff"))
+    {
+        <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
+            @(!IsMini ? "Payments" : "")
+        </MudNavLink>
+    }
 
-    @* <MudNavLink href="/Guarantor" Icon="@Icons.Material.Outlined.GppGood">
-        @(!IsMini ? "Guarantors" : "")
-    </MudNavLink> *@
-     
+    @if (HasRole("Accountant"))
+    {
+        <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.Money">
+            @(!IsMini ? "Penality" : "")
+        </MudNavLink>
+    }
 
-     <MudNavLink href="/Disbursements" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Disbursement" : "")
-    </MudNavLink>
+    @if (HasRole("Loan Officer") || HasRole("LoanOfficer"))
+    {
+        <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
+            @(!IsMini ? "Waivers" : "")
+        </MudNavLink>
+    }
 
-     @* <MudNavLink href="/collateral" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Collateral" : "")
-    </MudNavLink>   *@
+    @if (HasRole("Accountant"))
+    {
+        <MudNavLink Href="/Expenses" Icon="@Icons.Material.Outlined.Receipt">
+            @(!IsMini ? "Expenses" : "")
+        </MudNavLink>
+    }
 
-     <MudNavLink href="/Payments" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Payments" : "")
-    </MudNavLink>
-
-     <MudNavLink href="/Penality" Icon="@Icons.Material.Outlined.Money">
-        @(!IsMini ? "Penality" : "")
-    </MudNavLink>
-
-    <MudNavLink href="/waivers" Icon="@Icons.Material.Outlined.GppGood">
-        @(!IsMini ? "Waivers" : "")
-    </MudNavLink>
-
-    <MudNavLink Href="/Expenses" Icon="@Icons.Material.Outlined.Receipt">
-        @(!IsMini ? "Expenses" : "")
-    </MudNavLink>
-
-    <MudNavLink Href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
-        @(!IsMini ? "Reports" : "")
-    </MudNavLink>
+    @if (HasRole("Accountant") || HasRole("Loan Officer") || HasRole("LoanOfficer") || HasRole("Viewer") || HasRole("Staff"))
+    {
+        <MudNavLink Href="/Reports" Icon="@Icons.Material.Outlined.BarChart">
+            @(!IsMini ? "Reports" : "")
+        </MudNavLink>
+    }
 
 <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings" Expanded="false">
     <MudNavLink Href="/Settings" Icon="@Icons.Material.Filled.Settings">

@@ -4,13 +4,42 @@
 @inject IIdentityService IdentityService
 @inject ISnackbar Snackbar
 
-<MudDialog>
+<MudDialog Style="overflow:hidden; max-width: 500px; width: 100%;">
     <DialogContent>
-        <MudText Typo="Typo.body2" Class="mb-4">Add a new custom role to your organization (e.g., "Accountant", "Loan Officer").</MudText>
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF, #8F70FF);
+                         padding:14px 18px; margin-bottom:16px; border-radius: 8px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.Settings"
+                         Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Manage Roles
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Create and view custom organization roles
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <MudText Typo="Typo.body2" Class="mb-4" Style="color: #A3AED0;">
+            Add a new custom role to your organization (e.g. "Accountant", "Loan Officer").
+        </MudText>
         
-        <div class="d-flex align-center gap-2 mb-4">
-            <MudTextField @bind-Value="newRoleName" Label="New Role Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
-            <MudButton OnClick="AddRole" Variant="Variant.Filled" Color="Color.Primary" Disabled="isSubmitting || string.IsNullOrWhiteSpace(newRoleName)">
+        <div class="d-flex align-center gap-2 mb-6">
+            <MudTextField @bind-Value="newRoleName" 
+                          Label="New Role Name" 
+                          Variant="Variant.Outlined" 
+                          Margin="Margin.Dense" 
+                          Class="flex-grow-1" />
+            <MudButton OnClick="AddRole" 
+                       Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       Style="height: 40px;"
+                       Disabled="isSubmitting || string.IsNullOrWhiteSpace(newRoleName)">
                 @if (isSubmitting)
                 {
                     <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
@@ -23,24 +52,28 @@
         </div>
 
         <MudText Typo="Typo.subtitle2" Class="mb-2">Available Roles</MudText>
-        <MudList T="string" Dense="true" Class="border rounded">
-            @if (roles == null)
-            {
-                <MudListItem T="string">
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" /> Loading...
-                </MudListItem>
-            }
-            else
-            {
-                @foreach (var role in roles)
+        <MudPaper Outlined="true" Class="pa-2 max-height-300 overflow-y-auto" Style="max-height: 200px; overflow-y: auto;">
+            <MudList T="string" Dense="true">
+                @if (roles == null)
                 {
-                    <MudListItem T="string" Icon="@Icons.Material.Filled.Badge">@role</MudListItem>
+                    <MudListItem T="string">
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> Loading...
+                    </MudListItem>
                 }
-            }
-        </MudList>
+                else
+                {
+                    @foreach (var role in roles)
+                    {
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Badge" IconColor="Color.Primary">
+                            @role
+                        </MudListItem>
+                    }
+                }
+            </MudList>
+        </MudPaper>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Close" Color="Color.Default">Close</MudButton>
+        <MudButton OnClick="Close" Variant="Variant.Text" Color="Color.Default">Close</MudButton>
     </DialogActions>
 </MudDialog>
 

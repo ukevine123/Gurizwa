@@ -25,10 +25,11 @@ namespace Infrastructure.Repositories
         {
             return new List<Disbursement>();
         }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await context.Disbursements
                 .Include(i => i.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.PaymentModality)
-                 .Where(a => a.PersonId == _userContext.PersonId)
+                 .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .Include(i => i.Payments)
                 .Where(d => d.IsActive)
                 .OrderByDescending(d => d.CreatedAt)
@@ -42,10 +43,11 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             var data = await context.Disbursements
                 .Include(i => i.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.PaymentModality)
-                .Where(a => a.PersonId == _userContext.PersonId) 
+                .Where(a => allowedPersonIds.Contains(a.PersonId)) 
                 .Include(i => i.Payments)
                 .Where(d => d.IsActive)
                 .ToListAsync();
@@ -67,11 +69,12 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await context.Disbursements
                 .Include(i => i.LoanApplication).ThenInclude(l => l.Borrower)
                 .Include(i => i.PaymentModality)
                 .Include(i => i.Payments)
-                .Where(a => a.PersonId == _userContext.PersonId)
+                .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .FirstOrDefaultAsync(i => i.Id == id);
         }
 
@@ -82,10 +85,11 @@ namespace Infrastructure.Repositories
             {
                 return null;
             }
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await context.Disbursements
                 .Include(i => i.LoanApplication)
                 .Include(i => i.PaymentModality)
-                .Where(a => a.PersonId == _userContext.PersonId) 
+                .Where(a => allowedPersonIds.Contains(a.PersonId)) 
                 .Include(i => i.Payments)
                 .Where(d => d.IsActive)
                 .FirstOrDefaultAsync(d => d.LoanApplicationId == loanApplicationId);
@@ -94,10 +98,10 @@ namespace Infrastructure.Repositories
         public async Task<CreateDisbursementDTO> PrepareDisbursementFromApplicationAsync(int loanApplicationId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
-        
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             var app = await context.LoanApplications
                 .Include(l => l.LoanProductSetting)
-                .Where(a => a.PersonId == _userContext.PersonId) 
+                .Where(a => allowedPersonIds.Contains(a.PersonId)) 
                 .FirstOrDefaultAsync(l => l.Id == loanApplicationId);
 
             if (app == null) return new CreateDisbursementDTO();
@@ -274,7 +278,7 @@ namespace Infrastructure.Repositories
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    PersonId = user.Person.Id,
+                    PersonId = loanApp.PersonId,
                 };
 
                 context.Disbursements.Add(disbursement);

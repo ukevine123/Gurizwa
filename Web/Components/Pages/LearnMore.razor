@@ -1,0 +1,1133 @@
+@page "/learn-more"
+@attribute [AllowAnonymous]
+@layout Web.Components.Layout.AuthLayout
+@inject NavigationManager Navigation
+
+<PageTitle>Gurizwa - Feature Showroom</PageTitle>
+
+<div class="learn-container">
+    <!-- Header/Nav -->
+    <header class="learn-navbar">
+        <div class="navbar-content">
+            <div class="brand-logo" @onclick='() => Navigation.NavigateTo("/")' style="cursor: pointer;">
+                <img src="/Images/guriza_logo.png" alt="Guriza Logo" class="logo-img" />
+                <span class="logo-text">GURIZA</span>
+            </div>
+            <button class="btn btn-secondary back-btn" @onclick='() => Navigation.NavigateTo("/")'>
+                <i class="oi oi-arrow-left"></i> Back to Landing Page
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Header -->
+    <section class="learn-hero">
+        <h1 class="learn-title">Inside the <span class="gradient-text">Gurizwa Platform</span></h1>
+        <p class="learn-subtitle">Explore the exact interface, layouts, and tools designed to optimize digital lending workflows, assess risk, and track payment pipelines.</p>
+    </section>
+
+    <!-- Showroom Section -->
+    <section class="showroom-section">
+        <div class="showroom-wrapper">
+            <!-- Sidebar Navigation Tabs -->
+            <div class="showroom-sidebar">
+                <button class="showroom-tab-btn @(ActiveTab == "dashboard" ? "active" : "")" @onclick='() => SetActiveTab("dashboard")'>
+                    <i class="oi oi-dashboard"></i>
+                    <div class="tab-btn-text">
+                        <h4>Executive Dashboard</h4>
+                        <p>Aggregated metrics & trends</p>
+                    </div>
+                </button>
+                <button class="showroom-tab-btn @(ActiveTab == "borrowers" ? "active" : "")" @onclick='() => SetActiveTab("borrowers")'>
+                    <i class="oi oi-people"></i>
+                    <div class="tab-btn-text">
+                        <h4>Borrowers Directory</h4>
+                        <p>Onboarding & client records</p>
+                    </div>
+                </button>
+                <button class="showroom-tab-btn @(ActiveTab == "applications" ? "active" : "")" @onclick='() => SetActiveTab("applications")'>
+                    <i class="oi oi-file"></i>
+                    <div class="tab-btn-text">
+                        <h4>Loan Applications</h4>
+                        <p>Submission & verification</p>
+                    </div>
+                </button>
+                <button class="showroom-tab-btn @(ActiveTab == "payments" ? "active" : "")" @onclick='() => SetActiveTab("payments")'>
+                    <i class="oi oi-dollar"></i>
+                    <div class="tab-btn-text">
+                        <h4>Payments & Schedules</h4>
+                        <p>Amortization & collection logs</p>
+                    </div>
+                </button>
+                <button class="showroom-tab-btn @(ActiveTab == "reports" ? "active" : "")" @onclick='() => SetActiveTab("reports")'>
+                    <i class="oi oi-graph"></i>
+                    <div class="tab-btn-text">
+                        <h4>System Reports</h4>
+                        <p>Ledger audit & waiver approvals</p>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Showroom Display Area -->
+            <div class="showroom-display">
+                <!-- Tab Content details -->
+                <div class="display-details">
+                    @if (ActiveTab == "dashboard")
+                    {
+                        <span class="category-badge blue">Operational Hub</span>
+                        <h3>Dashboard Overview</h3>
+                        <p class="desc-text">The operational brain of Gurizwa. Provides managers and credit risk officers with instant insights into the health of the lending portfolio.</p>
+                        
+                        <div class="key-takeaways">
+                            <h4>Key Capabilities:</h4>
+                            <ul>
+                                <li><i class="oi oi-check text-success"></i> <strong>Aggregate Metrics:</strong> Track total loan files (applied, approved, rejected, disbursed) dynamically.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Performance Analytics:</strong> Observe monthly application trend charts over selected timeframes.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Account Balances:</strong> Direct view of capital, disbursements, and penalty deposits in real-time.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Activity Heatmap:</strong> Visual log of credit staff activity across the calendar year.</li>
+                            </ul>
+                        </div>
+                    }
+                    else if (ActiveTab == "borrowers")
+                    {
+                        <span class="category-badge green">KYC & Onboarding</span>
+                        <h3>Borrowers Directory</h3>
+                        <p class="desc-text">Onboard borrowers and manage client profiles with rich demographic inputs, identity documents, and debt ceilings.</p>
+                        
+                        <div class="key-takeaways">
+                            <h4>Key Capabilities:</h4>
+                            <ul>
+                                <li><i class="oi oi-check text-success"></i> <strong>Full KYC Records:</strong> Save personal data, emails, telephone numbers, and addresses.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Risk Profile:</strong> Categorize clients as Individual or Enterprise and manage credit locks.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Integrated Audits:</strong> View borrower history, outstanding debts, and payment performance.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Action Shortcuts:</strong> Edit profiles, check guarantor files, and attach documents.</li>
+                            </ul>
+                        </div>
+                    }
+                    else if (ActiveTab == "applications")
+                    {
+                        <span class="category-badge info">Credit Review Pipeline</span>
+                        <h3>Loan Application Flow</h3>
+                        <p class="desc-text">Manage the complete lifecycle of a loan, from configuration of requirements to final credit committee authorization.</p>
+                        
+                        <div class="key-takeaways">
+                            <h4>Key Capabilities:</h4>
+                            <ul>
+                                <li><i class="oi oi-check text-success"></i> <strong>Requirement Checklist:</strong> Mandate document checklists per loan product.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Collateral Appraisal:</strong> Record assets, values, and verification details.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Guarantor Management:</strong> Connect multiple guarantors with customizable coverage shares.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Multi-Stage Flow:</strong> Automated status tags (Pending, Approved, Disbursed, Rejected).</li>
+                            </ul>
+                        </div>
+                    }
+                    else if (ActiveTab == "payments")
+                    {
+                        <span class="category-badge warning">Financial Ledger</span>
+                        <h3>Payment Schedules</h3>
+                        <p class="desc-text">Generate amortization schedules, process user repayments, calculate dynamic late penalties, and execute waivers.</p>
+                        
+                        <div class="key-takeaways">
+                            <h4>Key Capabilities:</h4>
+                            <ul>
+                                <li><i class="oi oi-check text-success"></i> <strong>Amortization Tables:</strong> Automated division of principal and interest per schedule date.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Grace Period & Penalties:</strong> Automatic calculations of penalties on past-due invoices.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Collection Auditing:</strong> Log exact payment modes (Mobile Money, Bank Transfer, cash).</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Flexible Waivers:</strong> Submit penalty waiver requests for manager approvals.</li>
+                            </ul>
+                        </div>
+                    }
+                    else if (ActiveTab == "reports")
+                    {
+                        <span class="category-badge purple">System Integrity</span>
+                        <h3>Ledger Audit & Reports</h3>
+                        <p class="desc-text">Export accounting reports, audit transactions, track system expenses, and balance financial positions across multiple accounts.</p>
+                        
+                        <div class="key-takeaways">
+                            <h4>Key Capabilities:</h4>
+                            <ul>
+                                <li><i class="oi oi-check text-success"></i> <strong>Expense Tracking:</strong> Log operational costs by custom classifications.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Comprehensive Ledgers:</strong> Check branch transaction logs and cashflows.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Printable Formats:</strong> Export clean PDF/Excel sheets of performance metrics.</li>
+                                <li><i class="oi oi-check text-success"></i> <strong>Organization Isolation:</strong> Ensure strict tenant separation in multi-tenant environments.</li>
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="learn-actions">
+                        <a href="/account/login" class="btn btn-primary">Try Live System</a>
+                    </div>
+                </div>
+
+                <!-- Tab Preview Render (High Fidelity HTML/CSS Mockup representing the "Same picture/UI of the page") -->
+                <div class="display-visual-window">
+                    <div class="mock-header-bar">
+                        <div class="mock-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <div class="mock-url">gurizwa.org/@(ActiveTab)</div>
+                    </div>
+                    
+                    <div class="mock-page-content">
+                        @if (ActiveTab == "dashboard")
+                        {
+                            <!-- Dashboard UI Mock -->
+                            <div class="mock-dash">
+                                <div class="mock-sec-header">
+                                    <h4>Dashboard Overview</h4>
+                                    <span class="mock-date">Today, 2026</span>
+                                </div>
+                                <div class="mock-stats-row">
+                                    <div class="m-stat" style="border-left-color: #4318FF;">
+                                        <span class="m-label">Applied</span>
+                                        <span class="m-val">152</span>
+                                    </div>
+                                    <div class="m-stat" style="border-left-color: #05CD99;">
+                                        <span class="m-label">Approved</span>
+                                        <span class="m-val">98</span>
+                                    </div>
+                                    <div class="m-stat" style="border-left-color: #EE5D50;">
+                                        <span class="m-label">Rejected</span>
+                                        <span class="m-val">12</span>
+                                    </div>
+                                    <div class="m-stat" style="border-left-color: #7047EB;">
+                                        <span class="m-label">Disbursed</span>
+                                        <span class="m-val">84</span>
+                                    </div>
+                                </div>
+                                <div class="mock-chart-card">
+                                    <h5>Application Monthly Performance</h5>
+                                    <div class="mock-bar-chart">
+                                        <div class="bar-bar" style="height: 40%"><span>Jan</span></div>
+                                        <div class="bar-bar" style="height: 60%"><span>Feb</span></div>
+                                        <div class="bar-bar" style="height: 85%"><span>Mar</span></div>
+                                        <div class="bar-bar" style="height: 70%"><span>Apr</span></div>
+                                        <div class="bar-bar" style="height: 95%"><span>May</span></div>
+                                        <div class="bar-bar" style="height: 100%"><span>Jun</span></div>
+                                    </div>
+                                </div>
+                                <div class="mock-heatmap-card">
+                                    <h5>Daily Activity Ledger (Heatmap)</h5>
+                                    <div class="mock-heatmap">
+                                        @for (int i = 0; i < 35; i++)
+                                        {
+                                            var density = (i % 7 == 0) ? "none" : (i % 5 == 0) ? "high" : (i % 3 == 0) ? "med" : "low";
+                                            <span class="heat-node @density"></span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (ActiveTab == "borrowers")
+                        {
+                            <!-- Borrowers UI Mock -->
+                            <div class="mock-borrowers">
+                                <div class="mock-sec-header">
+                                    <h4>Borrower Directory</h4>
+                                    <span class="m-btn-mini">+ Register Borrower</span>
+                                </div>
+                                <div class="mock-search-bar">
+                                    <input type="text" placeholder="Search by name, phone..." disabled />
+                                </div>
+                                <table class="mock-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Debt (Rwf)</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Isabella Mugisha</strong></td>
+                                            <td>isabella@gmail.com</td>
+                                            <td>+250 788 123 456</td>
+                                            <td>4,500,000</td>
+                                            <td><span class="m-chip success">Active</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Jean Claude Nshimiye</strong></td>
+                                            <td>jc.nshimiye@gmail.com</td>
+                                            <td>+250 785 987 654</td>
+                                            <td>0</td>
+                                            <td><span class="m-chip warning">Pending</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Aisha Uwase</strong></td>
+                                            <td>aisha.uwase@yahoo.com</td>
+                                            <td>+250 783 555 111</td>
+                                            <td>1,200,000</td>
+                                            <td><span class="m-chip success">Active</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else if (ActiveTab == "applications")
+                        {
+                            <!-- Applications UI Mock -->
+                            <div class="mock-applications">
+                                <div class="mock-sec-header">
+                                    <h4>Active Applications</h4>
+                                    <span class="m-btn-mini">+ New Application</span>
+                                </div>
+                                <div class="mock-card-list">
+                                    <div class="m-app-card">
+                                        <div class="m-app-header">
+                                            <h5>Student Loan - Rwf 800,000</h5>
+                                            <span class="m-chip warning">Under Review</span>
+                                        </div>
+                                        <p class="m-app-meta">Borrower: Isabella Mugisha | Date: 2026-07-15</p>
+                                        <div class="m-app-requirements">
+                                            <span class="m-req verified"><i class="oi oi-circle-check"></i> KYC Info</span>
+                                            <span class="m-req verified"><i class="oi oi-circle-check"></i> Transcript</span>
+                                            <span class="m-req missing"><i class="oi oi-warning"></i> Guarantor Letter</span>
+                                        </div>
+                                    </div>
+                                    <div class="m-app-card">
+                                        <div class="m-app-header">
+                                            <h5>GIRA IWAWE - Rwf 15,000,000</h5>
+                                            <span class="m-chip success">Approved</span>
+                                        </div>
+                                        <p class="m-app-meta">Borrower: Jean Claude Nshimiye | Date: 2026-07-12</p>
+                                        <div class="m-app-requirements">
+                                            <span class="m-req verified"><i class="oi oi-circle-check"></i> Title Deed</span>
+                                            <span class="m-req verified"><i class="oi oi-circle-check"></i> Collateral Valuation</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (ActiveTab == "payments")
+                        {
+                            <!-- Payments UI Mock -->
+                            <div class="mock-payments">
+                                <div class="mock-sec-header">
+                                    <h4>Amortization Schedule</h4>
+                                    <span class="m-chip success">Gira Iwawe #104</span>
+                                </div>
+                                <table class="mock-table font-dense">
+                                    <thead>
+                                        <tr>
+                                            <th>Installment</th>
+                                            <th>Due Date</th>
+                                            <th>Principal</th>
+                                            <th>Interest</th>
+                                            <th>Paid</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>#1</td>
+                                            <td>2026-08-01</td>
+                                            <td>250,000</td>
+                                            <td>12,500</td>
+                                            <td>262,500</td>
+                                            <td><span class="m-chip success">Paid</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>#2</td>
+                                            <td>2026-09-01</td>
+                                            <td>250,000</td>
+                                            <td>12,500</td>
+                                            <td>0</td>
+                                            <td><span class="m-chip danger">Past Due</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>#3</td>
+                                            <td>2026-10-01</td>
+                                            <td>250,000</td>
+                                            <td>12,500</td>
+                                            <td>0</td>
+                                            <td><span class="m-chip disabled">Unpaid</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="mock-waive-box">
+                                    <h6>Request Late Fee Waiver</h6>
+                                    <p>Late fee penalty outstanding: <strong>Rwf 5,000</strong></p>
+                                    <button class="m-btn-small" disabled>Request Waiver Approval</button>
+                                </div>
+                            </div>
+                        }
+                        else if (ActiveTab == "reports")
+                        {
+                            <!-- Reports UI Mock -->
+                            <div class="mock-reports">
+                                <div class="mock-sec-header">
+                                    <h4>Financial Reports</h4>
+                                    <span class="m-btn-mini">Export PDF</span>
+                                </div>
+                                <div class="mock-grid-2">
+                                    <div class="mock-ledger-card">
+                                        <h5>Income vs Expenses</h5>
+                                        <div class="m-ledger-item">
+                                            <span>Interest Collections</span>
+                                            <span class="text-success">+ Rwf 4,820,000</span>
+                                        </div>
+                                        <div class="m-ledger-item">
+                                            <span>Processing Fees</span>
+                                            <span class="text-success">+ Rwf 350,000</span>
+                                        </div>
+                                        <div class="m-ledger-item">
+                                            <span>Operating Costs</span>
+                                            <span class="text-danger">- Rwf 900,000</span>
+                                        </div>
+                                        <hr/>
+                                        <div class="m-ledger-item font-bold">
+                                            <span>Net Position</span>
+                                            <span class="text-success">Rwf 4,270,000</span>
+                                        </div>
+                                    </div>
+                                    <div class="mock-tenant-card">
+                                        <h5>Branch Contribution</h5>
+                                        <div class="m-branch">
+                                            <span>Kigali Central</span>
+                                            <div class="bar-progress"><span style="width: 70%;"></span></div>
+                                        </div>
+                                        <div class="m-branch">
+                                            <span>Musanze Branch</span>
+                                            <div class="bar-progress"><span style="width: 45%;"></span></div>
+                                        </div>
+                                        <div class="m-branch">
+                                            <span>Huye Branch</span>
+                                            <div class="bar-progress"><span style="width: 25%;"></span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="learn-cta">
+        <div class="cta-content">
+            <h2>Ready to experience the digital transition?</h2>
+            <p>Onboard your lending institution or log in with your credit administrator account to begin creating products and managing portfolios.</p>
+            <a href="/account/login" class="btn btn-primary btn-lg">Access Portal Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <p>&copy; 2026 Gurizwa. All rights reserved.</p>
+    </footer>
+</div>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #4318FF 0%, #070bdc 100%);
+        --primary-color: #4318FF;
+        --secondary-color: #070bdc;
+        --text-dark: #1B2559;
+        --text-light: #A3AED0;
+        --background-light: #F7F9FC;
+    }
+
+    .learn-container {
+        height: 100vh;
+        overflow-y: auto;
+        background-color: #FAFCFF;
+        color: var(--text-dark);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Navbar */
+    .learn-navbar {
+        position: sticky;
+        top: 0;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        z-index: 100;
+        padding: 16px 40px;
+    }
+
+    .navbar-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .logo-img {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .logo-text {
+        font-size: 1.4rem;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        color: var(--text-dark);
+    }
+
+    .back-btn {
+        gap: 8px;
+        background: #F4F7FE;
+        color: var(--primary-color) !important;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+
+    .back-btn:hover {
+        background: #EAEFFD;
+    }
+
+    /* Hero */
+    .learn-hero {
+        text-align: center;
+        padding: 60px 40px 40px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .learn-title {
+        font-size: 3rem;
+        font-weight: 900;
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+    }
+
+    .gradient-text {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .learn-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+
+    /* Showroom */
+    .showroom-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 40px 80px;
+    }
+
+    .showroom-wrapper {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 40px;
+        align-items: flex-start;
+    }
+
+    /* Showroom Sidebar */
+    .showroom-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: white;
+        padding: 16px;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .showroom-tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 16px;
+        border: none;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--text-dark);
+    }
+
+    .showroom-tab-btn i {
+        font-size: 1.25rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #F4F7FE;
+        color: var(--primary-color);
+        transition: all 0.2s ease;
+    }
+
+    .tab-btn-text h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin: 0 0 2px;
+    }
+
+    .tab-btn-text p {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin: 0;
+    }
+
+    .showroom-tab-btn:hover {
+        background: #F8FAFC;
+    }
+
+    .showroom-tab-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .showroom-tab-btn.active i {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .showroom-tab-btn.active .tab-btn-text p {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Showroom Display */
+    .showroom-display {
+        display: grid;
+        grid-template-columns: 1.1fr 1.3fr;
+        gap: 32px;
+        background: white;
+        border-radius: 32px;
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        padding: 40px;
+        min-height: 520px;
+    }
+
+    .display-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .category-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 50px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+    }
+
+    .category-badge.blue { background: #EBF3FF; color: var(--primary-color); }
+    .category-badge.green { background: #E6F9F3; color: #05CD99; }
+    .category-badge.info { background: #EAF7FF; color: #39B8FF; }
+    .category-badge.warning { background: #FFF5E6; color: #FFB547; }
+    .category-badge.purple { background: #F4EBFF; color: #8A3FFC; }
+
+    .display-details h3 {
+        font-size: 1.8rem;
+        font-weight: 900;
+        margin: 0 0 16px;
+        letter-spacing: -0.5px;
+    }
+
+    .desc-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-light);
+        margin-bottom: 24px;
+    }
+
+    .key-takeaways {
+        margin-bottom: 30px;
+        width: 100%;
+    }
+
+    .key-takeaways h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .key-takeaways ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .key-takeaways li {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: #4A5568;
+    }
+
+    .key-takeaways li i {
+        margin-top: 3px;
+        font-size: 0.85rem;
+    }
+
+    .text-success { color: #05CD99; }
+
+    .learn-actions {
+        margin-top: auto;
+    }
+
+    /* High Fidelity Preview Box representing screenshot */
+    .display-visual-window {
+        background: #F4F7FE;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .mock-header-bar {
+        background: white;
+        border-bottom: 1px solid #E2E8F0;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 20px;
+    }
+
+    .mock-dots {
+        display: flex;
+        gap: 5px;
+    }
+
+    .mock-dots .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .mock-dots .dot.red { background: #FF5F56; }
+    .mock-dots .dot.yellow { background: #FFBD2E; }
+    .mock-dots .dot.green { background: #27C93F; }
+
+    .mock-url {
+        font-size: 0.7rem;
+        color: var(--text-light);
+        background: #F1F5F9;
+        padding: 3px 12px;
+        border-radius: 6px;
+        font-family: monospace;
+        flex-grow: 1;
+        max-width: 220px;
+    }
+
+    .mock-page-content {
+        padding: 16px;
+        flex-grow: 1;
+        overflow-y: auto;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .mock-sec-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .mock-sec-header h4 {
+        font-size: 0.85rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--text-dark);
+    }
+
+    .mock-date {
+        font-size: 0.7rem;
+        color: var(--text-light);
+    }
+
+    /* Dashboard Mock details */
+    .mock-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .m-stat {
+        background: white;
+        border-radius: 10px;
+        padding: 8px;
+        border-left: 3px solid #ccc;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .m-label {
+        font-size: 0.6rem;
+        color: var(--text-light);
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .m-val {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--text-dark);
+    }
+
+    .mock-chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+
+    .mock-chart-card h5 {
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin: 0 0 12px;
+        color: var(--text-light);
+    }
+
+    .mock-bar-chart {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        height: 80px;
+        padding-top: 10px;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .bar-bar {
+        background: var(--primary-gradient);
+        width: 14%;
+        border-radius: 4px 4px 0 0;
+        position: relative;
+    }
+
+    .bar-bar span {
+        position: absolute;
+        bottom: -16px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.55rem;
+        color: var(--text-light);
+    }
+
+    .mock-heatmap-card {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+    }
+
+    .mock-heatmap-card h5 {
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin: 0 0 8px;
+        color: var(--text-light);
+    }
+
+    .mock-heatmap {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        max-width: 180px;
+    }
+
+    .heat-node {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+
+    .heat-node.none { background: #EDF2F7; }
+    .heat-node.low { background: #C7D2FE; }
+    .heat-node.med { background: #818CF8; }
+    .heat-node.high { background: #4F46E5; }
+
+    /* Tables in Mocks */
+    .mock-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .mock-table th, .mock-table td {
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 0.75rem;
+        border-bottom: 1px solid #EDF2F7;
+    }
+
+    .mock-table.font-dense th, .mock-table.font-dense td {
+        padding: 8px 10px;
+        font-size: 0.7rem;
+    }
+
+    .mock-table th {
+        background: #F8FAFC;
+        font-weight: 700;
+        color: var(--text-light);
+    }
+
+    .m-chip {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+
+    .m-chip.success { background: #E6F9F3; color: #05CD99; }
+    .m-chip.warning { background: #FFF5E6; color: #FFB547; }
+    .m-chip.danger { background: #FEECEB; color: #EE5D50; }
+    .m-chip.disabled { background: #F1F5F9; color: #94A3B8; }
+
+    .m-btn-mini {
+        background: var(--primary-gradient);
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 6px;
+        cursor: default;
+    }
+
+    .mock-search-bar {
+        background: white;
+        border-radius: 10px;
+        padding: 4px 10px;
+        margin-bottom: 12px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .mock-search-bar input {
+        border: none;
+        width: 100%;
+        font-size: 0.7rem;
+        outline: none;
+    }
+
+    /* Applications Mock Details */
+    .mock-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .m-app-card {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px solid #EDF2F7;
+    }
+
+    .m-app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .m-app-header h5 {
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-dark);
+    }
+
+    .m-app-meta {
+        font-size: 0.65rem;
+        color: var(--text-light);
+        margin: 0 0 8px;
+    }
+
+    .m-app-requirements {
+        display: flex;
+        gap: 8px;
+    }
+
+    .m-req {
+        font-size: 0.6rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .m-req.verified { color: #05CD99; }
+    .m-req.missing { color: #FFB547; }
+
+    /* Payments Mock */
+    .mock-waive-box {
+        margin-top: 16px;
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        border: 1px dashed var(--primary-color);
+    }
+
+    .mock-waive-box h6 {
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin: 0 0 4px;
+        color: var(--primary-color);
+    }
+
+    .mock-waive-box p {
+        font-size: 0.65rem;
+        margin: 0 0 8px;
+        color: var(--text-dark);
+    }
+
+    .m-btn-small {
+        background: #F4F7FE;
+        color: var(--primary-color);
+        border: none;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 4px 8px;
+    }
+
+    /* Reports Mock */
+    .mock-grid-2 {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 12px;
+    }
+
+    .mock-ledger-card, .mock-tenant-card {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+    }
+
+    .mock-ledger-card h5, .mock-tenant-card h5 {
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin: 0 0 10px;
+        color: var(--text-light);
+    }
+
+    .m-ledger-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.65rem;
+        margin-bottom: 6px;
+    }
+
+    .mock-ledger-card hr {
+        border: none;
+        border-top: 1px solid #EDF2F7;
+        margin: 8px 0;
+    }
+
+    .font-bold { font-weight: 700; }
+
+    .m-branch {
+        margin-bottom: 8px;
+    }
+
+    .m-branch span {
+        font-size: 0.65rem;
+        display: block;
+        margin-bottom: 3px;
+    }
+
+    .bar-progress {
+        background: #EDF2F7;
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .bar-progress span {
+        background: var(--primary-gradient);
+        height: 100%;
+        display: block;
+    }
+
+    /* CTA Section */
+    .learn-cta {
+        background: #F4F7FE;
+        padding: 80px 40px;
+        text-align: center;
+    }
+
+    .cta-content {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .learn-cta h2 {
+        font-size: 2.2rem;
+        font-weight: 900;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+    }
+
+    .learn-cta p {
+        font-size: 1.05rem;
+        color: var(--text-light);
+        margin-bottom: 32px;
+        line-height: 1.6;
+    }
+
+    /* Footer */
+    .landing-footer {
+        padding: 40px;
+        text-align: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 960px) {
+        .showroom-wrapper {
+            grid-template-columns: 1fr;
+        }
+        .showroom-display {
+            grid-template-columns: 1fr;
+            padding: 24px;
+        }
+        .display-visual-window {
+            min-height: 380px;
+        }
+        .learn-title {
+            font-size: 2.2rem;
+        }
+    }
+</style>
+
+@code {
+    private string ActiveTab = "dashboard";
+
+    private void SetActiveTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+}

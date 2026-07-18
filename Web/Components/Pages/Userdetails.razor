@@ -6,6 +6,7 @@
 
 @inject IIdentityService IdentityService
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 
 <PageTitle>User Details</PageTitle>
 
@@ -36,7 +37,7 @@
                                        Color="Color.Primary">
                                 Back to List
                             </MudButton>
-                            <MudButton Href="@($"/Users/Edit/{Id}")" 
+                            <MudButton OnClick="OpenEditDialog" 
                                        StartIcon="@Icons.Material.Filled.Edit"
                                        Color="Color.Primary">
                                 Edit User
@@ -153,7 +154,7 @@
                            StartIcon="@Icons.Material.Filled.ArrowBack">
                     Back to List
                 </MudButton>
-                <MudButton Href="@($"/Users/Edit/{Id}")" 
+                <MudButton OnClick="OpenEditDialog" 
                            Variant="Variant.Filled" 
                            Color="Color.Primary"
                            StartIcon="@Icons.Material.Filled.Edit">
@@ -251,6 +252,19 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task OpenEditDialog()
+    {
+        var parameters = new DialogParameters<EditUserDialog> { { x => x.Id, Id } };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EditUserDialog>("Edit User", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadUserDetails(); // Reload user details
         }
     }
 

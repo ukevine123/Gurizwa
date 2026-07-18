@@ -5,44 +5,108 @@
 @inject IUserContext UserContext
 @inject ISnackbar Snackbar
 
-<MudDialog>
+<MudDialog Style="overflow:hidden; max-width: 500px; width: 100%;">
     <DialogContent>
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF, #8F70FF);
+                         padding:14px 18px; margin-bottom:16px; border-radius: 8px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
+                         Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Add New User
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Fill the form below to create a new sub-user
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <!-- ══════════ FORM ══════════ -->
         <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator />
             
-            <MudTextField @bind-Value="model.FirstName" Label="First Name" Required="true" 
-                          For="@(() => model.FirstName)" Class="mb-3" />
-                          
-            <MudTextField @bind-Value="model.LastName" Label="Last Name" Required="true" 
-                          For="@(() => model.LastName)" Class="mb-3" />
-                          
-            <MudTextField @bind-Value="model.Email" Label="Email" Required="true" InputType="InputType.Email"
-                          For="@(() => model.Email)" Class="mb-3" />
-                          
-            <MudTextField @bind-Value="model.PhoneNumber" Label="Phone Number" 
-                          For="@(() => model.PhoneNumber)" Class="mb-3" />
-                          
-            <MudSelect @bind-Value="model.Role" Label="Role" Required="true" Class="mb-3">
-                @if (availableRoles != null)
-                {
-                    @foreach (var role in availableRoles)
-                    {
-                        <MudSelectItem Value="@role">@role</MudSelectItem>
-                    }
-                }
-            </MudSelect>
-                          
-            <MudTextField @bind-Value="model.Password" Label="Temporary Password" Required="true" 
-                          InputType="@PasswordInput"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@PasswordInputIcon"
-                          OnAdornmentClick="TogglePasswordVisibility"
-                          For="@(() => model.Password)" Class="mb-3" />
+            <MudGrid Spacing="2">
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="model.FirstName" 
+                                  Label="First Name" 
+                                  Required="true" 
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  For="@(() => model.FirstName)" />
+                </MudItem>
+                              
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="model.LastName" 
+                                  Label="Last Name" 
+                                  Required="true" 
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  For="@(() => model.LastName)" />
+                </MudItem>
+                              
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="model.Email" 
+                                  Label="Email" 
+                                  Required="true" 
+                                  InputType="InputType.Email"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  For="@(() => model.Email)" />
+                </MudItem>
+                              
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="model.PhoneNumber" 
+                                  Label="Phone Number" 
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  For="@(() => model.PhoneNumber)" />
+                </MudItem>
+                              
+                <MudItem xs="12">
+                    <MudSelect T="string" 
+                               Label="Roles" 
+                               MultiSelection="true" 
+                               @bind-SelectedValues="selectedRoles" 
+                               Required="true" 
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense">
+                        @if (availableRoles != null)
+                        {
+                            @foreach (var role in availableRoles)
+                            {
+                                <MudSelectItem T="string" Value="@role">@role</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+                              
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="model.Password" 
+                                  Label="Temporary Password" 
+                                  Required="true" 
+                                  InputType="@PasswordInput"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordInputIcon"
+                                  OnAdornmentClick="TogglePasswordVisibility"
+                                  For="@(() => model.Password)" 
+                                  Class="mb-2" />
+                </MudItem>
+            </MudGrid>
 
-
-            <div class="d-flex justify-end mt-4">
+            <div class="d-flex justify-end mt-6">
                 <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-2" Disabled="@isSubmitting">
+                <MudButton ButtonType="ButtonType.Submit" 
+                           Variant="Variant.Filled" 
+                           Color="Color.Primary" 
+                           Class="ml-2" 
+                           Disabled="@isSubmitting">
                     @if (isSubmitting)
                     {
                         <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
@@ -68,6 +132,7 @@
     };
     private bool isSubmitting = false;
     private List<string> availableRoles;
+    private IEnumerable<string> selectedRoles { get; set; } = new HashSet<string> { "Staff" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -114,6 +179,7 @@
         try
         {
             isSubmitting = true;
+            model.Role = string.Join(",", selectedRoles);
             await IdentityService.RegisterSubUser(model, UserContext.PersonId.Value);
             Snackbar.Add("User created successfully!", Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));

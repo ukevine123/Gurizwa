@@ -1,0 +1,196 @@
+@using Application.DTO
+@using Application.Services.Users
+@using Application.Interfaces
+@inject IIdentityService IdentityService
+@inject IUserContext UserContext
+@inject ISnackbar Snackbar
+
+<MudDialog Style="overflow:hidden; max-width: 500px; width: 100%;">
+    <DialogContent>
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF, #8F70FF);
+                         padding:14px 18px; margin-bottom:16px; border-radius: 8px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.Edit"
+                         Style="color:white; font-size:1.6rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.subtitle1"
+                             Style="color:white; font-weight:700; line-height:1.2;">
+                        Edit User Details
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
+                        Modify name, contact info, and roles below
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        @if (isLoading)
+        {
+            <div class="d-flex justify-center align-center pa-8">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </div>
+        }
+        else if (user != null)
+        {
+            <!-- ══════════ FORM ══════════ -->
+            <EditForm Model="@user" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                
+                <MudGrid Spacing="2">
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="user.FirstName" 
+                                      Label="First Name" 
+                                      Required="true" 
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      For="@(() => user.FirstName)" />
+                    </MudItem>
+                                  
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="user.LastName" 
+                                      Label="Last Name" 
+                                      Required="true" 
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      For="@(() => user.LastName)" />
+                    </MudItem>
+                                  
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="user.Email" 
+                                      Label="Email" 
+                                      ReadOnly="true"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      HelperText="Email cannot be changed"
+                                      Class="mb-1" />
+                    </MudItem>
+                                  
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="user.PhoneNumber" 
+                                      Label="Phone Number" 
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      For="@(() => user.PhoneNumber)" />
+                    </MudItem>
+                                  
+                    <MudItem xs="12">
+                        <MudSelect T="string" 
+                                   Label="Roles" 
+                                   MultiSelection="true" 
+                                   @bind-SelectedValues="selectedRoles" 
+                                   Required="true"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   Class="mb-2">
+                            @if (availableRoles != null)
+                            {
+                                @foreach (var role in availableRoles)
+                                {
+                                    <MudSelectItem T="string" Value="@role">@role</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+
+                <div class="d-flex justify-end mt-6">
+                    <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" 
+                               Variant="Variant.Filled" 
+                               Color="Color.Primary" 
+                               Class="ml-2" 
+                               Disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            <MudText Class="ms-2">Saving...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Save Changes</MudText>
+                        }
+                    </MudButton>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Error">Error loading user info.</MudAlert>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int Id { get; set; }
+
+    private UserDetailDTO? user;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private List<string> availableRoles = new();
+    private IEnumerable<string> selectedRoles { get; set; } = new HashSet<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUser();
+    }
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            isLoading = true;
+            user = await IdentityService.GetUserById(Id);
+
+            if (user != null)
+            {
+                if (!string.IsNullOrEmpty(user.Role))
+                {
+                    selectedRoles = user.Role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+
+                if (UserContext.PersonId.HasValue)
+                {
+                    availableRoles = await IdentityService.GetRolesAsync(UserContext.PersonId.Value);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading user: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task OnValidSubmit()
+    {
+        if (user == null) return;
+
+        try
+        {
+            isSubmitting = true;
+            user.Role = string.Join(",", selectedRoles);
+            await IdentityService.UpdateUser(Id, user);
+            Snackbar.Add("User updated successfully!", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
