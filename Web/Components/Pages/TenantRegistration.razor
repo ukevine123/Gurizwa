@@ -8,13 +8,92 @@
 @using Microsoft.AspNetCore.Components.Forms
 
 <style>
+    :root {
+        --sellora-blue: #070bdc;
+        --sellora-bg: #ffffff;
+        --sellora-text-main: #1a1a1a;
+        --sellora-text-muted: #757575;
+    }
+
+    /* Force the page to fill the screen and remove scrolling */
     html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-        overflow: hidden;
+        overflow: auto; /* allow scroll for registration as it might be long */
     }
 
+    .page-container {
+        display: flex;
+        min-height: 100vh;
+        width: 100vw;
+        background-color: var(--sellora-bg);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Left Side - Form */
+    .login-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 40px;
+        justify-content: center;
+    }
+
+    .login-form-container {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 900;
+        font-family: 'Arial Black', 'Montserrat', sans-serif;
+        text-transform: uppercase;
+        font-size: 1.5rem;
+        color: var(--sellora-text-main);
+    }
+
+    /* Right Side - Blue Panel */
+    .blue-panel {
+        background-color: var(--sellora-blue);
+        border-radius: 40px 0 0 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px;
+        flex: 1;
+    }
+
+    .custom-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--sellora-text-main);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .login-btn {
+        background-color: #4318FF !important;
+        color: white !important;
+        text-transform: none !important;
+        font-weight: 600 !important;
+        height: 48px;
+        border-radius: 8px !important;
+    }
+
+    @@media (max-width: 960px) {
+        .blue-panel { display: none; }
+        .page-container { height: auto; }
+    }
+    
     .success-overlay {
         position: fixed;
         inset: 0;
@@ -60,108 +139,179 @@
     </div>
 }
 
-<MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center pa-0" Style="height: 100vh; background-color: #f5f5f5;">
-    <MudPaper Elevation="4" Class="d-flex" Style="width: 900px; height: 680px; border-radius: 24px; overflow: hidden;">
-        
-        <MudGrid Spacing="0">
-            <MudItem md="5" Class="d-none d-md-flex flex-column align-center justify-center pa-8" Style="background-color: #1a1512; color: white;">
-                <MudText Typo="Typo.h4" Align="Align.Center" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
-                    Join <br /> GURIZA
-                </MudText>
-            </MudItem>
-
-            <MudItem xs="12" md="7" Class="pa-8 d-flex flex-column" Style="background-color: white; height: 100%; overflow-y: auto;">
-                <div class="d-flex align-center mb-6">
-                    <MudText Typo="Typo.h6" Style="font-weight: 900; font-family: 'Arial Black', 'Montserrat', sans-serif;">GURIZA</MudText>
-                    <MudSpacer />
-                    <MudLink href="/account/login" Underline="Underline.None" Color="Color.Primary" Style="font-size: 0.85rem; font-weight: 600;">Sign In</MudLink>
+<div class="page-container">
+    <!-- Left Section -->
+    <div class="login-section">
+        <div class="login-form-container">
+            <div class="d-flex justify-space-between align-center mb-8">
+                <div class="brand-logo mb-0">
+                    <div style="width: 72px; height: 51px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; border-radius: 10px;">
+                        <img src="/Images/guriza_logo.png" style="width: 72px; height: auto;" alt="Guriza Logo" />
+                    </div>
+                    <span>GURIZA</span>
                 </div>
+                <MudLink href="/account/login" Underline="Underline.None" Color="Color.Primary" Style="font-size: 0.85rem; font-weight: 600;">Sign In</MudLink>
+            </div>
 
-                <MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Tenant Registration</MudText>
+            <MudText Typo="Typo.h4" Style="font-weight: 800; margin-bottom: 32px;">Tenant Registration</MudText>
 
-                <EditForm Model="@Model" OnValidSubmit="OnValidSubmit">
-                    <DataAnnotationsValidator />
+            <EditForm Model="@Model" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
 
-                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4">@ErrorMessage</MudAlert>
+                }
+
+                <MudRadioGroup @bind-Value="Model.TenantType" Class="mb-4 d-flex justify-center">
+                    <MudRadio Value="@("Personal")" Color="Color.Primary">Personal</MudRadio>
+                    <MudRadio Value="@("Organization")" Color="Color.Primary">Organization</MudRadio>
+                </MudRadioGroup>
+
+                <MudGrid Spacing="2" Class="mb-4">
+                    @if (Model.TenantType == "Personal")
                     {
-                        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4">@ErrorMessage</MudAlert>
+                        <MudItem xs="6">
+                            <span class="custom-label">First Name</span>
+                            <MudTextField @bind-Value="Model.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        </MudItem>
+                        <MudItem xs="6">
+                            <span class="custom-label">Last Name</span>
+                            <MudTextField @bind-Value="Model.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        </MudItem>
                     }
-
-                    <MudRadioGroup @bind-Value="Model.TenantType" Class="mb-4 d-flex justify-center">
-                        <MudRadio Value="@("Personal")" Color="Color.Primary">Personal</MudRadio>
-                        <MudRadio Value="@("Organization")" Color="Color.Primary">Organization</MudRadio>
-                    </MudRadioGroup>
-
-                    <MudGrid Spacing="2" Class="mb-4">
-                        @if (Model.TenantType == "Personal")
-                        {
-                            <MudItem xs="6">
-                                <MudTextField @bind-Value="Model.FirstName" Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                            </MudItem>
-                            <MudItem xs="6">
-                                <MudTextField @bind-Value="Model.LastName" Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                            </MudItem>
-                        }
-                        else
-                        {
-                            <MudItem xs="12">
-                                <MudTextField @bind-Value="Model.CompanyName" Label="Company Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                            </MudItem>
-                            <MudItem xs="6">
-                                <MudTextField @bind-Value="Model.FirstName" Label="Contact First Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                            </MudItem>
-                            <MudItem xs="6">
-                                <MudTextField @bind-Value="Model.LastName" Label="Contact Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                            </MudItem>
-                        }
+                    else
+                    {
                         <MudItem xs="12">
-                            <MudTextField @bind-Value="Model.Email" Label="Email Address" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            <span class="custom-label">Company Name</span>
+                            <MudTextField @bind-Value="Model.CompanyName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                         </MudItem>
                         <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.PhoneNumber" Label="Phone Number" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            <span class="custom-label">Contact First Name</span>
+                            <MudTextField @bind-Value="Model.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                         </MudItem>
                         <MudItem xs="6">
-                            <MudTextField @bind-Value="Model.Location" Label="Location (City/Country)" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            <span class="custom-label">Contact Last Name</span>
+                            <MudTextField @bind-Value="Model.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                         </MudItem>
-                    </MudGrid>
-
-                    <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Upload Required Documents</MudText>
-                    <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".pdf,.png,.jpg,.jpeg">
-                        <ActivatorContent>
-                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
-                                Attach Files
-                            </MudButton>
-                        </ActivatorContent>
-                    </MudFileUpload>
-                    
-                    @if (Model.Documents.Count > 0)
-                    {
-                        <MudList T="string" Dense="true" Class="mt-2">
-                            @foreach (var file in Model.Documents)
-                            {
-                                <MudListItem T="string" Icon="@Icons.Material.Filled.AttachFile">@file.FileName</MudListItem>
-                            }
-                        </MudList>
                     }
+                    <MudItem xs="12">
+                        <span class="custom-label">Email Address</span>
+                        <MudTextField @bind-Value="Model.Email" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <span class="custom-label">Phone Number</span>
+                        <MudTextField @bind-Value="Model.PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <span class="custom-label">Location (City/Country)</span>
+                        <MudTextField @bind-Value="Model.Location" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                    </MudItem>
+                </MudGrid>
 
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" FullWidth="true" Disabled="@_isProcessing" Class="py-3 shadow-none mt-6" Style="background: #02086b; color: white; border-radius: 25px; font-weight: 700;">
-                        @if (_isProcessing)
+                <span class="custom-label mt-2 mb-1">Upload Required Documents</span>
+                <MudFileUpload T="IReadOnlyList<IBrowserFile>" FilesChanged="UploadFiles" Accept=".pdf,.png,.jpg,.jpeg">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                            Attach Files
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+                
+                @if (Model.Documents.Count > 0)
+                {
+                    <MudList T="string" Dense="true" Class="mt-2">
+                        @foreach (var file in Model.Documents)
                         {
-                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                            <MudListItem T="string" Icon="@Icons.Material.Filled.AttachFile">@file.FileName</MudListItem>
                         }
-                        <span>Submit Registration</span>
-                    </MudButton>
-                </EditForm>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-</MudContainer>
+                    </MudList>
+                }
+
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" FullWidth="true" Disabled="@_isProcessing" Class="login-btn mt-6 mb-6">
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    <span>Submit Registration</span>
+                </MudButton>
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- Right Section (Blue Panel) -->
+    <div class="blue-panel">
+        <div style="z-index: 2; width: 100%; max-width: 500px;">
+            <MudText Typo="Typo.h3" Style="font-weight: 700; line-height: 1.2;" Class="mb-6">
+                Manage your LOANS and Its Operations.
+            </MudText>
+            <MudText Typo="Typo.h6" Style="font-weight: 400; opacity: 0.9;" Class="mb-10">
+                Register to access GURIZA and manage your team.
+            </MudText>
+
+            <MudPaper Elevation="25" Class="pa-4 rounded-xl relative" Style="background-color: white; min-height: 350px; color: black;">
+                <div class="d-flex justify-space-between mb-4">
+                    <div style="height: 12px; width: 60px; background: #eee; border-radius: 6px;"></div>
+                    <div style="height: 12px; width: 40px; background: #eee; border-radius: 6px;"></div>
+                </div>
+                
+                <MudGrid Spacing="2">
+                    <MudItem xs="4">
+                        <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: #f8f9ff;">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Total LOAN</MudText>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight: 800; color: #070bdc;">All LOANS</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: #f8f9ff;">
+                            <div class="d-flex justify-space-between">
+                                 <MudText Typo="Typo.caption" Color="Color.Secondary">Performance</MudText>
+                                 <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" Color="Color.Success"/>
+                            </div>
+                            <div style="height: 20px; width: 100%; background: linear-gradient(90deg, #070bdc 30%, #eee 30%); border-radius: 10px; margin-top: 4px;"></div>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12">
+                         <MudTable Items="_mockRows" Elevation="0" Dense="true" Class="rounded-lg mt-2">
+                            <HeaderContent>
+                                <MudTh><MudText Typo="Typo.caption" Style="font-weight:700">ID</MudText></MudTh>
+                                <MudTh><MudText Typo="Typo.caption" Style="font-weight:700">Product</MudText></MudTh>
+                                <MudTh><MudText Typo="Typo.caption" Style="font-weight:700">Status</MudText></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd><MudText Typo="Typo.caption">#@context.Id</MudText></MudTd>
+                                <MudTd><MudText Typo="Typo.caption">@context.Name</MudText></MudTd>
+                                <MudTd>
+                                    <MudChip T="string" Color="@context.Color" Size="Size.Small" Style="font-size: 10px; height: 18px;">@context.Status</MudChip>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudItem>
+                </MudGrid>
+
+                <MudPaper Elevation="10" Class="pa-4 rounded-xl absolute d-flex flex-column align-center" 
+                          Style="bottom: -20px; right: -40px; width: 160px; background: white; border: 1px solid #eee;">
+                     <MudText Typo="Typo.caption" Style="font-weight: 700;">Expense Category</MudText>
+                     <MudProgressCircular Color="Color.Success" Size="Size.Large" Class="my-2" />
+                     <MudText Typo="Typo.caption" Style="font-weight: 800; text-align:center;">Get all expenses</MudText>
+                </MudPaper>
+            </MudPaper>
+        </div>
+    </div>
+</div>
 
 @code {
     private TenantRegistrationDTO Model { get; set; } = new();
     private string ErrorMessage { get; set; } = string.Empty;
     private bool _isProcessing = false;
     private bool _registrationSuccess = false;
+
+    private List<MockOrder> _mockRows = new() {
+        new(5298, "GIRA IWAWE", "Active", Color.Success),
+        new(5299, "STUDENT LOAN", "Active", Color.Warning),
+    };
+
+    public record MockOrder(int Id, string Name, string Status, Color Color);
 
     private async Task UploadFiles(IReadOnlyList<IBrowserFile> files)
     {
