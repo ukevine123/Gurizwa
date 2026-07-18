@@ -1,0 +1,786 @@
+@page "/"
+@attribute [AllowAnonymous]
+@layout Web.Components.Layout.AuthLayout
+@inject NavigationManager Navigation
+
+<PageTitle>Gurizwa</PageTitle>
+
+<div class="landing-container">
+    <!-- Navbar -->
+    <header class="landing-navbar">
+        <div class="navbar-content">
+            <div class="brand-logo">
+                <img src="/Images/guriza_logo.png" alt="Guriza Logo" class="logo-img" />
+                <span class="logo-text">GURIZA</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="#why-important" class="nav-link">Why GURIZA</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="/account/login" class="btn btn-secondary">Sign In</a>
+                <a href="/account/login" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-bg-gradients">
+            <div class="gradient-blob blob-1"></div>
+            <div class="gradient-blob blob-2"></div>
+        </div>
+        <div class="hero-content-wrapper">
+            <div class="hero-text">
+                <span class="badge-label">Transforming Loan Management</span>
+                <h1 class="hero-title">
+                    Digital Lending <br/>
+                    <span class="gradient-text">Simplified and Accelerated</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Manage loan portfolios, verify documents, evaluate borrower risks, and process repayments. An all-in-one platform built for speed, transparency, and scalability.
+                </p>
+                <div class="hero-ctas">
+                    <a href="/account/login" class="btn btn-primary btn-lg">Get Started</a>
+                    <a href="/learn-more" class="btn btn-outline btn-lg">Learn More <i class="oi oi-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="interactive-preview-card">
+                    <div class="card-header-bar">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                        <span class="window-title">Gurizwa Dashboard Overview</span>
+                    </div>
+                    <div class="card-body-preview">
+                        <div class="preview-stat-grid">
+                            <div class="stat-box">
+                                <span class="stat-label">Total Portfolio</span>
+                                <span class="stat-val">$2.4M</span>
+                                <span class="stat-trend positive">+12.4%</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Active Loans</span>
+                                <span class="stat-val">1,248</span>
+                                <span class="stat-trend neutral">Steady</span>
+                            </div>
+                        </div>
+                        <div class="preview-chart-placeholder">
+                            <svg viewBox="0 0 300 100" class="chart-svg">
+                                <defs>
+                                    <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#4318FF" stop-opacity="0.4"/>
+                                        <stop offset="100%" stop-color="#4318FF" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 0,80 Q 50,30 100,60 T 200,20 T 300,40 L 300,100 L 0,100 Z" fill="url(#chart-grad)" />
+                                <path d="M 0,80 Q 50,30 100,60 T 200,20 T 300,40" fill="none" stroke="#4318FF" stroke-width="3" />
+                                <circle cx="200" cy="20" r="4" fill="#070bdc" stroke="#fff" stroke-width="2" />
+                            </svg>
+                            <span class="chart-tag">Peak Performance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Important / Benefits Section -->
+    <section id="why-important" class="importance-section">
+        <div class="section-header">
+            <span class="section-tag">Value Proposition</span>
+            <h2 class="section-heading">Why Gurizwa is Critical to Your Business</h2>
+            <p class="section-subheading">Conventional loan management is plagued by paperwork, slow approvals, and high default rates. Gurizwa fixes these pain points.</p>
+        </div>
+        <div class="importance-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon blue-bg">
+                    <i class="oi oi-bolt"></i>
+                </div>
+                <h3>Automated Efficiency</h3>
+                <p>Cut approval times from weeks to minutes. Create custom loan products, automate repayment schedules, and set up penalty structures that execute on due dates automatically.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon green-bg">
+                    <i class="oi oi-shield"></i>
+                </div>
+                <h3>Multi-Tenant Isolation</h3>
+                <p>Host multiple bank branches, SACCOs, or microfinance organizations on a single platform. Data is strictly containerized, secure, and fully auditable.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon yellow-bg">
+                    <i class="oi oi-pie-chart"></i>
+                </div>
+                <h3>Granular Portfolio Analytics</h3>
+                <p>Monitor your non-performing loans (NPLs), expense reports, payment disbursement success, and branch performances from a unified live dashboard.</p>
+            </div>
+            <div class="benefit-card">
+                <div class="benefit-icon purple-bg">
+                    <i class="oi oi-document"></i>
+                </div>
+                <h3>Secure Document Vault</h3>
+                <p>Say goodbye to lost paper files. Upload, review, and verify borrower collaterals, guarantor agreements, and KYC documents within the system.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works-section">
+        <div class="section-header">
+            <span class="section-tag">Operational Flow</span>
+            <h2 class="section-heading">How Gurizwa Streamlines Lending</h2>
+            <p class="section-subheading">A clean, systematic four-step process from onboarding to complete loan maturity tracking.</p>
+        </div>
+        <div class="steps-flow">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Onboard Tenants & Borrowers</h3>
+                    <p>Create separate accounts for organizations and self-onboard borrowers with deep KYC, demographic logs, and account types.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Define Loan Products</h3>
+                    <p>Set up loan types (e.g. Gira Iwawe, Student Loan) specifying principal limits, interest rates, frequencies, penalties, and required files.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Apply & Assess Risks</h3>
+                    <p>Submit applications with collateral details, attachment uploads, and guarantors. Reviewers inspect risk profiles before approving.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Disburse & Track Payments</h3>
+                    <p>Disburse loan funds, automatically generate payment schedule tables, record installments, and track waiver/penalty parameters.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call To Action Footer Section -->
+    <section class="cta-bottom-section">
+        <div class="cta-card">
+            <h2>Ready to modernise your lending operations?</h2>
+            <p>Empower your credit risk teams and offer borrowers an unparalleled digital experience. Get started today.</p>
+            <div class="cta-buttons">
+                <a href="/account/login" class="btn btn-white btn-lg">Get Started Now</a>
+                <a href="/learn-more" class="btn btn-translucent btn-lg">Explore Feature Details</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <p>&copy; 2026 Gurizwa. All rights reserved.</p>
+    </footer>
+</div>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #4318FF 0%, #070bdc 100%);
+        --primary-color: #4318FF;
+        --secondary-color: #070bdc;
+        --text-dark: #1B2559;
+        --text-light: #A3AED0;
+        --background-light: #F7F9FC;
+    }
+
+    .landing-container {
+        height: 100vh;
+        overflow-y: auto;
+        background-color: #FAFCFF;
+        color: var(--text-dark);
+        font-family: 'Inter', sans-serif;
+        scroll-behavior: smooth;
+    }
+
+    /* Navbar */
+    .landing-navbar {
+        position: sticky;
+        top: 0;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        z-index: 100;
+        padding: 16px 40px;
+    }
+
+    .navbar-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .logo-img {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .logo-text {
+        font-size: 1.4rem;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        color: var(--text-dark);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 32px;
+    }
+
+    .nav-link {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        opacity: 0.8;
+        text-decoration: none;
+        transition: opacity 0.2s, color 0.2s;
+    }
+
+    .nav-link:hover {
+        opacity: 1;
+        color: var(--primary-color);
+    }
+
+    .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none !important;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-lg {
+        padding: 14px 28px;
+        font-size: 1rem;
+        border-radius: 14px;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(67, 24, 255, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(67, 24, 255, 0.35);
+    }
+
+    .btn-secondary {
+        background: #F4F7FE;
+        color: var(--primary-color) !important;
+    }
+
+    .btn-secondary:hover {
+        background: #EAEFFD;
+    }
+
+    .btn-outline {
+        border: 2px solid #E2E8F0;
+        background: transparent;
+        color: var(--text-dark) !important;
+        gap: 8px;
+    }
+
+    .btn-outline:hover {
+        background: #F8FAFC;
+        border-color: var(--text-dark);
+    }
+
+    .btn-white {
+        background: white;
+        color: var(--primary-color) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-white:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-translucent {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white !important;
+    }
+
+    .btn-translucent:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        padding: 100px 40px 140px;
+        max-width: 1200px;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    .hero-bg-gradients {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .gradient-blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.12;
+    }
+
+    .blob-1 {
+        width: 400px;
+        height: 400px;
+        background: #4318FF;
+        top: -100px;
+        right: -100px;
+    }
+
+    .blob-2 {
+        width: 350px;
+        height: 350px;
+        background: #05CD99;
+        bottom: 0px;
+        left: -100px;
+    }
+
+    .hero-content-wrapper {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 60px;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .badge-label {
+        background: #EBF3FF;
+        color: var(--primary-color);
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-bottom: 24px;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -1.5px;
+        margin-bottom: 24px;
+        color: var(--text-dark);
+    }
+
+    .gradient-text {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        font-size: 1.15rem;
+        line-height: 1.6;
+        color: var(--text-light);
+        margin-bottom: 40px;
+        max-width: 540px;
+    }
+
+    .hero-ctas {
+        display: flex;
+        gap: 16px;
+    }
+
+    /* Hero Visual */
+    .hero-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .interactive-preview-card {
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+        width: 100%;
+        max-width: 440px;
+        overflow: hidden;
+        animation: floatCard 6s ease-in-out infinite;
+    }
+
+    .card-header-bar {
+        background: #F8FAFC;
+        border-bottom: 1px solid #E2E8F0;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    .dot.red { background: #FF5F56; }
+    .dot.yellow { background: #FFBD2E; }
+    .dot.green { background: #27C93F; }
+
+    .window-title {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        font-weight: 600;
+        margin-left: 10px;
+    }
+
+    .card-body-preview {
+        padding: 24px;
+    }
+
+    .preview-stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-box {
+        background: #F8FAFC;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .stat-val {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--text-dark);
+    }
+
+    .stat-trend {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .stat-trend.positive { background: #E6F9F3; color: #05CD99; }
+    .stat-trend.neutral { background: #F1F3F9; color: #718096; }
+
+    .preview-chart-placeholder {
+        background: #F8FAFC;
+        border-radius: 16px;
+        padding: 16px;
+        position: relative;
+    }
+
+    .chart-svg {
+        width: 100%;
+        height: auto;
+    }
+
+    .chart-tag {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: var(--secondary-color);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+
+    /* Importance Section */
+    .importance-section {
+        background: #F4F7FE;
+        padding: 100px 40px;
+    }
+
+    .section-header {
+        text-align: center;
+        max-width: 700px;
+        margin: 0 auto 60px;
+    }
+
+    .section-tag {
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .section-heading {
+        font-size: 2.4rem;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        margin-bottom: 16px;
+        color: var(--text-dark);
+    }
+
+    .section-subheading {
+        font-size: 1.05rem;
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+
+    .importance-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 30px;
+    }
+
+    .benefit-card {
+        background: white;
+        border-radius: 24px;
+        padding: 36px 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .benefit-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+    }
+
+    .benefit-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        margin-bottom: 24px;
+        color: white;
+    }
+
+    .benefit-icon.blue-bg { background: linear-gradient(135deg, #4318FF, #868CFF); }
+    .benefit-icon.green-bg { background: linear-gradient(135deg, #05CD99, #66F4D2); }
+    .benefit-icon.yellow-bg { background: linear-gradient(135deg, #FFB547, #FFD18C); }
+    .benefit-icon.purple-bg { background: linear-gradient(135deg, #8A3FFC, #C398FF); }
+
+    .benefit-card h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text-dark);
+    }
+
+    .benefit-card p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-light);
+    }
+
+    /* How It Works Section */
+    .how-it-works-section {
+        padding: 100px 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .steps-flow {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 40px;
+        position: relative;
+    }
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+    }
+
+    .step-number {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(67, 24, 255, 0.2);
+    }
+
+    .step-content h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+    }
+
+    .step-content p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-light);
+    }
+
+    /* CTA Bottom Section */
+    .cta-bottom-section {
+        padding: 60px 40px 100px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .cta-card {
+        background: var(--primary-gradient);
+        border-radius: 32px;
+        padding: 80px 40px;
+        text-align: center;
+        color: white;
+        box-shadow: 0 20px 50px rgba(67, 24, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-card::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        top: -100px;
+        left: -100px;
+    }
+
+    .cta-card h2 {
+        font-size: 2.6rem;
+        font-weight: 900;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+    }
+
+    .cta-card p {
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto 40px;
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+
+    .cta-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+    }
+
+    /* Footer */
+    .landing-footer {
+        padding: 40px;
+        text-align: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    /* Animations */
+    @@keyframes floatCard {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+    }
+
+    /* Responsive */
+    @@media (max-width: 960px) {
+        .navbar-content {
+            flex-direction: column;
+            gap: 16px;
+        }
+        .nav-links {
+            gap: 20px;
+        }
+        .hero-content-wrapper {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 40px;
+        }
+        .hero-subtitle {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-ctas {
+            justify-content: center;
+        }
+        .hero-title {
+            font-size: 2.6rem;
+        }
+        .cta-card h2 {
+            font-size: 2rem;
+        }
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        .cta-buttons .btn {
+            width: 100%;
+            max-width: 280px;
+        }
+    }
+</style>

@@ -141,7 +141,7 @@ else
                                 <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                                Color="Color.Primary" 
                                                Size="Size.Small"
-                                               Href="@($"/Users/Edit/{context.Id}")"
+                                               OnClick="@(() => OpenEditDialog(context.Id))"
                                                Title="Edit User" />
                             </MudButtonGroup>
                         </MudTd>
@@ -170,7 +170,8 @@ else
 
     private bool IsDeveloper => 
         string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase);
+        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(UserContext.Email, "nyiraminaniclarisse88@gmail.com", StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,6 +189,19 @@ else
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = await DialogService.ShowAsync<CreateSubUserDialog>("Add New User", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await LoadUsers();
+        }
+    }
+
+    private async Task OpenEditDialog(int userId)
+    {
+        var parameters = new DialogParameters<EditUserDialog> { { x => x.Id, userId } };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<EditUserDialog>("Edit User", parameters, options);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)

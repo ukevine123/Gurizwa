@@ -418,7 +418,7 @@
         CountApplied = apps.Count(a => a.Status == LoanStatus.Applied);
         CountApproved = apps.Count(a => a.Status == LoanStatus.Approved);
         CountRejected = apps.Count(a => a.Status == LoanStatus.Rejected);
-        CountDisbursed = apps.Count(a => a.Status == LoanStatus.Disbursed);
+        CountDisbursed = apps.Count(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled);
 
         var disbursements = await DisbursementService.GetAllDisbursementsAsync() ?? new List<Disbursement>();
         
@@ -429,7 +429,7 @@
 
         TotalBalance = disbursementWithOutstanding.Sum(x => x.Outstanding);
         TotalDisbursed = disbursements.Sum(d => d.Amount);
-        ActiveBorrowers = apps.Where(a => a.Status == LoanStatus.Disbursed).Select(a => a.BorrowerId).Distinct().Count();
+        ActiveBorrowers = apps.Where(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled).Select(a => a.BorrowerId).Distinct().Count();
 
         // Load chart data: Application Trend over the last 6 months
         var last6Months = Enumerable.Range(0, 6)

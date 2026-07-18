@@ -201,11 +201,11 @@
     private bool _isProcessing;
 
     private string HeaderStyle => IsReschedule 
-        ? "background: linear-gradient(90deg, #b02a37 0%, #dc3545 100%); border-radius:12px; color:white; position:relative; overflow:hidden;" 
+        ? "background: linear-gradient(135deg, #4318FF 0%, #868CFF 100%); border-radius:12px; color:white; position:relative; overflow:hidden;" 
         : "background: linear-gradient(135deg, #4318FF ); border-radius:12px; color:white; position:relative; overflow:hidden;";
 
     private string ButtonStyle => IsReschedule 
-        ? "background-color: #dc3545; color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;" 
+        ? "background: linear-gradient(135deg, #4318FF 0%, #3311CC 100%); color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;" 
         : "background: linear-gradient(135deg, #4318FF ); color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;";
 
     private decimal PrincipalWrapper { get => Model.PrincipalOffered; set { Model.PrincipalOffered = value; Calculate(); } }

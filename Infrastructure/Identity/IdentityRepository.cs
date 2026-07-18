@@ -187,16 +187,22 @@ namespace Infrastructure.Identity
                     throw new InvalidOperationException($"Failed to register sub-user: {errors}");
                 }
 
-                // Ensure a role exists and assign it
+                // Ensure roles exist and assign them
                 var defaultRoles = new[] { "Staff", "Manager", "Viewer" };
-                var roleToAssign = string.IsNullOrWhiteSpace(dto.Role) ? "Staff" : dto.Role;
-                var internalRoleName = defaultRoles.Contains(roleToAssign) ? roleToAssign : $"{parentPersonId}_{roleToAssign}";
+                var rolesToAssign = string.IsNullOrWhiteSpace(dto.Role)
+                    ? new[] { "Staff" }
+                    : dto.Role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                if (!await _roleManager.RoleExistsAsync(internalRoleName))
+                foreach (var role in rolesToAssign)
                 {
-                    await _roleManager.CreateAsync(new IdentityRole<int>(internalRoleName));
+                    var internalRoleName = defaultRoles.Contains(role) ? role : $"{parentPersonId}_{role}";
+
+                    if (!await _roleManager.RoleExistsAsync(internalRoleName))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole<int>(internalRoleName));
+                    }
+                    await _userManager.AddToRoleAsync(newUser, internalRoleName);
                 }
-                await _userManager.AddToRoleAsync(newUser, internalRoleName);
             }
             catch (Exception ex)
             {
@@ -217,9 +223,8 @@ namespace Infrastructure.Identity
             foreach (var u in users)
             {
                 var roles = await _userManager.GetRolesAsync(u);
-                var primaryRole = roles.FirstOrDefault() ?? "Agent";
-                if (primaryRole.Contains("_"))
-                    primaryRole = primaryRole.Substring(primaryRole.IndexOf("_") + 1);
+                var cleanRoles = roles.Select(r => r.Contains("_") ? r.Substring(r.IndexOf("_") + 1) : r).ToList();
+                var rolesString = string.Join(", ", cleanRoles);
 
                 result.Add(new UserDetailDTO
                 {
@@ -230,7 +235,7 @@ namespace Infrastructure.Identity
                     PhoneNumber = u.PhoneNumber,
                     EmailConfirmed = u.EmailConfirmed,
                     IsApproved = u.IsApproved,
-                    Role = primaryRole,
+                    Role = rolesString,
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt,
                     ParentUserId = u.ParentUserId
@@ -342,9 +347,8 @@ namespace Infrastructure.Identity
                 }
                 
                 var roles = await _userManager.GetRolesAsync(user);
-                var primaryRole = roles.FirstOrDefault() ?? (user.ParentUserId == null ? "Tenant" : "Staff");
-                if (primaryRole.Contains("_"))
-                    primaryRole = primaryRole.Substring(primaryRole.IndexOf("_") + 1);
+                var cleanRoles = roles.Select(r => r.Contains("_") ? r.Substring(r.IndexOf("_") + 1) : r).ToList();
+                var rolesString = string.Join(",", cleanRoles);
 
                 return new UserDetailDTO
                 {
@@ -355,7 +359,7 @@ namespace Infrastructure.Identity
                     PhoneNumber = user.PhoneNumber,
                     EmailConfirmed = user.EmailConfirmed,
                     IsApproved = user.IsApproved,
-                    Role = primaryRole,
+                    Role = rolesString,
                     CreatedAt = user.CreatedAt,
                     UpdatedAt = user.UpdatedAt
                 };
@@ -391,6 +395,34 @@ namespace Infrastructure.Identity
                     var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
                     Console.WriteLine($"[UpdateUser] Update failed: {errors}");
                     throw new InvalidOperationException($"Failed to update user: {errors}");
+                }
+
+                // Update user roles dynamically
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                var defaultRoles = new[] { "Staff", "Manager", "Viewer" };
+                var parentPersonId = user.PersonId;
+
+                var newRoles = string.IsNullOrWhiteSpace(dto.Role)
+                    ? Array.Empty<string>()
+                    : dto.Role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                var newInternalRoleNames = newRoles.Select(role => defaultRoles.Contains(role) ? role : $"{parentPersonId}_{role}").ToList();
+
+                var rolesToAdd = newInternalRoleNames.Except(currentRoles).ToList();
+                var rolesToRemove = currentRoles.Except(newInternalRoleNames).ToList();
+
+                foreach (var role in rolesToAdd)
+                {
+                    if (!await _roleManager.RoleExistsAsync(role))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole<int>(role));
+                    }
+                    await _userManager.AddToRoleAsync(user, role);
+                }
+
+                if (rolesToRemove.Any())
+                {
+                    await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
                 }
 
                 Console.WriteLine($"[UpdateUser] User updated successfully: {id}");

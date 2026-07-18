@@ -1,10 +1,12 @@
 @page "/Users/Edit/{Id:int}"
 @using Application.DTO
 @using Application.Services.Users
+@using Application.Interfaces
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 
 @inject IIdentityService IdentityService
+@inject IUserContext UserContext
 @inject NavigationManager NavigationManager
 
 <PageTitle>Edit User</PageTitle>
@@ -106,6 +108,19 @@
                                           For="@(() => user.PhoneNumber)" />
                         </MudItem>
 
+                        <!-- Roles selection -->
+                        <MudItem xs="12">
+                            <MudSelect T="string" Label="Roles" MultiSelection="true" @bind-SelectedValues="selectedRoles" Variant="Variant.Outlined" AdornmentIcon="@Icons.Material.Filled.Badge" Class="mb-3">
+                                @if (availableRoles != null)
+                                {
+                                    @foreach (var role in availableRoles)
+                                    {
+                                        <MudSelectItem T="string" Value="@role">@role</MudSelectItem>
+                                    }
+                                }
+                            </MudSelect>
+                        </MudItem>
+
                         <!-- Email Confirmed Status (Read-only) -->
                         <MudItem xs="12">
                             <MudCheckBox @bind-Value="user.EmailConfirmed"
@@ -192,6 +207,8 @@
     private bool isSaving = false;
     private string? errorMessage;
     private string? successMessage;
+    private List<string> availableRoles = new();
+    private IEnumerable<string> selectedRoles { get; set; } = new HashSet<string>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -217,6 +234,16 @@
             else
             {
                 Console.WriteLine($"[EditUser] User loaded successfully: {user.Email}");
+                
+                if (!string.IsNullOrEmpty(user.Role))
+                {
+                    selectedRoles = user.Role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
+
+                if (UserContext.PersonId.HasValue)
+                {
+                    availableRoles = await IdentityService.GetRolesAsync(UserContext.PersonId.Value);
+                }
             }
         }
         catch (Exception ex)
@@ -239,6 +266,7 @@
             successMessage = null;
 
             Console.WriteLine($"[EditUser] Updating user: {user.Email}");
+            user.Role = string.Join(",", selectedRoles);
 
             await IdentityService.UpdateUser(Id, user);
 
