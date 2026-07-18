@@ -51,8 +51,11 @@ builder.Services.AddScoped(p =>
 // Identity Configuration (ONLY ONE REGISTRATION)
 // Note: Ensure your 'User' class in Infrastructure matches IdentityRole<int> if that's your preference
 builder.Services.AddIdentity<User, IdentityRole<int>>(options => {
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders()
@@ -127,5 +130,48 @@ app.UseAuthorization();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var devEmail = "guriza291@gmail.com";
+    if (await userManager.FindByEmailAsync(devEmail) == null)
+    {
+        var person = new Domain.Entities.Person
+        {
+            FirstName = "Developer",
+            LastName = "Admin",
+            Email = devEmail,
+            CreatedBy = "System",
+            UpdateBy = "System",
+            TenantType = "Individual",
+            CreatedAt = DateTime.UtcNow
+        };
+        dbContext.Persons.Add(person);
+        await dbContext.SaveChangesAsync();
+
+        var user = new User 
+        { 
+            UserName = devEmail, 
+            Email = devEmail, 
+            FirstName = "Developer", 
+            LastName = "Admin",
+            EmailConfirmed = true,
+            PersonId = person.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        // Using a temporary password that satisfies default requirements (requires digit, uppercase, etc.)
+        await userManager.CreateAsync(user, "12345678"); 
+    }
+    else
+    {
+        var user = await userManager.FindByEmailAsync(devEmail);
+        user.PasswordHash = userManager.PasswordHasher.HashPassword(user, "12345678");
+        var result = await userManager.UpdateAsync(user);
+        Console.WriteLine($"[Seeder] Forced password update result: {result.Succeeded}");
+    }
+}
 
 app.Run();

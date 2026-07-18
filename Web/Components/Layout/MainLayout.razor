@@ -443,9 +443,7 @@
     public bool IsMini { get; set; }
 
     private bool IsDeveloper =>
-        string.Equals(UserContext.Email, "ukevine239@gmail.com", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(UserContext.Email, "clarisse@gmail.com", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(UserContext.Email, "nyiraminaniclarisse88@gmail.com", StringComparison.OrdinalIgnoreCase);
+        string.Equals(UserContext.Email, "guriza291@gmail.com", StringComparison.OrdinalIgnoreCase);
 
     private bool CanViewUsersMenu => UserContext.IsAuthenticated && (UserContext.PrimaryRole == "Tenant" || IsDeveloper);
 

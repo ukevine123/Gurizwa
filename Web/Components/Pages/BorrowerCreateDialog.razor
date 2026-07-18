@@ -81,14 +81,14 @@
                 @if (!isOrganization)
                 {
                     <MudItem  xs="6">
-                    <MudTextField Label="FirstName"
+                    <MudTextField Label="First Name"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Dense"
                                   @bind-Value="Model.FirstName"
                                   For="@(() => Model.FirstName)" />
                     </MudItem>
                     <MudItem  xs="6">
-                    <MudTextField Label="LastName"
+                    <MudTextField Label="Last Name"
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Dense"
                                   @bind-Value="Model.LastName"
@@ -112,7 +112,7 @@
                 {
                     <MudItem xs="6">
                         <MudSelect T="Maritalstatus?"
-                                   Label="Maritalstatus"
+                                   Label="Marital status"
                                    @bind-Value="Model.Maritalstatus"
                                    Variant="Variant.Outlined"
                                    Dense="true"
@@ -171,7 +171,7 @@
                 </MudItem>
                   <MudItem  xs="6">
 
-                <MudTextField Label="PhoneNumber"
+                <MudTextField Label="Phone Number"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.PhoneNumber"
@@ -207,7 +207,7 @@
                       </MudItem>
 
                       <MudItem xs="6">
-                          <MudTextField Label="Kin PhoneNumber"
+                          <MudTextField Label="Kin Phone Number"
                                         Variant="Variant.Outlined"
                                         Margin="Margin.Dense"
                                         @bind-Value="Model.KinPhoneNumber"
