@@ -199,6 +199,30 @@
         if (result != null && !result.Canceled)
         {
              await LoadLoanApplication();
+             
+             // First Reminder: Guarantor
+             var addGuarantor = await DialogService.ShowMessageBox("Reminder", "Do you want to add a Guarantor for this application?", yesText: "Yes", cancelText: "No");
+             if (addGuarantor == true)
+             {
+                 var guarantorDialog = await DialogService.ShowAsync<CreateGuarantorDialog>("Add Guarantor", options);
+                 await guarantorDialog.Result;
+             }
+
+             // Second Reminder: Collateral
+             var addCollateral = await DialogService.ShowMessageBox("Reminder", "Do you want to add Collateral for this application?", yesText: "Yes", cancelText: "No");
+             if (addCollateral == true)
+             {
+                 var collateralDialog = await DialogService.ShowAsync<CollateralCreateDialog>("Add Collateral", options);
+                 await collateralDialog.Result;
+             }
+
+             // Third Reminder: Document
+             var addDocument = await DialogService.ShowMessageBox("Reminder", "Do you want to attach a Document for this application?", yesText: "Yes", cancelText: "No");
+             if (addDocument == true)
+             {
+                 var documentDialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Document", options);
+                 await documentDialog.Result;
+             }
         }
     }
      private async Task LoadLoanApplication()
@@ -297,6 +321,12 @@
     private async Task ConfirmDeleteApplication(LoanApplication selected)
     {
         if (selected == null) return;
+
+        if (selected.Status == LoanStatus.Approved)
+        {
+            Snackbar.Add("Cannot delete an application that has already been approved.", Severity.Warning);
+            return;
+        }
 
         var result = await DialogService.ShowMessageBox(
             "Delete Loan Application",

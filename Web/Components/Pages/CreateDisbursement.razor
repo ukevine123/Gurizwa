@@ -124,6 +124,22 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal" Label="Proc. Fee (%)" @bind-Value="Model.ProcessingFeePercentage"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     ReadOnly="true"
+                                     AdornmentIcon="@Icons.Material.Filled.Percent"
+                                     AdornmentColor="Color.Info" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal" Label="Proc. Fee Amount" @bind-Value="Model.ProcessingFeeAmount"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     ReadOnly="true"
+                                     AdornmentIcon="@Icons.Material.Filled.MoneyOff"
+                                     AdornmentColor="Color.Error" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Interest Rate (%)" @bind-Value="RateWrapper"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
                                      AdornmentIcon="@Icons.Material.Filled.Percent"
@@ -135,6 +151,14 @@
                                      Variant="Variant.Outlined" Margin="Margin.Dense" Min="1"
                                      AdornmentIcon="@Icons.Material.Filled.Repeat"
                                      AdornmentColor="Color.Primary" Immediate="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal" Label="Disbursed Amount" Value="@(Model.PrincipalOffered - Model.ProcessingFeeAmount)"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     ReadOnly="true"
+                                     AdornmentIcon="@Icons.Material.Filled.Payment"
+                                     AdornmentColor="Color.Success" />
                 </MudItem>
 
                 @* 5. CALCULATION RESULT *@
@@ -215,6 +239,7 @@
 
     private void Calculate()
     {
+        Model.ProcessingFeeAmount = Model.PrincipalOffered * (Model.ProcessingFeePercentage / 100);
         decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
         Model.Amount = Model.PrincipalOffered + totalInterest;
         StateHasChanged();
@@ -235,6 +260,8 @@
                 Model.InterestRate = preparedData.InterestRate;
                 Model.PaymentModalityId = preparedData.PaymentModalityId;
                 Model.TotalInstallments = preparedData.TotalInstallments;
+                Model.ProcessingFeePercentage = preparedData.ProcessingFeePercentage;
+                Model.ProcessingFeeAmount = preparedData.ProcessingFeeAmount;
                 Calculate();
             }
         }

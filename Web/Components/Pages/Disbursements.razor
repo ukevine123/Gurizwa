@@ -56,8 +56,7 @@
                     }
                     else
                     {
-                        <b>@context.Item.LoanApplication?.Borrower?.FirstName</b> 
-                        @context.Item.LoanApplication?.Borrower?.LastName
+                        <b>@context.Item.LoanApplication?.Borrower?.FirstName</b> @(" ") @context.Item.LoanApplication?.Borrower?.LastName
                     }
                 </CellTemplate>
             </TemplateColumn>

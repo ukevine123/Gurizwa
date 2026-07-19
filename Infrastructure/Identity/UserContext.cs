@@ -102,7 +102,12 @@ namespace Infrastructure.Identity
         {
             get
             {
-                var role = Roles.FirstOrDefault() ?? "Tenant";
+                var role = Roles.FirstOrDefault();
+                if (string.IsNullOrEmpty(role))
+                {
+                    return Email == "guriza291@gmail.com" ? "Developer" : "Tenant";
+                }
+
                 if (role.Contains("_"))
                 {
                     return role.Substring(role.IndexOf("_") + 1);

@@ -3,13 +3,13 @@
 @inject IUserContext UserContext
 @inject NavigationManager Navigation
 
-<PageTitle>Home Hub - Gurizwa</PageTitle>
+<PageTitle>Home Hub - Guriza</PageTitle>
 
 <div class="welcome-container">
     <!-- ══════════ HERO SECTION ══════════ -->
     <div class="welcome-hero-card">
         <div class="hero-content">
-            <h1 class="hero-title">Welcome back, @(string.IsNullOrEmpty(UserContext.FullName) ? "User" : UserContext.FullName)!</h1>
+            <h1 class="hero-title">Welcome back!</h1>
             <p class="hero-subtitle">Manage your loan directory, track disbursements, and process team applications from one unified portal.</p>
             <div class="hero-meta">
                 <span class="meta-tag"><i class="oi oi-person"></i> @UserContext.PrimaryRole</span>

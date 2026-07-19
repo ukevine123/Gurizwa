@@ -1,4 +1,4 @@
 # DigitalLoanPlatform
 
-## Gurizwa
+## Guriza
 This concerns with getting loans

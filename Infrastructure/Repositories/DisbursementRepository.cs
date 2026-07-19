@@ -106,18 +106,18 @@ namespace Infrastructure.Repositories
 
             if (app == null) return new CreateDisbursementDTO();
 
-            decimal feeDeposited = await context.ProcessFeeDeposits
-                .Where(p => p.LoanApplicationId == loanApplicationId)
-                .SumAsync(p => p.Amount);
-
             decimal rate = app.LoanProductSetting?.InterestRate ?? 0;
+            decimal processingFeePercentage = app.LoanProductSetting?.ProcessingFee ?? 0;
+            decimal processingFeeAmount = app.AmountRequested * (processingFeePercentage / 100);
 
             return new CreateDisbursementDTO
             {
                 LoanApplicationId = app.Id,
                 PaymentModalityId = app.PaymentModalityId,
                 InterestRate = rate,
-                PrincipalOffered = app.AmountRequested - feeDeposited,
+                ProcessingFeePercentage = processingFeePercentage,
+                ProcessingFeeAmount = processingFeeAmount,
+                PrincipalOffered = app.AmountRequested,
                 TotalInstallments = 1 
             };
         }
@@ -236,13 +236,15 @@ namespace Infrastructure.Repositories
                 int autoModalityId = disbursementDTO.PaymentModalityId;
                 decimal autoRate = disbursementDTO.InterestRate;
                 decimal netPrincipal = disbursementDTO.PrincipalOffered;
+                decimal procFeeAmount = disbursementDTO.ProcessingFeeAmount;
+                decimal disbursedAmount = netPrincipal - procFeeAmount;
 
                 var account = await context.Accounts.FirstOrDefaultAsync(a => a.Id == disbursementDTO.AccountId);
                 if (account == null) throw new InvalidOperationException("Source account not found.");
-                if (account.Balance < netPrincipal)
-                    throw new InvalidOperationException($"Insufficient Funds! Required: {netPrincipal:N2}, Balance: {account.Balance:N2}.");
+                if (account.Balance < disbursedAmount)
+                    throw new InvalidOperationException($"Insufficient Funds! Required: {disbursedAmount:N2}, Balance: {account.Balance:N2}.");
 
-                account.Balance -= netPrincipal;
+                account.Balance -= disbursedAmount;
                 loanApp.Status = LoanStatus.Disbursed; 
 
                 var modality = await context.PaymentModalities.FirstOrDefaultAsync(m => m.Id == autoModalityId);

@@ -40,6 +40,8 @@ namespace Application.DTO
     [Required(ErrorMessage = "Date is required")]
      public DateTime? EndDate  { get; set; } = DateTime.Today; 
 
+    public decimal ProcessingFeePercentage { get; set; }
+    public decimal ProcessingFeeAmount { get; set; }
      
         
     }

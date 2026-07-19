@@ -461,7 +461,25 @@
     }
     else if (_activeReport == "RepaymentSchedules")
     {
-        <MudDataGrid T="RepaymentScheduleReportDTO" Items="@_repaymentSchedules" Hover="true" Striped="true" QuickFilter="@_repaymentFilter" Class="mt-4">
+        var targetSchedules = string.IsNullOrEmpty(_selectedApplicationCode) 
+            ? _repaymentSchedules 
+            : _repaymentSchedules.Where(s => s.ApplicationCode == _selectedApplicationCode).ToList();
+
+        <MudPaper Class="pa-4 mb-4" Elevation="0">
+            <MudGrid>
+                <MudItem xs="12" sm="12">
+                    <MudSelect T="string" @bind-Value="_selectedApplicationCode" Label="Select Loan Application" Placeholder="All Applications" Clearable="true">
+                        <MudSelectItem T="string" Value="@((string)null)">All Applications</MudSelectItem>
+                        @foreach (var app in _repaymentSchedules.GroupBy(x => x.ApplicationCode).Select(g => g.First()))
+                        {
+                            <MudSelectItem T="string" Value="@app.ApplicationCode">@app.ApplicationCode - @app.BorrowerName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudDataGrid T="RepaymentScheduleReportDTO" Items="@targetSchedules" Hover="true" Striped="true" QuickFilter="@_repaymentFilter" Class="mt-4">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Repayment Schedule</MudText>
                 <MudSpacer />
@@ -733,6 +751,23 @@
         return ExportService.ExportToExcel(data, title);
     }
 
+    private async Task ExportFilteredRepayments(string format)
+    {
+        var targetSchedules = string.IsNullOrEmpty(_selectedApplicationCode) 
+            ? _repaymentSchedules 
+            : _repaymentSchedules.Where(s => s.ApplicationCode == _selectedApplicationCode).ToList();
+            
+        string fileName = $"RepaymentSchedules_{DateTime.Now:yyyyMMdd_HHmmss}";
+        byte[] fileBytes = ExportData(targetSchedules, format, "RepaymentSchedules");
+
+        if (fileBytes != null)
+        {
+            string extension = format == "pdf" ? ".pdf" : format == "doc" ? ".doc" : ".xlsx";
+            using var streamRef = new DotNetStreamReference(new MemoryStream(fileBytes));
+            await JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName + extension, streamRef);
+        }
+    }
+
     private List<ActiveLoanSummaryDTO> _activeLoans = new();
     private List<LoanDisbursementReportDTO> _disbursements = new();
     private List<LoanMaturityReportDTO> _maturities = new();
@@ -763,6 +798,7 @@
     private string _overdueSearch = "";
     private string _customerSearch = "";
     private string _applicationSearch = "";
+    private string _selectedApplicationCode = "";
 
     private DateRange _disbursementRange = new DateRange(DateTime.Now.AddYears(-5).Date, DateTime.Now.Date);
     private string? _loanTypeFilter;

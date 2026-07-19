@@ -30,7 +30,7 @@
     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight:bold">Loan Application Details</MudText>
 
     <AuthorizeView Roles="Manager">
-        @if (application?.Status != LoanStatus.Paid)
+        @if (application?.Status != LoanStatus.Paid && application?.Status != LoanStatus.Approved)
         {
             <div class="d-flex gap-4">
                 @* Reject Button *@
@@ -294,6 +294,16 @@
     private async Task HandleStatusUpdate(LoanStatus newStatus)
     {
         if (application == null) return;
+
+        if (newStatus == LoanStatus.Approved)
+        {
+            var confirm = await DialogService.ShowMessageBox(
+                "Confirm Approval", 
+                "Are you sure you want to approve this application?", 
+                yesText: "Yes", cancelText: "No");
+                
+            if (confirm != true) return;
+        }
 
         var updateDto = new UpdateApplicationDTO
         {
