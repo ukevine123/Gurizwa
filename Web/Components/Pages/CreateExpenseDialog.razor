@@ -5,77 +5,158 @@
 @inject IAccountService AccountService
 @inject ISnackbar Snackbar
 
-<MudDialog>
+<MudDialog Style="overflow:hidden; max-width: 550px; width: 100%; border-radius: 12px;">
     <DialogContent>
-        <MudForm @ref="_form" @bind-IsValid="@_success">
-            <MudGrid>
+        <!-- ══════════ HEADER BANNER ══════════ -->
+        <MudPaper Elevation="0"
+                  Style="background: linear-gradient(135deg, #4318FF 0%, #8F70FF 100%);
+                         padding: 16px 20px; margin-bottom: 20px; border-radius: 8px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                <MudIcon Icon="@(ExpenseId.HasValue ? Icons.Material.Filled.Edit : Icons.Material.Filled.ReceiptLong)"
+                         Style="color:white; font-size: 2rem;" />
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h6" Style="color:white; font-weight:700; line-height:1.2;">
+                        @(ExpenseId.HasValue ? "Edit Expense" : "Add New Expense")
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.85);">
+                        @(ExpenseId.HasValue ? "Update details for this expense entry" : "Fill in the details below to log a business expense")
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <!-- ══════════ FORM ══════════ -->
+        <EditForm Model="_expense" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker Label="Date" @bind-Date="_expenseDate" Required="true" RequiredError="Date is required!" />
+                    <MudDatePicker Label="Expense Date"
+                                   @bind-Date="_expenseDate"
+                                   Required="true"
+                                   RequiredError="Expense date is required!"
+                                   Variant="Variant.Outlined"
+                                   Margin="Margin.Dense"
+                                   AdornmentIcon="@Icons.Material.Filled.CalendarToday"
+                                   AdornmentColor="Color.Primary" />
                 </MudItem>
+
                 <MudItem xs="12" sm="6">
-                    <MudNumericField @bind-Value="_expense.Amount" Label="Amount" Variant="Variant.Text" Required="true" Min="0.01m" />
+                    <MudNumericField T="decimal"
+                                     @bind-Value="_expense.Amount"
+                                     Label="Amount"
+                                     Variant="Variant.Outlined"
+                                     Margin="Margin.Dense"
+                                     Required="true"
+                                     Min="0.01m"
+                                     Format="N2"
+                                     HideSpinButtons="true" />
                 </MudItem>
+
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="string" Label="Category" @bind-Value="_expense.Category" Required="true">
+                    <MudSelect T="string"
+                               Label="Category"
+                               @bind-Value="_expense.Category"
+                               Required="true"
+                               RequiredError="Category is required!"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.Category"
+                               AdornmentColor="Color.Primary">
                         <MudSelectItem Value="@("Rent")">Rent</MudSelectItem>
-                        <MudSelectItem Value="@("Salaries")">Salaries</MudSelectItem>
+                        <MudSelectItem Value="@("Salaries & Wages")">Salaries & Wages</MudSelectItem>
                         <MudSelectItem Value="@("Utilities")">Utilities</MudSelectItem>
                         <MudSelectItem Value="@("Marketing")">Marketing</MudSelectItem>
                         <MudSelectItem Value="@("Office Supplies")">Office Supplies</MudSelectItem>
+                        <MudSelectItem Value="@("Travel & Transport")">Travel & Transport</MudSelectItem>
+                        <MudSelectItem Value="@("Maintenance")">Maintenance</MudSelectItem>
+                        <MudSelectItem Value="@("Professional Services")">Professional Services</MudSelectItem>
                         <MudSelectItem Value="@("Other")">Other</MudSelectItem>
                     </MudSelect>
                 </MudItem>
+
                 <MudItem xs="12" sm="6">
-                    <MudSelect T="int?" Label="Account" @bind-Value="_expense.AccountId" Required="false">
-                        <MudSelectItem T="int?" Value="null">None</MudSelectItem>
+                    <MudSelect T="int?"
+                               Label="Funding / Payment Account"
+                               @bind-Value="_expense.AccountId"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               AdornmentIcon="@Icons.Material.Filled.AccountBalance"
+                               AdornmentColor="Color.Info"
+                               Clearable="true">
+                        <MudSelectItem T="int?" Value="null">-- None (Unspecified) --</MudSelectItem>
                         @foreach (var account in _accounts)
                         {
                             <MudSelectItem T="int?" Value="@account.Id">@account.Name (@account.AccountNumber)</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
+
                 <MudItem xs="12">
-                    <MudTextField @bind-Value="_expense.Description" Label="Description" Variant="Variant.Text" Lines="3" Required="true" />
+                    <MudTextField @bind-Value="_expense.Description"
+                                  Label="Description / Notes"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  Lines="3"
+                                  Required="true"
+                                  RequiredError="Description is required!"
+                                  Placeholder="Enter details regarding this expense..." />
                 </MudItem>
             </MudGrid>
-        </MudForm>
+
+            <div class="d-flex justify-end gap-2 mt-6">
+                <MudButton OnClick="Cancel" Variant="Variant.Text" Disabled="_isSubmitting">Cancel</MudButton>
+                <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@(ExpenseId.HasValue ? Icons.Material.Filled.Save : Icons.Material.Filled.Add)"
+                           Disabled="_isSubmitting">
+                    @if (_isSubmitting)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                        <MudText Class="ms-2">Saving...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>@(ExpenseId.HasValue ? "Update Expense" : "Save Expense")</MudText>
+                    }
+                </MudButton>
+            </div>
+        </EditForm>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Save" Disabled="@(!_success)">Save</MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-    
+
     [Parameter]
     public int? ExpenseId { get; set; }
 
-    private MudForm _form = default!;
-    private bool _success;
+    private bool _isSubmitting;
     private Expense _expense = new Expense();
     private DateTime? _expenseDate = DateTime.Today;
     private IEnumerable<Account> _accounts = new List<Account>();
 
     protected override async Task OnInitializedAsync()
     {
-        _accounts = await AccountService.GetAllAccountsAsync();
-        
+        _accounts = await AccountService.GetAllAccountsAsync() ?? Enumerable.Empty<Account>();
+
         if (ExpenseId.HasValue)
         {
             var dto = await ExpenseService.GetByIdAsync(ExpenseId.Value);
-            _expense = new Expense
+            if (dto != null && dto.Id > 0)
             {
-                Id = dto.Id,
-                Amount = dto.Amount,
-                Category = dto.Category,
-                Description = dto.Description,
-                AccountId = dto.AccountId,
-                PersonId = dto.PersonId,
-                IsActive = dto.IsActive
-            };
-            _expenseDate = dto.ExpenseDate;
+                _expense = new Expense
+                {
+                    Id = dto.Id,
+                    Amount = dto.Amount,
+                    Category = dto.Category,
+                    Description = dto.Description,
+                    AccountId = dto.AccountId,
+                    PersonId = dto.PersonId,
+                    IsActive = dto.IsActive
+                };
+                _expenseDate = dto.ExpenseDate;
+            }
         }
     }
 
@@ -86,29 +167,32 @@
 
     private async Task Save()
     {
-        await _form.Validate();
-        if (_form.IsValid)
+        if (_isSubmitting) return;
+
+        try
         {
+            _isSubmitting = true;
             _expense.ExpenseDate = _expenseDate ?? DateTime.Today;
-            
-            try
+
+            if (ExpenseId.HasValue)
             {
-                if (ExpenseId.HasValue)
-                {
-                    await ExpenseService.UpdateAsync(_expense);
-                    Snackbar.Add("Expense updated successfully", Severity.Success);
-                }
-                else
-                {
-                    await ExpenseService.AddAsync(_expense);
-                    Snackbar.Add("Expense added successfully", Severity.Success);
-                }
-                MudDialog.Close(DialogResult.Ok(true));
+                await ExpenseService.UpdateAsync(_expense);
+                Snackbar.Add("Expense updated successfully", Severity.Success);
             }
-            catch (Exception ex)
+            else
             {
-                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+                await ExpenseService.AddAsync(_expense);
+                Snackbar.Add("Expense added successfully", Severity.Success);
             }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSubmitting = false;
         }
     }
 }
