@@ -466,9 +466,9 @@
             : _repaymentSchedules.Where(s => s.ApplicationCode == _selectedApplicationCode).ToList();
 
         <MudPaper Class="pa-4 mb-4" Elevation="0">
-            <MudGrid>
-                <MudItem xs="12" sm="12">
-                    <MudSelect T="string" @bind-Value="_selectedApplicationCode" Label="Select Loan Application" Placeholder="All Applications" Clearable="true">
+            <MudGrid AlignItems="AlignItems.Center">
+                <MudItem xs="12" sm="6" md="7">
+                    <MudSelect T="string" @bind-Value="_selectedApplicationCode" Label="Select Loan Application" Placeholder="All Applications" Clearable="true" AdornmentIcon="@Icons.Material.Filled.FilterList" AdornmentColor="MudBlazor.Color.Primary">
                         <MudSelectItem T="string" Value="@((string)null)">All Applications</MudSelectItem>
                         @foreach (var app in _repaymentSchedules.GroupBy(x => x.ApplicationCode).Select(g => g.First()))
                         {
@@ -476,12 +476,19 @@
                         }
                     </MudSelect>
                 </MudItem>
+                <MudItem xs="12" sm="6" md="5" Class="d-flex justify-end gap-2 align-center">
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Error" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick='() => ExportFilteredRepayments("pdf")'>PDF</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Success" StartIcon="@Icons.Material.Filled.TableChart" OnClick='() => ExportFilteredRepayments("xlsx")'>Excel</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Info" StartIcon="@Icons.Material.Filled.Article" OnClick='() => ExportFilteredRepayments("doc")'>Word</MudButton>
+                </MudItem>
             </MudGrid>
         </MudPaper>
 
         <MudDataGrid T="RepaymentScheduleReportDTO" Items="@targetSchedules" Hover="true" Striped="true" QuickFilter="@_repaymentFilter" Class="mt-4">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Repayment Schedule</MudText>
+                <MudText Typo="Typo.h6">
+                    @(string.IsNullOrEmpty(_selectedApplicationCode) ? "Repayment Schedule (All)" : $"Repayment Schedule — {_selectedApplicationCode}")
+                </MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="_repaymentSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
@@ -717,7 +724,9 @@
                 case "Disbursements": fileBytes = ExportData(_disbursements, format, reportName); break;
                 case "MaturityTracker": fileBytes = ExportData(_maturities, format, reportName); break;
                 case "UserActivities": fileBytes = ExportData(_activities, format, reportName); break;
-                case "RepaymentSchedules": fileBytes = ExportData(_repaymentSchedules, format, reportName); break;
+                case "RepaymentSchedules": 
+                    await ExportFilteredRepayments(format);
+                    return;
                 case "UpcomingDues": 
                     int days = _activeUpcomingDuesTab == 0 ? 5 : 7;
                     var dues = _repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(days)).OrderBy(s => s.DueDate).ToList();
@@ -757,15 +766,35 @@
         var targetSchedules = string.IsNullOrEmpty(_selectedApplicationCode) 
             ? _repaymentSchedules 
             : _repaymentSchedules.Where(s => s.ApplicationCode == _selectedApplicationCode).ToList();
+
+        if (!string.IsNullOrWhiteSpace(_repaymentSearch))
+        {
+            targetSchedules = targetSchedules.Where(x => _repaymentFilter(x)).ToList();
+        }
+
+        if (!targetSchedules.Any())
+        {
+            Snackbar.Add("No repayment schedule records available for export.", Severity.Warning);
+            return;
+        }
+
+        string reportTitle = string.IsNullOrEmpty(_selectedApplicationCode) 
+            ? "RepaymentSchedules" 
+            : $"RepaymentSchedule_{_selectedApplicationCode}";
             
-        string fileName = $"RepaymentSchedules_{DateTime.Now:yyyyMMdd_HHmmss}";
-        byte[] fileBytes = ExportData(targetSchedules, format, "RepaymentSchedules");
+        string fileName = $"{reportTitle}_{DateTime.Now:yyyyMMdd_HHmmss}";
+        byte[] fileBytes = ExportData(targetSchedules, format, reportTitle);
 
         if (fileBytes != null)
         {
             string extension = format == "pdf" ? ".pdf" : format == "doc" ? ".doc" : ".xlsx";
             using var streamRef = new DotNetStreamReference(new MemoryStream(fileBytes));
             await JSRuntime.InvokeVoidAsync("triggerFileDownload", fileName + extension, streamRef);
+
+            string successMessage = string.IsNullOrEmpty(_selectedApplicationCode) 
+                ? $"Repayment schedules exported successfully ({format.ToUpper()})" 
+                : $"Repayment schedule for loan {_selectedApplicationCode} exported successfully ({format.ToUpper()})";
+            Snackbar.Add(successMessage, Severity.Success);
         }
     }
 
