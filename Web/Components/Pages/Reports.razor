@@ -499,7 +499,7 @@
     }
     else if (_activeReport == "UpcomingDues")
     {
-        <MudTabs Elevation="0" Rounded="true" Centered="true" Class="mt-4" Color="Color.Transparent" ActiveTabClass="mud-theme-primary">
+        <MudTabs Elevation="0" Rounded="true" Centered="true" Class="mt-4" Color="Color.Transparent" ActiveTabClass="mud-theme-primary" @bind-ActivePanelIndex="_activeUpcomingDuesTab">
             <MudTabPanel Text="Due in 5 Days">
                 <MudDataGrid T="RepaymentScheduleReportDTO" Items="@_repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(5)).OrderBy(s => s.DueDate)" Hover="true" Striped="true" Class="mt-4">
                     <ToolBarContent>
@@ -719,8 +719,9 @@
                 case "UserActivities": fileBytes = ExportData(_activities, format, reportName); break;
                 case "RepaymentSchedules": fileBytes = ExportData(_repaymentSchedules, format, reportName); break;
                 case "UpcomingDues": 
-                    var dues = _repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(7)).OrderBy(s => s.DueDate).ToList();
-                    fileBytes = ExportData(dues, format, reportName); 
+                    int days = _activeUpcomingDuesTab == 0 ? 5 : 7;
+                    var dues = _repaymentSchedules.Where(s => s.DueDate.Date >= DateTime.Now.Date && s.DueDate.Date <= DateTime.Now.Date.AddDays(days)).OrderBy(s => s.DueDate).ToList();
+                    fileBytes = ExportData(dues, format, $"{reportName}_{days}Days"); 
                     break;
                 case "OverdueLoans": fileBytes = ExportData(_overdues, format, reportName); break;
                 case "CustomerPortfolios": fileBytes = ExportData(_customerPortfolios, format, reportName); break;
@@ -785,6 +786,7 @@
         }
     }
 
+    private int _activeUpcomingDuesTab = 0;
     private List<RepaymentScheduleReportDTO> _repaymentSchedules = new();
     private List<OverdueReportDTO> _overdues = new();
     private List<CustomerPortfolioReportDTO> _customerPortfolios = new();
