@@ -7,7 +7,7 @@
         <MudGrid>
             <MudItem xs="12" md="6">
                 <MudText Typo="Typo.subtitle2" Color="Color.Primary">Tenant Type</MudText>
-                <MudText Typo="Typo.body1">@Tenant.TenantType</MudText>
+                <MudText Typo="Typo.body1">@(Tenant.TenantType == "Organization" ? "Business" : Tenant.TenantType)</MudText>
             </MudItem>
             
             @if (Tenant.TenantType == "Organization")

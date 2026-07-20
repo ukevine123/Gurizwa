@@ -179,7 +179,7 @@ else
     private async Task OpenRoleManagementDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<RoleManagementDialog>("Manage Organization Roles", options);
+        var dialog = DialogService.Show<RoleManagementDialog>("Manage Business Roles", options);
         await dialog.Result;
     }
 

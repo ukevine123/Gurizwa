@@ -1,0 +1,201 @@
+@using Application.Services.ProvidedDocuments
+@using Domain.Entities
+@using MudBlazor
+
+@inject IProvidedDocumentService ProvidedDocumentService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-3">
+            <MudIcon Icon="@Icons.Material.Filled.FolderSpecial" Color="Color.Primary" Style="font-size: 2rem;" />
+            <div>
+                <MudText Typo="Typo.h6" Style="font-weight: 800;">
+                    Documents for Application: @(ApplicationCode ?? $"#APP-{LoanApplicationId}")
+                    @if (!string.IsNullOrEmpty(BusinessName))
+                    {
+                        <span style="color: #070bdc; font-weight: 600;"> (@BusinessName)</span>
+                    }
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    All documents attached to this loan application
+                </MudText>
+            </div>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center pa-6">
+                <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            </div>
+        }
+        else if (_appDocuments == null || !_appDocuments.Any())
+        {
+            <MudAlert Severity="Severity.Info" Class="my-4">
+                No documents found for this loan application.
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@_appDocuments" Hover="true" Elevation="0" Class="rounded-lg border border-solid border-light mt-2">
+                <HeaderContent>
+                    <MudTh>#</MudTh>
+                    <MudTh>Document Name</MudTh>
+                    <MudTh>Date Uploaded</MudTh>
+                    <MudTh Style="text-align: right;">Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="#">@context.Id</MudTd>
+                    <MudTd DataLabel="Document Name">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@GetIcon(context.DocumentName)" Color="Color.Primary" Size="Size.Small" />
+                            <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.DocumentName</MudText>
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Date Uploaded">
+                        @context.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    </MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align: right;">
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="mr-2" OnClick="@(() => ViewDoc(context))">
+                            <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="Size.Small" Class="mr-1" /> View
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => ReplaceDoc(context))">
+                            <MudIcon Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mr-1" /> Replace
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int LoanApplicationId { get; set; }
+    [Parameter] public string ApplicationCode { get; set; }
+    [Parameter] public string BusinessName { get; set; }
+
+    private List<ProvidedDocument> _appDocuments = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDocs();
+    }
+
+    private async Task LoadDocs()
+    {
+        _isLoading = true;
+        try
+        {
+            var allDocs = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
+            _appDocuments = allDocs.Where(d => d.LoanApplicationId == LoanApplicationId).ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading documents: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task ViewDoc(ProvidedDocument doc)
+    {
+        var fullDoc = await ProvidedDocumentService.GetProvidedDocumentById(doc.Id);
+        if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
+        {
+            Snackbar.Add("File is empty.", Severity.Error);
+            return;
+        }
+
+        byte[] fileData = fullDoc.DocumentFile;
+        try 
+        {
+            string possibleString = System.Text.Encoding.UTF8.GetString(fileData);
+            if (possibleString.Contains("base64,"))
+            {
+                var base64Data = possibleString.Split(',')[1];
+                fileData = Convert.FromBase64String(base64Data);
+            }
+            else 
+            {
+                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
+                if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
+                {
+                    fileData = buffer.Slice(0, bytesParsed).ToArray();
+                }
+            }
+        } 
+        catch { }
+
+        string mimeType = GetMimeType(fileData);
+        string base64 = Convert.ToBase64String(fileData);
+        string url = $"data:{mimeType};base64,{base64}";
+
+        var parameters = new DialogParameters 
+        { 
+            ["Url"] = url, 
+            ["MimeType"] = mimeType,
+            ["FileName"] = doc.DocumentName 
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
+        DialogService.Show<DocumentViewerDialog>(doc.DocumentName ?? "View Document", parameters, options);
+    }
+
+    private async Task ReplaceDoc(ProvidedDocument doc)
+    {
+        try
+        {
+            await ProvidedDocumentService.GetProvidedDocumentById(doc.Id); // Verify access
+            Snackbar.Add("Document deleted. Please upload a replacement.", Severity.Info);
+            await LoadDocs();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private string GetMimeType(byte[] fileData)
+    {
+        if (fileData == null || fileData.Length < 4)
+            return "application/octet-stream";
+
+        if (fileData[0] == 0x25 && fileData[1] == 0x50 && fileData[2] == 0x44 && fileData[3] == 0x46)
+            return "application/pdf";
+        if (fileData[0] == 0x89 && fileData[1] == 0x50 && fileData[2] == 0x4E && fileData[3] == 0x47)
+            return "image/png";
+        if (fileData[0] == 0xFF && fileData[1] == 0xD8 && fileData[2] == 0xFF)
+            return "image/jpeg";
+        if (fileData[0] == 0x47 && fileData[1] == 0x49 && fileData[2] == 0x46 && fileData[3] == 0x38)
+            return "image/gif";
+
+        return "application/octet-stream";
+    }
+
+    private string GetIcon(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName)) return Icons.Custom.FileFormats.FileDocument;
+        var ext = System.IO.Path.GetExtension(fileName).ToLower();
+        return ext switch
+        {
+            ".pdf" => Icons.Custom.FileFormats.FilePdf,
+            ".xlsx" or ".xls" => Icons.Custom.FileFormats.FileExcel,
+            ".docx" or ".doc" => Icons.Custom.FileFormats.FileWord,
+            ".png" or ".jpg" or ".jpeg" => Icons.Custom.FileFormats.FileImage,
+            _ => Icons.Material.Filled.AttachFile
+        };
+    }
+}

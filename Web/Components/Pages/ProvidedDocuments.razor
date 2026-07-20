@@ -14,233 +14,217 @@
 @inject IJSRuntime JS
 @inject ISnackbar Snackbar
 
-<PageTitle>Provided Document</PageTitle>
+<PageTitle>Provided Documents</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* 1. TOP TITLE AND SEARCH BAR *@
-    <!-- <div class="d-flex align-center justify-space-between mb-6">
-        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Provided Document</MudText>
-    </div> -->
-
-    @* 2. SEARCH AND FILTER ROW *@
+    @* SEARCH & HEADER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
-
-        <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
-            @if (_selectedItems.Any())
-            {
-                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"  />
-                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
-                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-            }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-     
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="_searchString"
+                          Placeholder="Search by application code or borrower name..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Immediate="true"
+                          Class="mt-0"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense" />
+        </MudItem>
+        <MudItem xs="12" sm="6" Class="d-flex align-center justify-end gap-2">
+            <MudButton StartIcon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenDialog">
+                Upload Document
+            </MudButton>
         </MudItem>
     </MudGrid>
 
-    @* 3. THE DATAGRID *@
-    <MudDataGrid T="ProvidedDocument" Items="@_providedDocument" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+    @* THE DATAGRID - GROUPED BY LOAN APPLICATION *@
+    <MudDataGrid T="LoanAppGroup" Items="@FilteredGroups"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
-                  <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">Provided Document</MudText>
+        <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: 800;">Loan Application Documents</MudText>
             <MudSpacer />
-
-            <MudMenu Label="Add Document"
-                     Variant="Variant.Filled"
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
-                     Color="Color.Primary">
-
-                <MudMenuItem Icon="@Icons.Material.Filled.Add"
-                             OnClick="OpenDialog">
-                    Add
-                </MudMenuItem>
-
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    Print
-                </MudMenuItem>
-
-            </MudMenu>
         </ToolBarContent>
 
-          <ToolBarContent>
-            @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
-            <MudSpacer />
-            <MudMenu Label="Upload" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Upload" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-            </MudMenu>
-        </ToolBarContent>
+        <Columns>
+            @* Application Code Column *@
+            <TemplateColumn Title="Application Code" SortBy="x => x.ApplicationCode">
+                <CellTemplate>
+                    <MudChip T="string" Color="Color.Info" Style="font-weight: 700;">
+                        @context.Item.ApplicationCode
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
 
-  <Columns>
-    <SelectColumn T="ProvidedDocument" />
-    <HierarchyColumn T="ProvidedDocument" />
-    
-  
-    <PropertyColumn Property="x => x.DocumentName" Title="Document Name" />
+            @* Business Name / Applicant Column *@
+            <TemplateColumn Title="Business / Applicant Name" SortBy="x => x.BusinessName">
+                <CellTemplate>
+                    <div class="d-flex flex-column">
+                        <MudText Typo="Typo.body2" Style="font-weight: 700; color: #1B2559;">@context.Item.BusinessName</MudText>
+                        @if (!string.IsNullOrEmpty(context.Item.ContactPerson) && context.Item.ContactPerson != context.Item.BusinessName)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Contact: @context.Item.ContactPerson</MudText>
+                        }
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
 
-   
+            @* Total Documents Count Column *@
+            <TemplateColumn Title="Documents Count" SortBy="x => x.DocumentCount">
+                <CellTemplate>
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">
+                        @context.Item.DocumentCount Document(s)
+                    </MudChip>
+                </CellTemplate>
+            </TemplateColumn>
 
-   
-            <TemplateColumn Title="Action">
-    <CellTemplate>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="mr-2" OnClick="@(() => ViewDocument(context.Item))">
-            <MudIcon Icon="@Icons.Material.Filled.RemoveRedEye" Size="Size.Small" Class="mr-1" />
-            View @context.Item.DocumentName
-        </MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => ReplaceDocument(context.Item))">
-            <MudIcon Icon="@Icons.Material.Filled.Autorenew" Size="Size.Small" Class="mr-1" />
-            Replace
-        </MudButton>
-    </CellTemplate>
-</TemplateColumn>
+            @* Document Names Summary Column *@
+            <TemplateColumn Title="Attached Documents">
+                <CellTemplate>
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var doc in context.Item.Documents.Take(3))
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default">
+                                @doc.DocumentName
+                            </MudChip>
+                        }
+                        @if (context.Item.Documents.Count > 3)
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Secondary">
+                                +@(context.Item.Documents.Count - 3) more
+                            </MudChip>
+                        }
+                    </div>
+                </CellTemplate>
+            </TemplateColumn>
 
+            @* Action Column *@
+            <TemplateColumn Title="Action" Style="text-align: right;">
+                <CellTemplate>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.FolderOpen" OnClick="@(() => OpenAllAppDocuments(context.Item.LoanApplicationId, context.Item.ApplicationCode, context.Item.BusinessName))">
+                        View All Documents
+                    </MudButton>
+                </CellTemplate>
+            </TemplateColumn>
 
-</Columns>
+        </Columns>
         
         <PagerContent>
-            <MudDataGridPager T="ProvidedDocument" />
+            <MudDataGridPager T="LoanAppGroup" />
         </PagerContent>
     </MudDataGrid>
 </MudContainer>
 
 @code {
-     private string _searchString = "";
+    private string _searchString = "";
+    private List<LoanAppGroup> _appGroups = new();
 
-    private IEnumerable<ProvidedDocument> FilteredBorrowers => _providedDocument
-        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
-                    
-            x.DocumentName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
-     //s
-       List<ProvidedDocument> _providedDocument = new();
-    private HashSet<ProvidedDocument> _selectedItems = new();
-
-      protected override async Task OnInitializedAsync()
+    public class LoanAppGroup
     {
-         await LoadDocument();
-         
+        public int LoanApplicationId { get; set; }
+        public string ApplicationCode { get; set; } = "";
+        public string BusinessName { get; set; } = "";
+        public string ContactPerson { get; set; } = "";
+        public int DocumentCount { get; set; }
+        public List<ProvidedDocument> Documents { get; set; } = new();
     }
+
+    private IEnumerable<LoanAppGroup> FilteredGroups => _appGroups
+        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
+                    (x.ApplicationCode != null && x.ApplicationCode.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.BusinessName != null && x.BusinessName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.ContactPerson != null && x.ContactPerson.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+                    x.Documents.Any(d => d.DocumentName != null && d.DocumentName.Contains(_searchString, StringComparison.OrdinalIgnoreCase)));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDocument();
+    }
+
     private async Task OpenDialog()
     {
         DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
-
-        var dialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Application", options);
+        var dialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Document", options);
         var result = await dialog.Result;
 
         if (result != null && !result.Canceled)
         {
-             await LoadDocument();
+            await LoadDocument();
         }
     }
-     private async Task LoadDocument()
+
+    private async Task LoadDocument()
     {
-        _providedDocument = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
+        var rawDocs = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
+        
+        _appGroups = rawDocs
+            .GroupBy(d => d.LoanApplicationId)
+            .Select(g => {
+                var first = g.First();
+                var appCode = first.LoanApplication?.ApplicationCode;
+                if (string.IsNullOrWhiteSpace(appCode))
+                {
+                    appCode = g.Key > 0 ? $"#APP-{g.Key}" : "General Documents";
+                }
+                
+                string bName = "";
+                string contact = "";
+
+                // 1. Try LoanApplication -> Borrower
+                if (first.LoanApplication?.Borrower != null)
+                {
+                    var b = first.LoanApplication.Borrower;
+                    bName = !string.IsNullOrWhiteSpace(b.CompanyName) ? b.CompanyName : $"{b.FirstName} {b.LastName}".Trim();
+                    contact = !string.IsNullOrWhiteSpace(b.ContactPersonName) ? b.ContactPersonName : $"{b.FirstName} {b.LastName}".Trim();
+                }
+                
+                // 2. Try LoanApplication -> Person
+                if (string.IsNullOrWhiteSpace(bName) && first.LoanApplication?.Person != null)
+                {
+                    var p = first.LoanApplication.Person;
+                    bName = !string.IsNullOrWhiteSpace(p.CompanyName) ? p.CompanyName : $"{p.FirstName} {p.LastName}".Trim();
+                    contact = !string.IsNullOrWhiteSpace(p.ContactPerson) ? p.ContactPerson : $"{p.FirstName} {p.LastName}".Trim();
+                }
+
+                // 3. Try ProvidedDocument -> Person
+                if (string.IsNullOrWhiteSpace(bName) && first.Person != null)
+                {
+                    var p = first.Person;
+                    bName = !string.IsNullOrWhiteSpace(p.CompanyName) ? p.CompanyName : $"{p.FirstName} {p.LastName}".Trim();
+                    contact = !string.IsNullOrWhiteSpace(p.ContactPerson) ? p.ContactPerson : $"{p.FirstName} {p.LastName}".Trim();
+                }
+
+                if (string.IsNullOrWhiteSpace(bName)) bName = "N/A";
+
+                return new LoanAppGroup
+                {
+                    LoanApplicationId = g.Key,
+                    ApplicationCode = appCode,
+                    BusinessName = bName,
+                    ContactPerson = contact,
+                    DocumentCount = g.Count(),
+                    Documents = g.ToList()
+                };
+            })
+            .ToList();
+
         StateHasChanged();
     }
 
-    private async Task ViewDocument(ProvidedDocument doc)
+    private async Task OpenAllAppDocuments(int loanApplicationId, string applicationCode, string businessName)
     {
-        var fullDoc = await ProvidedDocumentService.GetProvidedDocumentById(doc.Id);
-        if (fullDoc?.DocumentFile == null || fullDoc.DocumentFile.Length == 0)
+        var parameters = new DialogParameters
         {
-            Snackbar.Add("File is empty.", Severity.Error);
-            return;
-        }
-
-        byte[] fileData = fullDoc.DocumentFile;
-        try 
-        {
-            string possibleString = System.Text.Encoding.UTF8.GetString(fileData);
-            if (possibleString.Contains("base64,"))
-            {
-                var base64Data = possibleString.Split(',')[1];
-                fileData = Convert.FromBase64String(base64Data);
-            }
-            else 
-            {
-                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
-                if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
-                {
-                    fileData = buffer.Slice(0, bytesParsed).ToArray();
-                }
-            }
-        } 
-        catch { }
-
-        string mimeType = GetMimeType(fileData);
-        string base64 = Convert.ToBase64String(fileData);
-        string url = $"data:{mimeType};base64,{base64}";
-
-        var parameters = new DialogParameters 
-        { 
-            ["Url"] = url, 
-            ["MimeType"] = mimeType,
-            ["FileName"] = doc.DocumentName 
+            ["LoanApplicationId"] = loanApplicationId,
+            ["ApplicationCode"] = applicationCode,
+            ["BusinessName"] = businessName
         };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true };
-        DialogService.Show<DocumentViewerDialog>(doc.DocumentName ?? "View Document", parameters, options);
-    }
-
-
-private string GetMimeType(byte[] fileData)
-{
-    if (fileData == null || fileData.Length < 4)
-        return "application/octet-stream";
-
-    // PDF
-    if (fileData[0] == 0x25 && fileData[1] == 0x50 && fileData[2] == 0x44 && fileData[3] == 0x46)
-        return "application/pdf";
-    
-    // PNG
-    if (fileData[0] == 0x89 && fileData[1] == 0x50 && fileData[2] == 0x4E && fileData[3] == 0x47)
-        return "image/png";
-    
-    // JPEG
-    if (fileData[0] == 0xFF && fileData[1] == 0xD8 && fileData[2] == 0xFF)
-        return "image/jpeg";
-    
-    // GIF
-    if (fileData[0] == 0x47 && fileData[1] == 0x49 && fileData[2] == 0x46 && fileData[3] == 0x38)
-        return "image/gif";
-
-    return "application/octet-stream";
-}
-    private async Task ReplaceDocument(ProvidedDocument doc)
-    {
-        try
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        var dialog = DialogService.Show<ApplicationDocumentsDialog>("Application Documents", parameters, options);
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
         {
-            await DocumentRepo.DeleteProvidedDocumentAsync(doc.Id);
-            Snackbar.Add("Document deleted. Please upload a replacement.", Severity.Info);
             await LoadDocument();
         }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error replacing document: {ex.Message}", Severity.Error);
-        }
     }
-
-    private string GetIcon(string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName)) return Icons.Custom.FileFormats.FileDocument;
-        
-        var ext = Path.GetExtension(fileName).ToLower();
-        return ext switch
-        {
-            ".pdf" => Icons.Custom.FileFormats.FilePdf,
-            ".xlsx" or ".xls" => Icons.Custom.FileFormats.FileExcel,
-            ".docx" or ".doc" => Icons.Custom.FileFormats.FileWord,
-            ".png" or ".jpg" or ".jpeg" => Icons.Custom.FileFormats.FileImage,
-            _ => Icons.Material.Filled.AttachFile
-        };
-    }
-        
-     }  
-
-   
-
-     
-
-
+}

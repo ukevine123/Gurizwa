@@ -158,7 +158,7 @@
      private string _searchString = "";
      private string _selectedBorrowerType = "All";
 
-     private bool IsOrganizationSelected => _selectedBorrowerType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true;
+     private bool IsOrganizationSelected => _selectedBorrowerType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true || _selectedBorrowerType?.Equals("Business", StringComparison.OrdinalIgnoreCase) == true;
 
        List<Borrower> _borrowers = new();
     private HashSet<Borrower> _selectedItems = new();

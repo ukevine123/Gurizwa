@@ -45,6 +45,7 @@
 
             <MudGrid Spacing="3">
                 @* 1. LOAN SELECTION *@
+                @* 1. SELECTIONS ROW (6 + 6) *@
                 <MudItem xs="12" sm="6">
                     <MudSelect T="int" Label="Loan Application"
                                Value="Model.LoanApplicationId"
@@ -70,7 +71,6 @@
                     </MudSelect>
                 </MudItem>
 
-                @* 2. SOURCE ACCOUNT SELECTION *@
                 <MudItem xs="12" sm="6">
                     <MudSelect T="int" Label="Source Account"
                                Value="Model.AccountId"
@@ -92,7 +92,7 @@
                     </MudSelect>
                 </MudItem>
 
-                @* 3. MODALITY SELECTION *@
+                @* 2. MODALITY & START DATE ROW (6 + 6) *@
                 <MudItem xs="12" sm="6">
                     <MudSelect T="int" Label="Payment Modality"
                                Value="Model.PaymentModalityId"
@@ -108,13 +108,28 @@
                     </MudSelect>
                 </MudItem>
 
-                @* 4. FINANCIAL PARAMETERS *@
                 <MudItem xs="12" sm="6">
                     <MudDatePicker Label="Repayment Start Date" @bind-Date="StartDateWrapper"
                                    Variant="Variant.Outlined" Margin="Margin.Dense"
                                    AdornmentColor="Color.Primary" />
                 </MudItem>
 
+                @* 3. INTEREST DEDUCTION MODALITY (FULL WIDTH) *@
+                <MudItem xs="12">
+                    <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: #f4f6fb; border: 1px solid #e0e4f0;">
+                        <span class="custom-label mb-1 d-block" style="font-weight:700; color:#1B2559;">Interest Deduction Modality</span>
+                        <MudRadioGroup T="bool" Value="Model.IsPrepayment" ValueChanged="OnPrepaymentChanged" Class="d-flex flex-wrap gap-4">
+                            <MudRadio T="bool" Value="false" Color="Color.Primary">
+                                <b>Postpayment</b> <span style="font-size:0.8rem; color:gray;">(Deduct Proc. Fee only; Interest paid per installment as usual)</span>
+                            </MudRadio>
+                            <MudRadio T="bool" Value="true" Color="Color.Secondary">
+                                <b>Prepayment</b> <span style="font-size:0.8rem; color:gray;">(Deduct Fee & Upfront Interest from disbursed principal)</span>
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudPaper>
+                </MudItem>
+
+                @* 4. LOAN PARAMETERS ROW (4 + 4 + 4) *@
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Principal" @bind-Value="PrincipalWrapper"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
@@ -123,6 +138,21 @@
                                      AdornmentColor="Color.Primary" Immediate="true" />
                 </MudItem>
 
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="decimal" Label="Interest Rate (%)" @bind-Value="RateWrapper"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     AdornmentIcon="@Icons.Material.Filled.Percent"
+                                     AdornmentColor="Color.Primary" Immediate="true" />
+                </MudItem>
+
+                <MudItem xs="12" sm="4">
+                    <MudNumericField T="int" Label="No. of Installments" @bind-Value="InstallmentWrapper"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="1"
+                                     AdornmentIcon="@Icons.Material.Filled.Repeat"
+                                     AdornmentColor="Color.Primary" Immediate="true" />
+                </MudItem>
+
+                @* 5. FEE & NET DISBURSED ROW (4 + 4 + 4) *@
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Proc. Fee (%)" @bind-Value="Model.ProcessingFeePercentage"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
@@ -140,23 +170,9 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
-                    <MudNumericField T="decimal" Label="Interest Rate (%)" @bind-Value="RateWrapper"
+                    <MudNumericField T="decimal" Label="Net Disbursed Amount" Value="@NetDisbursedAmount"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     AdornmentIcon="@Icons.Material.Filled.Percent"
-                                     AdornmentColor="Color.Primary" Immediate="true" />
-                </MudItem>
-
-                <MudItem xs="12" sm="4">
-                    <MudNumericField T="int" Label="No. of Installments" @bind-Value="InstallmentWrapper"
-                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="1"
-                                     AdornmentIcon="@Icons.Material.Filled.Repeat"
-                                     AdornmentColor="Color.Primary" Immediate="true" />
-                </MudItem>
-
-                <MudItem xs="12" sm="4">
-                    <MudNumericField T="decimal" Label="Disbursed Amount" Value="@(Model.PrincipalOffered - Model.ProcessingFeeAmount)"
-                                     Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     ReadOnly="true"
+                                     ReadOnly="true" Format="N2"
                                      AdornmentIcon="@Icons.Material.Filled.Payment"
                                      AdornmentColor="Color.Success" />
                 </MudItem>
@@ -237,11 +253,33 @@
     private int InstallmentWrapper { get => Model.TotalInstallments; set { Model.TotalInstallments = value; Calculate(); } }
     private DateTime? StartDateWrapper { get => Model.StartDate; set { Model.StartDate = value; StateHasChanged(); } }
 
+    private decimal NetDisbursedAmount => Model.IsPrepayment
+        ? (Model.PrincipalOffered - Model.ProcessingFeeAmount - (Model.PrincipalOffered * (Model.InterestRate / 100)))
+        : (Model.PrincipalOffered - Model.ProcessingFeeAmount);
+
+    private void OnPrepaymentChanged(bool isPrepayment)
+    {
+        Model.IsPrepayment = isPrepayment;
+        Calculate();
+    }
+
     private void Calculate()
     {
         Model.ProcessingFeeAmount = Model.PrincipalOffered * (Model.ProcessingFeePercentage / 100);
         decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
-        Model.Amount = Model.PrincipalOffered + totalInterest;
+
+        if (Model.IsPrepayment)
+        {
+            // Prepayment: Interest is deducted upfront at disbursement time.
+            // Total Repayable by borrower in installments is equal to the Principal Offered.
+            Model.Amount = Model.PrincipalOffered;
+        }
+        else
+        {
+            // Postpayment: Interest is collected in installments.
+            // Total Repayable by borrower = Principal + Total Interest.
+            Model.Amount = Model.PrincipalOffered + totalInterest;
+        }
         StateHasChanged();
     }
 
@@ -284,10 +322,10 @@
         var rows = new List<PreviewRow>();
         if (Model.TotalInstallments <= 0 || Model.PrincipalOffered <= 0 || Model.StartDate == null) return rows;
 
-        decimal totalInstallmentAmount = Model.Amount / Model.TotalInstallments;
         decimal principalPart = Model.PrincipalOffered / Model.TotalInstallments;
         decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
-        decimal interestPart = totalInterest / Model.TotalInstallments;
+        decimal interestPart = Model.IsPrepayment ? 0 : (totalInterest / Model.TotalInstallments);
+        decimal totalInstallmentAmount = principalPart + interestPart;
         
         var modalityObj = PaymentModalities.FirstOrDefault(m => m.Id == Model.PaymentModalityId);
         string mode = modalityObj?.Mode?.ToLower() ?? "monthly";
@@ -377,7 +415,8 @@
                     Model.Amount, 
                     Model.PaymentModalityId, 
                     Model.TotalInstallments, 
-                    Model.StartDate ?? DateTime.Today);
+                    Model.StartDate ?? DateTime.Today,
+                    Model.InterestRate);
                 
                 Snackbar.Add("Loan Rescheduled successfully!", Severity.Success);
             }

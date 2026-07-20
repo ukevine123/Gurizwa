@@ -1,0 +1,238 @@
+@using Domain.Entities
+@using MudBlazor
+@inject IJSRuntime JSRuntime
+
+<MudDialog Style="border-radius:12px; max-width: 850px; overflow:hidden;">
+    <DialogContent>
+        <style>
+            @@media print {
+                .no-print, .mud-dialog-title, .mud-dialog-actions, header, footer, nav {
+                    display: none !important;
+                }
+                body {
+                    background: #fff !important;
+                    color: #000 !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                .printable-document {
+                    box-shadow: none !important;
+                    border: none !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    width: 100% !important;
+                }
+            }
+            .printable-document {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                color: #1B2559;
+                padding: 24px;
+                background-color: #fff;
+            }
+            .header-banner {
+                border-bottom: 2px solid #1B2559;
+                padding-bottom: 16px;
+                margin-bottom: 20px;
+            }
+            .summary-box {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+            .schedule-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+            .schedule-table th, .schedule-table td {
+                border: 1px solid #cbd5e1;
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            .schedule-table th {
+                background-color: #f1f5f9;
+                font-weight: 700;
+                text-align: left;
+            }
+            .signature-section {
+                margin-top: 40px;
+                display: flex;
+                justify-content: space-between;
+            }
+            .signature-box {
+                width: 45%;
+                border-top: 1px dashed #64748b;
+                padding-top: 8px;
+                text-align: center;
+                font-size: 0.85rem;
+            }
+        </style>
+
+        <div class="printable-document">
+            @* --- HEADER --- *@
+            <div class="header-banner d-flex justify-space-between align-center">
+                <div class="d-flex align-center gap-3">
+                    <img src="Images/guriza_logo.png" alt="Guriza Logo" style="max-height: 46px; width: auto; object-fit: contain;" />
+                    <div>
+                        <h1 style="margin:0; font-size: 24px; font-weight: 800; color: #1B2559;">Guriza</h1>
+                        <p style="margin:2px 0 0 0; font-size: 12px; color: #64748b; font-weight:600; text-transform: uppercase;">OFFICIAL LOAN REPAYMENT SCHEDULE</p>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 14px; font-weight: 700; color: #1B2559;">App Code: @AppCode</div>
+                    <div style="font-size: 12px; color: #64748b;">Date: @(Disbursement?.StartDate.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))</div>
+                </div>
+            </div>
+
+            @* --- BORROWER & FINANCIAL SUMMARY --- *@
+            <div class="summary-box">
+                <table style="width: 100%; border: none;">
+                    <tr>
+                        <td style="padding: 4px 0; border: none;"><strong>Borrower / Business:</strong> @BorrowerName</td>
+                        <td style="padding: 4px 0; border: none; text-align: right;"><strong>Payment Frequency:</strong> @(Disbursement?.PaymentModality?.Mode ?? "Monthly")</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; border: none;"><strong>Approved Principal:</strong> @((Disbursement?.PrincipalOffered ?? 0).ToString("N2"))</td>
+                        <td style="padding: 4px 0; border: none; text-align: right;"><strong>Interest Rate:</strong> @((Disbursement?.InterestRate ?? 0).ToString("N1"))%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; border: none;"><strong>Total Installments:</strong> @(Disbursement?.TotalInstallments ?? 0) Payment(s)</td>
+                        <td style="padding: 4px 0; border: none; text-align: right;"><strong>Total Repayable:</strong> <span style="font-weight: 800; color: #1B2559;">@((Disbursement?.Amount ?? 0).ToString("N2"))</span></td>
+                    </tr>
+                </table>
+            </div>
+
+            @* --- SCHEDULE TABLE --- *@
+            <h4 style="margin: 0 0 8px 0; color: #1B2559; font-weight: 700;">Repayment Schedule Breakdown</h4>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Due Date</th>
+                        <th style="text-align: right;">Principal Part</th>
+                        <th style="text-align: right;">Interest Part</th>
+                        <th style="text-align: right;">Total Installment</th>
+                        <th style="text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Rows)
+                    {
+                        <tr>
+                            <td>#@row.No</td>
+                            <td>@row.DueDate.ToString("yyyy-MM-dd")</td>
+                            <td style="text-align: right;">@row.PrincipalPart.ToString("N2")</td>
+                            <td style="text-align: right;">@row.InterestPart.ToString("N2")</td>
+                            <td style="text-align: right; font-weight: 700;">@row.TotalAmount.ToString("N2")</td>
+                            <td style="text-align: center; font-weight: 700; color: @(row.Status == "PAID" ? "#16a34a" : "#ca8a04");">
+                                @row.Status
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @* --- SIGNATURE ACKNOWLEDGMENT --- *@
+            <div class="signature-section">
+                <div class="signature-box">
+                    Prepared By (Officer Signature)
+                </div>
+                <div class="signature-box">
+                    Customer Acknowledgment Signature
+                </div>
+            </div>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <div class="no-print pa-3 d-flex justify-end w-100">
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Print" 
+                       OnClick="TriggerPrint"
+                       Style="font-weight:700; border-radius:8px;">
+                Print Schedule
+            </MudButton>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Disbursement? Disbursement { get; set; }
+
+    public class SchedulePrintRow
+    {
+        public int No { get; set; }
+        public DateTime DueDate { get; set; }
+        public decimal PrincipalPart { get; set; }
+        public decimal InterestPart { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string Status { get; set; } = "PENDING";
+    }
+
+    private List<SchedulePrintRow> Rows = new();
+
+    private string BorrowerName => Disbursement?.LoanApplication?.Borrower != null
+        ? (!string.IsNullOrWhiteSpace(Disbursement.LoanApplication.Borrower.CompanyName)
+            ? Disbursement.LoanApplication.Borrower.CompanyName
+            : $"{Disbursement.LoanApplication.Borrower.FirstName} {Disbursement.LoanApplication.Borrower.LastName}".Trim())
+        : (Disbursement?.LoanApplication?.Person != null
+            ? (!string.IsNullOrWhiteSpace(Disbursement.LoanApplication.Person.CompanyName)
+                ? Disbursement.LoanApplication.Person.CompanyName
+                : $"{Disbursement.LoanApplication.Person.FirstName} {Disbursement.LoanApplication.Person.LastName}".Trim())
+            : "Valued Customer");
+
+    private string AppCode => Disbursement?.LoanApplication?.ApplicationCode ?? $"#APP-{Disbursement?.LoanApplicationId}";
+
+    protected override void OnInitialized()
+    {
+        if (Disbursement == null) return;
+
+        int n = Disbursement.TotalInstallments > 0 ? Disbursement.TotalInstallments : 1;
+        decimal principalPart = Disbursement.PrincipalOffered / n;
+        decimal totalInterest = Disbursement.Amount - Disbursement.PrincipalOffered;
+        decimal interestPart = totalInterest > 0 ? (totalInterest / n) : 0;
+        decimal totalInstallmentAmount = Disbursement.Amount / n;
+
+        decimal totalPaid = Disbursement.Payments?.Where(p => p.IsActive).Sum(p => p.Amount) ?? 0;
+
+        string mode = Disbursement.PaymentModality?.Mode?.ToLower() ?? "monthly";
+        DateTime baseDate = Disbursement.StartDate;
+
+        decimal accumulatedExpected = 0;
+        for (int i = 1; i <= n; i++)
+        {
+            DateTime dueDate = mode switch
+            {
+                "daily" => baseDate.AddDays(i),
+                "weekly" => baseDate.AddDays(i * 7),
+                "monthly" => baseDate.AddMonths(i),
+                "yearly" => baseDate.AddYears(i),
+                _ => baseDate.AddMonths(i)
+            };
+
+            accumulatedExpected += totalInstallmentAmount;
+            string status = (totalPaid >= (accumulatedExpected - 0.05m)) ? "PAID" : "PENDING";
+
+            Rows.Add(new SchedulePrintRow
+            {
+                No = i,
+                DueDate = dueDate,
+                PrincipalPart = principalPart,
+                InterestPart = interestPart,
+                TotalAmount = totalInstallmentAmount,
+                Status = status
+            });
+        }
+    }
+
+    private async Task TriggerPrint()
+    {
+        await JSRuntime.InvokeVoidAsync("window.print");
+    }
+
+    private void Close() => MudDialog.Close(DialogResult.Ok(true));
+}

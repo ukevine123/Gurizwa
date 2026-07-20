@@ -17,28 +17,54 @@ namespace Infrastructure.Repositories
            _contextFactory = contextFactory;
            _userContext = userContext;
         }
-        public  async Task<List<ProvidedDocument>> GetAllProvidedDocumentAsync()
+        public async Task<List<ProvidedDocument>> GetAllProvidedDocumentAsync()
         {
-    
-        using var dbContext = await _contextFactory.CreateDbContextAsync();
-        if (_userContext.Id == null)
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            if (_userContext.Id == null)
             {
                 return new List<ProvidedDocument>();
             }
-        var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
-        return await dbContext.ProvidedDocuments
-           .Where(a => allowedPersonIds.Contains(a.PersonId))
-           .Select(a => new ProvidedDocument {
-               Id = a.Id,
-               DocumentName = a.DocumentName,
-               PersonId = a.PersonId,
-               LoanApplicationId = a.LoanApplicationId,
-               LoanApplication = a.LoanApplication, // EF Core handles Include via projection automatically
-               CreatedAt = a.CreatedAt,
-               CreatedBy = a.CreatedBy
-               // Intentionally leaving DocumentFile as null to save memory
-           })
-           .ToListAsync(); 
+            var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
+            return await dbContext.ProvidedDocuments
+               .AsNoTracking()
+               .Where(a => allowedPersonIds.Contains(a.PersonId))
+               .Select(a => new ProvidedDocument {
+                   Id = a.Id,
+                   DocumentName = a.DocumentName,
+                   PersonId = a.PersonId,
+                   Person = a.Person != null ? new Person {
+                       Id = a.Person.Id,
+                       FirstName = a.Person.FirstName,
+                       LastName = a.Person.LastName,
+                       CompanyName = a.Person.CompanyName,
+                       TinNumber = a.Person.TinNumber,
+                       ContactPerson = a.Person.ContactPerson
+                   } : null,
+                   LoanApplicationId = a.LoanApplicationId,
+                   LoanApplication = a.LoanApplication != null ? new LoanApplication {
+                       Id = a.LoanApplication.Id,
+                       ApplicationCode = a.LoanApplication.ApplicationCode,
+                       BorrowerId = a.LoanApplication.BorrowerId,
+                       Borrower = a.LoanApplication.Borrower != null ? new Borrower {
+                           Id = a.LoanApplication.Borrower.Id,
+                           CompanyName = a.LoanApplication.Borrower.CompanyName,
+                           FirstName = a.LoanApplication.Borrower.FirstName,
+                           LastName = a.LoanApplication.Borrower.LastName,
+                           ContactPersonName = a.LoanApplication.Borrower.ContactPersonName
+                       } : null,
+                       PersonId = a.LoanApplication.PersonId,
+                       Person = a.LoanApplication.Person != null ? new Person {
+                           Id = a.LoanApplication.Person.Id,
+                           CompanyName = a.LoanApplication.Person.CompanyName,
+                           FirstName = a.LoanApplication.Person.FirstName,
+                           LastName = a.LoanApplication.Person.LastName,
+                           ContactPerson = a.LoanApplication.Person.ContactPerson
+                       } : null
+                   } : null,
+                   CreatedAt = a.CreatedAt,
+                   CreatedBy = a.CreatedBy
+               })
+               .ToListAsync(); 
         }
         public async Task <ProvidedDocument> GetProvidedDocumentById(int Id)
         {

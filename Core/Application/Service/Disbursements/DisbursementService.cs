@@ -14,10 +14,10 @@ namespace Application.Services.Disbursements
         }
 
         // --- NEW RESCHEDULE METHOD ---
-        public async Task RescheduleLoanAsync(int oldDisbursementId, decimal newTotalAmount, int paymentModalityId, int installments, DateTime startDate)
+        public async Task RescheduleLoanAsync(int oldDisbursementId, decimal newTotalAmount, int paymentModalityId, int installments, DateTime startDate, decimal interestRate)
         {
             // Pass the parameters to the repository
-            await _disbursement.RescheduleLoanAsync(oldDisbursementId, newTotalAmount, paymentModalityId, installments, startDate);
+            await _disbursement.RescheduleLoanAsync(oldDisbursementId, newTotalAmount, paymentModalityId, installments, startDate, interestRate);
         }
 
         public async Task<CreateDisbursementDTO> PrepareDisbursementFromApplicationAsync(int loanApplicationId)

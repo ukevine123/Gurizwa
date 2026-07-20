@@ -155,7 +155,7 @@
      private string _searchString = "";
     private string _selectedGuarantorType = "All";
 
-     private bool IsOrganizationSelected => _selectedGuarantorType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true;
+     private bool IsOrganizationSelected => _selectedGuarantorType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true || _selectedGuarantorType?.Equals("Business", StringComparison.OrdinalIgnoreCase) == true;
 
     private IEnumerable<Guarantor> FilteredGuarantors => _guarantor
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 

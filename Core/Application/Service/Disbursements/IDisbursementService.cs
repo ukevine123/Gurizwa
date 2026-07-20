@@ -15,7 +15,7 @@ namespace Application.Services.Disbursements
 
         // This method will automatically fetch the Rate and Fee from Product Settings
         Task<CreateDisbursementDTO> PrepareDisbursementFromApplicationAsync(int loanApplicationId);
-        Task RescheduleLoanAsync(int oldDisbursementId, decimal newTotalAmount, int paymentModalityId, int installments, DateTime startDate);
+        Task RescheduleLoanAsync(int oldDisbursementId, decimal newTotalAmount, int paymentModalityId, int installments, DateTime startDate, decimal interestRate);
 
     }
 }
