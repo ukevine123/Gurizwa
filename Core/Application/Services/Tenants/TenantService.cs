@@ -61,7 +61,7 @@ namespace Application.Services.Tenants
 
                 // Send email to tenant
                 string subject = "Registration Received - Pending Approval";
-                string body = $"<h3>Hello,</h3><p>Your registration for the Digital Loan Platform has been received. Please wait for an administrator to approve your account.</p>";
+                string body = $"<h3>Hello,</h3><p>Your registration for Guriza has been received. Please wait for an administrator to approve your account.</p>";
                 await _emailService.SendEmailAsync(tenant.Email, subject, body);
 
                 // Send email to admin
