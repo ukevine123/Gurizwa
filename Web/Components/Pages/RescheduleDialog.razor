@@ -1,0 +1,76 @@
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <div class="d-flex align-center gap-2">
+            <MudIcon Icon="@Icons.Material.Filled.EventRepeat" Color="Color.Warning" />
+            <MudText Typo="Typo.h6">Reschedule Loan Application</MudText>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="3">
+            @if (!string.IsNullOrEmpty(ApplicationCode))
+            {
+                <MudAlert Severity="Severity.Info" Dense="true" NoIcon="false">
+                    Rescheduling application: <strong>@ApplicationCode</strong>
+                </MudAlert>
+            }
+
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Please select a new preferred date for this loan application.
+            </MudText>
+
+            <MudDatePicker Label="New Preferred Date"
+                           @bind-Date="_selectedDate"
+                           MinDate="@DateTime.Today"
+                           Variant="Variant.Outlined"
+                           Color="Color.Warning"
+                           DateFormat="yyyy-MM-dd"
+                           Placeholder="Select new date"
+                           PickerVariant="PickerVariant.Dialog"
+                           Required="true"
+                           RequiredError="Please select a date." />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text" Color="Color.Default">
+            Cancel
+        </MudButton>
+        <MudButton OnClick="Confirm"
+                   Variant="Variant.Filled"
+                   Color="Color.Warning"
+                   StartIcon="@Icons.Material.Filled.EventRepeat"
+                   Disabled="@(_selectedDate == null)">
+            Confirm Reschedule
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public DateTime? CurrentDate { get; set; }
+
+    [Parameter]
+    public string? ApplicationCode { get; set; }
+
+    private DateTime? _selectedDate;
+
+    protected override void OnInitialized()
+    {
+        // Default the picker to the current preferred date (or today if null)
+        _selectedDate = CurrentDate ?? DateTime.Today;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Confirm()
+    {
+        if (_selectedDate.HasValue)
+        {
+            MudDialog.Close(DialogResult.Ok(_selectedDate.Value));
+        }
+    }
+}
