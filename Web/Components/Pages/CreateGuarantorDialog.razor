@@ -1,4 +1,4 @@
-@using Application.DTO
+﻿@using Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
 @using Application.Services.GuarantorTypes
@@ -51,8 +51,8 @@
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Category"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem Value="0">--Select Guarantor Type--</MudSelectItem>
                         @if (guarantorType != null)
                         {
@@ -70,8 +70,8 @@
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Category"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem Value="0">--Select Loan --</MudSelectItem>
                        @if (loanApplications != null)
                         {
@@ -85,7 +85,7 @@
                     </MudSelect>
                 </MudItem>
 
-                @* ── Individual fields ── *@
+                @* â”€â”€ Individual fields â”€â”€ *@
                 @if (!isOrganization)
                 {
                     <MudItem xs="6">
@@ -97,7 +97,7 @@
                 }
                 else
                 {
-                    @* ── Organization fields ── *@
+                    @* â”€â”€ Business fields â”€â”€ *@
                     <MudItem xs="12">
                         <MudTextField Label="Company Name"
                                       Variant="Variant.Outlined"
@@ -110,7 +110,7 @@
                 @if (!isOrganization)
                 {
                     <MudItem xs="6"> 
-                        <MudDatePicker Label="Date Of Birth" @bind-Value="Model.DateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
+                        <MudDatePicker ShowToolbar="false" Label="Date Of Birth" DateFormat="yyyy-MM-dd" @bind-Date="_dateOfBirth" Variant="Variant.Outlined" Margin="Margin.Dense" />
                     </MudItem>
                 }
 
@@ -163,8 +163,8 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Public"
-               AdornmentColor="Color.Primary">
+              
+              >
         @foreach (var p in _provinces)
         {
             <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
@@ -183,8 +183,8 @@
                        Variant="Variant.Outlined"
                         Dense="true"
                         Margin="Margin.Dense"
-                        AdornmentIcon="@Icons.Material.Filled.Category"
-                        AdornmentColor="Color.Primary">
+                       
+                       >
                         @foreach (var d in _districts)
                         {
                             <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
@@ -203,8 +203,8 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Map"
-               AdornmentColor="Color.Primary">
+              
+              >
         @foreach (var s in _sectors)
         {
             <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
@@ -224,8 +224,8 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Layers"
-               AdornmentColor="Color.Primary">
+              
+              >
         @foreach (var c in _cells)
         {
             <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
@@ -244,8 +244,8 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.HomeWork"
-               AdornmentColor="Color.Primary">
+              
+              >
         @foreach (var v in _villages)
         {
             <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
@@ -274,13 +274,19 @@
 
     public Sex sex { get; set; }
 
+    private DateTime? _dateOfBirth
+    {
+        get => Model.DateOfBirth == default ? null : Model.DateOfBirth;
+        set => Model.DateOfBirth = value ?? default;
+    }
+
     private bool isOrganization = false;
 
     private void OnGuarantorTypeChanged(int typeId)
     {
         Model.GuarantorTypeId = typeId;
         var type = guarantorType.FirstOrDefault(t => t.Id == typeId);
-        isOrganization = type != null && type.Name.Contains("Organization", StringComparison.OrdinalIgnoreCase);
+        isOrganization = type != null && type.Name.Contains("Business", StringComparison.OrdinalIgnoreCase);
     }
    
     private List<Province> _provinces = new();
@@ -393,7 +399,29 @@
     {
         try
         {
-            // If organization, copy identification number to TIN field (same as Borrower pattern)
+            if (!isOrganization)
+            {
+                // Since DateOfBirth is a non-nullable DateTime, we can use it directly
+                var dob = Model.DateOfBirth;
+                
+                // If it's a default DateTime (e.g. 0001-01-01), handle it as invalid/required
+                if (dob == default)
+                {
+                    Snackbar.Add("Date of birth is required.", Severity.Error);
+                    return;
+                }
+
+                var age = DateTime.Today.Year - dob.Year;
+                if (dob.Date > DateTime.Today.AddYears(-age)) age--;
+                
+                if (age < 18)
+                {
+                    Snackbar.Add("Guarantor must be at least 18 years old.", Severity.Error);
+                    return;
+                }
+            }
+
+            // If Business, copy identification number to TIN field (same as Borrower pattern)
             if (isOrganization)
             {
                 Model.TIN = Model.Identification;
@@ -410,3 +438,4 @@
         }
     }
 }
+

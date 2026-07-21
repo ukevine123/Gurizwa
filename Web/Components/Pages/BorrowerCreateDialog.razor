@@ -1,4 +1,4 @@
-@using  Application.DTO
+﻿@using  Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
 @using Application.Services.BorrowerTypes
@@ -23,7 +23,7 @@
 
     <DialogContent>
 
-        <!-- ══════════ HEADER BANNER ══════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â• HEADER BANNER â•â•â•â•â•â•â•â•â•â• -->
         <MudPaper Elevation="0"
                   Style="background: linear-gradient(135deg, #4318FF );
                          padding:14px 18px; margin-bottom:16px;">
@@ -42,7 +42,7 @@
                 </MudStack>
             </MudStack>
         </MudPaper>
-        <!-- ══════════ FORM ══════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â• FORM â•â•â•â•â•â•â•â•â•â• -->
         <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateBorrowerForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -64,8 +64,8 @@
                                    Variant="Variant.Outlined"
                                    Dense="true"
                                    Margin="Margin.Dense"
-                                   AdornmentIcon="@Icons.Material.Filled.Category"
-                                   AdornmentColor="Color.Primary">
+                                  
+                                  >
 
                             <MudSelectItem Value="0">--Select Borrower Type--</MudSelectItem>
 
@@ -117,8 +117,8 @@
                                    Variant="Variant.Outlined"
                                    Dense="true"
                                    Margin="Margin.Dense"
-                                   AdornmentIcon="@Icons.Material.Filled.Transgender"
-                                   AdornmentColor="Color.Primary">
+                                  
+                                  >
                             <MudSelectItem T="Maritalstatus?" Disabled="true">-- Select Maritalstatus --</MudSelectItem>
                             @foreach (Maritalstatus item in Enum.GetValues(typeof(Maritalstatus)))
                             {
@@ -133,8 +133,8 @@
                                    Variant="Variant.Outlined"
                                    Dense="true"
                                    Margin="Margin.Dense"
-                                   AdornmentIcon="@Icons.Material.Filled.Transgender"
-                                   AdornmentColor="Color.Primary">
+                                  
+                                  >
                             <MudSelectItem T="Sex?" Disabled="true">-- Select Sex --</MudSelectItem>
                             @foreach (Sex item in Enum.GetValues(typeof(Sex)))
                             {
@@ -143,12 +143,13 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem  xs="6"> 
-                          <MudDatePicker Label="Date Of Birth"
-                           @bind-Value="Model.DateOfBirth"
+                          <MudDatePicker ShowToolbar="false" Label="Date Of Birth"
+                           DateFormat="yyyy-MM-dd"
+                           @bind-Date="Model.DateOfBirth"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
-                            Adornment="Adornment.Start" 
-                            AdornmentColor="Color.Primary" />
+                            
+                            />
                     </MudItem>
                 }
 
@@ -235,7 +236,7 @@
 <MudItem xs="6">
     <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
                ReadOnly="IsReadOnly" Required="true" Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Public" AdornmentColor="Color.Primary">
+              >
         @foreach (var p in _provinces)
         {
             <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
@@ -248,7 +249,7 @@
     <MudSelect T="string" Value="Model.District" Label="District" ValueChanged="OnDistrictChanged"
                ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Province))"
                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Category" AdornmentColor="Color.Primary">
+              >
         @foreach (var d in _districts)
         {
             <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
@@ -261,7 +262,7 @@
     <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged"
                ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.District))"
                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Map" AdornmentColor="Color.Primary">
+              >
         @foreach (var s in _sectors)
         {
             <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
@@ -274,7 +275,7 @@
     <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged"
                ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Sector))"
                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Layers" AdornmentColor="Color.Primary">
+              >
         @foreach (var c in _cells)
         {
             <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
@@ -287,7 +288,7 @@
     <MudSelect T="string" @bind-Value="Model.Village" Label="Village"
                ReadOnly="IsReadOnly" Required="true" Disabled="@(string.IsNullOrEmpty(Model.Cell))"
                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary">
+              >
         @foreach (var v in _villages)
         {
             <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
@@ -328,7 +329,7 @@
     {
         Model.BorrowerTypeId = typeId;
         var type = acctype.FirstOrDefault(t => t.Id == typeId);
-        if (type != null && type.Type.Equals("Organization", StringComparison.OrdinalIgnoreCase))
+        if (type != null && type.Type.Equals("Business", StringComparison.OrdinalIgnoreCase))
         {
             isOrganization = true;
         }
@@ -443,6 +444,27 @@
     {
         try
         {
+            if (!isOrganization)
+            {
+                if (Model.DateOfBirth.HasValue)
+                {
+                    var dob = Model.DateOfBirth.Value;
+                    var age = DateTime.Today.Year - dob.Year;
+                    if (dob.Date > DateTime.Today.AddYears(-age)) age--;
+                    
+                    if (age < 18)
+                    {
+                        Snackbar.Add("Borrower must be at least 18 years old.", Severity.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    Snackbar.Add("Date of birth is required.", Severity.Error);
+                    return;
+                }
+            }
+
             if (isOrganization)
             {
                 Model.TIN = Model.IdentificationNumber;
@@ -459,3 +481,4 @@
         }
     }
 }
+

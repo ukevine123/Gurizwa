@@ -37,11 +37,13 @@
                                        Color="Color.Primary">
                                 Back to List
                             </MudButton>
-                            <MudButton OnClick="OpenEditDialog" 
-                                       StartIcon="@Icons.Material.Filled.Edit"
-                                       Color="Color.Primary">
-                                Edit User
-                            </MudButton>
+                            <AuthorizeView Roles="Tenant">
+                                <MudButton OnClick="OpenEditDialog" 
+                                           StartIcon="@Icons.Material.Filled.Edit"
+                                           Color="Color.Primary">
+                                    Edit User
+                                </MudButton>
+                            </AuthorizeView>
                         </MudButtonGroup>
                     </div>
             </MudCardHeader>
@@ -154,12 +156,14 @@
                            StartIcon="@Icons.Material.Filled.ArrowBack">
                     Back to List
                 </MudButton>
-                <MudButton OnClick="OpenEditDialog" 
-                           Variant="Variant.Filled" 
-                           Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.Edit">
-                    Edit User
-                </MudButton>
+                <AuthorizeView Roles="Tenant">
+                    <MudButton OnClick="OpenEditDialog" 
+                               Variant="Variant.Filled" 
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Edit">
+                        Edit User
+                    </MudButton>
+                </AuthorizeView>
             </MudCardActions>
 
             @if (subUsers != null && subUsers.Count > 0)

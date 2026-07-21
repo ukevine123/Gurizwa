@@ -34,7 +34,7 @@
 
     <DialogContent>
 
-        <!-- ══════════ HEADER BANNER ══════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â• HEADER BANNER â•â•â•â•â•â•â•â•â•â• -->
         <MudPaper Elevation="0"
                   Style="background: linear-gradient(135deg, #4318FF );
                          padding:14px 18px; margin-bottom:16px;">
@@ -58,7 +58,7 @@
         </MudPaper>
 
 
-        <!-- ══════════ FORM ══════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â• FORM â•â•â•â•â•â•â•â•â•â• -->
         <EditForm Model="Model" OnValidSubmit="onValidSubmit" FormName="CreateLoanApplicationForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -104,10 +104,10 @@
            ValueChanged="@((int i) => OnProductChanged(i))"
            Variant="Variant.Outlined"
            Dense="true"
-           AdornmentIcon="@Icons.Material.Filled.Info"
+          
            Placeholder="--Select Product--"
-           Adornment="Adornment.End"
-           AdornmentColor="Color.Info"
+          
+          
             OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
            
     
@@ -122,6 +122,16 @@
                 }
             }
         </MudSelect>
+        @if (SelectedProductSetting != null)
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-n2">
+                    <MudText Typo="Typo.body2"><b>Product:</b> @(SelectedProductSetting.LoanProduct?.ProductName ?? "N/A")</MudText>
+                    <MudText Typo="Typo.caption"><b>Interest Rate:</b> @SelectedProductSetting.InterestRate% | <b>Penalty Rate:</b> @SelectedProductSetting.PenalityRate%</MudText>
+                    <MudText Typo="Typo.caption" Class="d-block"><b>Processing Fee:</b> @SelectedProductSetting.ProcessingFee | <b>Grace Period:</b> @SelectedProductSetting.GracePeriodDays Days</MudText>
+                </MudAlert>
+            </MudItem>
+        }
     </MudItem>
 
 
@@ -133,8 +143,8 @@
             Variant="Variant.Outlined"
             Dense="true"
             Margin="Margin.Dense"
-            AdornmentIcon="@Icons.Material.Filled.Category"
-            AdornmentColor="Color.Primary">
+           
+           >
 
             <MudSelectItem T="int" Value="0">--Select PaymentModality--</MudSelectItem>
 
@@ -159,20 +169,22 @@
                               InputType="InputType.Number" />
                 </MudItem>
                  <MudItem  xs="6"> 
-                      <MudDatePicker Label="Date of Application"
+                      <MudDatePicker ShowToolbar="false" Label="Date of Application"
+                       DateFormat="yyyy-MM-dd"
                        @bind-Value="Model.DateofApplication"
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
-                        Adornment="Adornment.Start" 
-                        AdornmentColor="Color.Primary" />
+                        
+                        />
                 </MudItem>
                  <MudItem  xs="6"> 
-                      <MudDatePicker Label="Preferred Date"
+                      <MudDatePicker ShowToolbar="false" Label="Preferred Date"
+                       DateFormat="yyyy-MM-dd"
                        @bind-Value="Model.PreferredDate"
                         Variant="Variant.Outlined"
                         Margin="Margin.Dense"
-                        Adornment="Adornment.Start" 
-                        AdornmentColor="Color.Primary"
+                        
+                       
                         Editable="true"
                         Placeholder="Select Date" />
                 </MudItem>
@@ -345,11 +357,14 @@ try
     // 4. Show the dialog
     await DialogService.ShowAsync<LoanProductDetail>("Product Details", parameters, options);
 }
+    private LoanProductSetting SelectedProductSetting { get; set; }
+
     private void OnProductChanged(int id)
-   {
-    Model.LoanProductSettingId = id;
-    StateHasChanged();
-   }
+    {
+        Model.LoanProductSettingId = id;
+        SelectedProductSetting = _loanProductSettings.FirstOrDefault(p => p.Id == id);
+        StateHasChanged();
+    }
 
     private Borrower SelectedBorrower { get; set; }
 
@@ -389,3 +404,4 @@ try
 
     
 }
+

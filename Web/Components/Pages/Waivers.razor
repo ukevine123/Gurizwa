@@ -60,14 +60,16 @@
                             </MudChip>
                         </CellTemplate>
                     </PropertyColumn>
-                    <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="G" />
+                    <PropertyColumn Property="x => x.CreatedAt" Title="Created" Format="yyyy-MM-dd HH:mm" />
                     <TemplateColumn Title="Actions" Sortable="false">
                         <CellTemplate>
                             <MudStack Row="true" Spacing="1">
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                               Size="Size.Small"
-                                               Color="Color.Primary"
-                                               OnClick="@(() => EditWaiver(context.Item))" />
+                                <AuthorizeView Roles="Tenant" Context="authState">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Size="Size.Small"
+                                                   Color="Color.Primary"
+                                                   OnClick="@(() => EditWaiver(context.Item))" />
+                                </AuthorizeView>
                                 @if (context.Item.Status == "Pending")
                                 {
                                     <MudIconButton Icon="@Icons.Material.Filled.CheckCircle"
@@ -98,7 +100,7 @@
                     <PropertyColumn Property="x => x.WaiverType" Title="Type" />
                     <PropertyColumn Property="x => x.Amount" Title="Amount (Rwf)" Format="N2" />
                     <PropertyColumn Property="x => x.Reason" Title="Reason" />
-                    <PropertyColumn Property="x => x.CreatedAt" Title="Requested" Format="g" />
+                    <PropertyColumn Property="x => x.CreatedAt" Title="Requested" Format="yyyy-MM-dd HH:mm" />
                     <TemplateColumn Title="Actions" Sortable="false">
                         <CellTemplate>
                             <MudStack Row="true" Spacing="1">
@@ -129,7 +131,7 @@
                     <PropertyColumn Property="x => x.WaiverType" Title="Type" />
                     <PropertyColumn Property="x => x.Amount" Title="Amount (Rwf)" Format="N2" />
                     <PropertyColumn Property="x => x.ApprovedBy" Title="Approved By" />
-                    <PropertyColumn Property="x => x.ApprovedDate" Title="Approved Date" Format="g" />
+                    <PropertyColumn Property="x => x.ApprovedDate" Title="Approved Date" Format="yyyy-MM-dd HH:mm" />
                 </Columns>
             </MudDataGrid>
         </MudTabPanel>

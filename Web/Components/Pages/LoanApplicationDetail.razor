@@ -29,7 +29,7 @@
 <div class="d-flex align-center justify-space-between pa-4 mb-4 mt-2 rounded shadow-sm bg-white">
     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight:bold">Loan Application Details</MudText>
 
-    <AuthorizeView Roles="Manager">
+    <AuthorizeView Roles="Tenant,Manager">
         @if (application?.Status != LoanStatus.Paid && application?.Status != LoanStatus.Approved)
         {
             <div class="d-flex gap-4">
@@ -42,9 +42,9 @@
                 
                 @* Approved Button *@
                 <MudButton Variant="Variant.Filled" 
-                           Color="Color.Info" 
+                           Color="Color.Success" 
                            OnClick="@(() => HandleStatusUpdate(LoanStatus.Approved))">
-                    Approved
+                    Approve
                 </MudButton>
             </div>
         }

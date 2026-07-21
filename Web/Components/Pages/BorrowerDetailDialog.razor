@@ -26,87 +26,109 @@
         {
             <MudGrid Spacing="2">
                 <MudItem xs="6">
-                    <MudTextField Label="Borrower ID" Value="@_borrowers.Id" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Borrower ID</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.Id</MudText>
                 </MudItem>
                 
                 @if (string.IsNullOrEmpty(_borrowers.CompanyName))
                 {
                     <MudItem xs="6">
-                        <MudTextField Label="First Name" Value="@_borrowers.FirstName" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">First Name</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.FirstName</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Last Name" Value="@_borrowers.LastName" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Last Name</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.LastName</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Gender" Value="@_borrowers.sex" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Gender</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.sex</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Marital Status" Value="@_borrowers.Maritalstatus" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Marital Status</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.Maritalstatus</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Date of Birth" Value="@_borrowers.DateOfBirth" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Date of Birth</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.DateOfBirth</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Identification Number" Value="@_borrowers.IdentificationNumber" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Identification Number</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.IdentificationNumber</MudText>
                     </MudItem>
                 }
                 else
                 {
                     <MudItem xs="6">
-                        <MudTextField Label="Company Name" Value="@_borrowers.CompanyName" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Company Name</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.CompanyName</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="TIN / Registration No" Value="@_borrowers.TIN" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">TIN / Registration No</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.TIN</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Contact Person" Value="@_borrowers.ContactPersonName" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact Person</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.ContactPersonName</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Contact Person Phone" Value="@_borrowers.ContactPersonPhone" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact Person Phone</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.ContactPersonPhone</MudText>
                     </MudItem>
                 }
 
                 <MudItem xs="6">
-                    <MudTextField Label="Email" Value="@_borrowers.Email" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Email</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.Email</MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="Phone Number" Value="@_borrowers.PhoneNumber" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Phone Number</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.PhoneNumber</MudText>
                 </MudItem>
 
                 @if (string.IsNullOrEmpty(_borrowers.CompanyName))
                 {
                     <MudItem xs="6">
-                        <MudTextField Label="Next of Kin" Value="@_borrowers.NextOfKin" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Next of Kin</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.NextOfKin</MudText>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="Kin Phone Number" Value="@_borrowers.KinPhoneNumber" ReadOnly Variant="Variant.Outlined" />
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Kin Phone Number</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.KinPhoneNumber</MudText>
                     </MudItem>
 
                     @if (_borrowers.Maritalstatus == Domain.ValueObjects.Maritalstatus.Married)
                     {
                         <MudItem xs="6">
-                            <MudTextField Label="Spouse ID Number" Value="@_borrowers.SpouceIdNumber" ReadOnly Variant="Variant.Outlined" />
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">Spouse ID Number</MudText>
+                            <MudText Typo="Typo.body1">@_borrowers.SpouceIdNumber</MudText>
                         </MudItem>
                         <MudItem xs="6">
-                            <MudTextField Label="Spouse Name" Value="@_borrowers.SpouceName" ReadOnly Variant="Variant.Outlined" />
+                            <MudText Typo="Typo.subtitle2" Color="Color.Primary">Spouse Name</MudText>
+                            <MudText Typo="Typo.body1">@_borrowers.SpouceName</MudText>
                         </MudItem>
                     }
                 }
 
                 <MudItem xs="6">
-                    <MudTextField Label="Province" Value="@_borrowers.Province" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Province</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.Province</MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="District" Value="@_borrowers.District" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">District</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.District</MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="Sector" Value="@_borrowers.Sector" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Sector</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.Sector</MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="Cell" Value="@_borrowers.Cell" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Cell</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.Cell</MudText>
                 </MudItem>
                 <MudItem xs="6">
-                    <MudTextField Label="Village" Value="@_borrowers.Village" ReadOnly Variant="Variant.Outlined" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Village</MudText>
+                    <MudText Typo="Typo.body1">@_borrowers.Village</MudText>
                 </MudItem>
               
             </MudGrid>

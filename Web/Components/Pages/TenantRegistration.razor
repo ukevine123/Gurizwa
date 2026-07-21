@@ -165,37 +165,29 @@
 
                 <MudRadioGroup @bind-Value="Model.TenantType" Class="mb-4 d-flex justify-center">
                     <MudRadio Value="@("Personal")" Color="Color.Primary">Personal</MudRadio>
-                    <MudRadio Value="@("Organization")" Color="Color.Primary">Organization</MudRadio>
+                    <MudRadio Value="@("Business")" Color="Color.Primary">Business</MudRadio>
                 </MudRadioGroup>
 
                 <MudGrid Spacing="2" Class="mb-4">
                     @if (Model.TenantType == "Personal")
                     {
-                        <MudItem xs="6">
-                            <span class="custom-label">First Name</span>
-                            <MudTextField @bind-Value="Model.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <span class="custom-label">Last Name</span>
-                            <MudTextField @bind-Value="Model.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                        <MudItem xs="12">
+                            <span class="custom-label">Contact Person Name</span>
+                            <MudTextField @bind-Value="ContactPersonName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                         </MudItem>
                     }
                     else
                     {
-                        <MudItem xs="12">
+                        <MudItem xs="6">
                             <span class="custom-label">Company Name</span>
                             <MudTextField @bind-Value="Model.CompanyName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                         </MudItem>
                         <MudItem xs="6">
-                            <span class="custom-label">Contact First Name</span>
-                            <MudTextField @bind-Value="Model.FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
-                        </MudItem>
-                        <MudItem xs="6">
-                            <span class="custom-label">Contact Last Name</span>
-                            <MudTextField @bind-Value="Model.LastName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
+                            <span class="custom-label">Contact Person Name</span>
+                            <MudTextField @bind-Value="ContactPersonName" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                         </MudItem>
                     }
-                    <MudItem xs="12">
+                    <MudItem xs="6">
                         <span class="custom-label">Email Address</span>
                         <MudTextField @bind-Value="Model.Email" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                     </MudItem>
@@ -203,7 +195,7 @@
                         <span class="custom-label">Phone Number</span>
                         <MudTextField @bind-Value="Model.PhoneNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                     </MudItem>
-                    <MudItem xs="6">
+                    <MudItem xs="12">
                         <span class="custom-label">Location (City/Country)</span>
                         <MudTextField @bind-Value="Model.Location" Variant="Variant.Outlined" Margin="Margin.Dense" Required="true" />
                     </MudItem>
@@ -357,6 +349,25 @@
     private string _businessCertName = "";
     private bool _ndfspsUploaded = false;
     private string _ndfspsName = "";
+
+    private string ContactPersonName
+    {
+        get => $"{Model.FirstName} {Model.LastName}".Trim();
+        set
+        {
+            var parts = value?.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts != null && parts.Length > 0)
+            {
+                Model.FirstName = parts[0];
+                Model.LastName = parts.Length > 1 ? parts[1] : string.Empty;
+            }
+            else
+            {
+                Model.FirstName = string.Empty;
+                Model.LastName = string.Empty;
+            }
+        }
+    }
 
     private List<MockOrder> _mockRows = new() {
         new(5298, "GIRA IWAWE", "Active", Color.Success),

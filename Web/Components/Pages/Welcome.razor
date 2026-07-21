@@ -1,6 +1,6 @@
 @page "/"
 @attribute [AllowAnonymous]
-@layout Web.Components.Layout.AuthLayout
+@layout Web.Components.Layout.LandingLayout
 @inject NavigationManager Navigation
 
 <PageTitle>Guriza</PageTitle>
@@ -16,7 +16,7 @@
             <nav class="nav-links">
                 <a href="#features" class="nav-link">Features</a>
                 <a href="#how-it-works" class="nav-link">How It Works</a>
-                <a href="#why-important" class="nav-link">Why GURIZA</a>
+                <a href="#why-important" class="nav-link">Why GURIZA?</a>
             </nav>
             <div class="nav-actions">
                 <a href="/account/login" class="btn btn-secondary">Sign In</a>
@@ -91,7 +91,7 @@
     <section id="why-important" class="importance-section">
         <div class="section-header">
             <span class="section-tag">Value Proposition</span>
-            <h2 class="section-heading">Why Guriza is Critical to Your Business</h2>
+            <h2 class="section-heading">Why Guriza is Critical to Your Business?</h2>
             <p class="section-subheading">Conventional loan management is plagued by paperwork, slow approvals, and high default rates. Guriza fixes these pain points.</p>
         </div>
         <div class="importance-grid">
@@ -195,6 +195,9 @@
 
     .landing-container {
         height: 100vh;
+        width: 100%;
+        margin: 0;
+        padding: 0;
         overflow-y: auto;
         background-color: #FAFCFF;
         color: var(--text-dark);
@@ -214,7 +217,7 @@
     }
 
     .navbar-content {
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -345,7 +348,7 @@
     .hero-section {
         position: relative;
         padding: 100px 40px 140px;
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
         overflow: hidden;
     }
@@ -584,7 +587,7 @@
     }
 
     .importance-grid {
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -637,7 +640,7 @@
     /* How It Works Section */
     .how-it-works-section {
         padding: 100px 40px;
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
     }
 
@@ -686,7 +689,7 @@
     /* CTA Bottom Section */
     .cta-bottom-section {
         padding: 60px 40px 100px;
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
     }
 

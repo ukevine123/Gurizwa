@@ -22,7 +22,7 @@ namespace Domain.Entities
         public string? NextOfKin {get;set;}
         public string? KinPhoneNumber{get;set;}
 
-        // Organization specific fields
+        // Business specific fields
         public string? CompanyName {get;set;}
         public string? TIN {get;set;}
         public string? ContactPersonName {get;set;}

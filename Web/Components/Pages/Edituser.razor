@@ -55,8 +55,8 @@
                                           Label="User ID"
                                           Variant="Variant.Outlined"
                                           ReadOnly="true"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Badge" />
+                                         
+                                          />
                         </MudItem>
 
                         <!-- First Name -->
@@ -67,8 +67,8 @@
                                           Variant="Variant.Outlined"
                                           Required="true"
                                           RequiredError="First name is required"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Person"
+                                         
+                                         
                                           For="@(() => user.FirstName)" />
                         </MudItem>
 
@@ -80,8 +80,8 @@
                                           Variant="Variant.Outlined"
                                           Required="true"
                                           RequiredError="Last name is required"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Person"
+                                         
+                                         
                                           For="@(() => user.LastName)" />
                         </MudItem>
 
@@ -92,8 +92,8 @@
                                           Label="Email Address"
                                           Variant="Variant.Outlined"
                                           ReadOnly="true"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Email"
+                                         
+                                         
                                           HelperText="Email cannot be changed" />
                         </MudItem>
 
@@ -103,14 +103,14 @@
                                           @bind-Value="user.PhoneNumber"
                                           Label="Phone Number (Optional)"
                                           Variant="Variant.Outlined"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Phone"
+                                         
+                                         
                                           For="@(() => user.PhoneNumber)" />
                         </MudItem>
 
                         <!-- Roles selection -->
                         <MudItem xs="12">
-                            <MudSelect T="string" Label="Roles" MultiSelection="true" @bind-SelectedValues="selectedRoles" Variant="Variant.Outlined" AdornmentIcon="@Icons.Material.Filled.Badge" Class="mb-3">
+                            <MudSelect T="string" Label="Roles" MultiSelection="true" @bind-SelectedValues="selectedRoles" Variant="Variant.Outlined" Class="mb-3">
                                 @if (availableRoles != null)
                                 {
                                     @foreach (var role in availableRoles)
@@ -137,8 +137,8 @@
                                           Variant="Variant.Outlined"
                                           ReadOnly="true"
                                           Format="yyyy-MM-dd HH:mm"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.CalendarToday" />
+                                         
+                                          />
                         </MudItem>
 
                         <MudItem xs="12" sm="6">
@@ -148,8 +148,8 @@
                                           Variant="Variant.Outlined"
                                           ReadOnly="true"
                                           Format="yyyy-MM-dd HH:mm"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Update" />
+                                         
+                                          />
                         </MudItem>
                     </MudGrid>
 

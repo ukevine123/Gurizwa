@@ -10,30 +10,22 @@
                 <MudText Typo="Typo.body1">@Tenant.TenantType</MudText>
             </MudItem>
             
-            @if (Tenant.TenantType == "Organization")
+            @if (Tenant.TenantType == "Business")
             {
                 <MudItem xs="12" md="6">
                     <MudText Typo="Typo.subtitle2" Color="Color.Primary">Company Name</MudText>
                     <MudText Typo="Typo.body1">@Tenant.CompanyName</MudText>
                 </MudItem>
                 <MudItem xs="12" md="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact First Name</MudText>
-                    <MudText Typo="Typo.body1">@Tenant.FirstName</MudText>
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact Last Name</MudText>
-                    <MudText Typo="Typo.body1">@Tenant.LastName</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact Person Name</MudText>
+                    <MudText Typo="Typo.body1">@($"{Tenant.FirstName} {Tenant.LastName}".Trim())</MudText>
                 </MudItem>
             }
             else
             {
                 <MudItem xs="12" md="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">First Name</MudText>
-                    <MudText Typo="Typo.body1">@Tenant.FirstName</MudText>
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Last Name</MudText>
-                    <MudText Typo="Typo.body1">@Tenant.LastName</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Contact Person Name</MudText>
+                    <MudText Typo="Typo.body1">@($"{Tenant.FirstName} {Tenant.LastName}".Trim())</MudText>
                 </MudItem>
             }
 
@@ -45,13 +37,13 @@
                 <MudText Typo="Typo.subtitle2" Color="Color.Primary">Phone Number</MudText>
                 <MudText Typo="Typo.body1">@Tenant.PhoneNumber</MudText>
             </MudItem>
-            <MudItem xs="12" md="6">
+            <MudItem xs="12" md="12">
                 <MudText Typo="Typo.subtitle2" Color="Color.Primary">Location</MudText>
                 <MudText Typo="Typo.body1">@Tenant.Location</MudText>
             </MudItem>
             <MudItem xs="12" md="6">
                 <MudText Typo="Typo.subtitle2" Color="Color.Primary">Registration Date</MudText>
-                <MudText Typo="Typo.body1">@Tenant.CreatedAt.ToString("g")</MudText>
+                <MudText Typo="Typo.body1">@Tenant.CreatedAt.ToString("yyyy-MM-dd HH:mm")</MudText>
             </MudItem>
 
             <MudItem xs="12">

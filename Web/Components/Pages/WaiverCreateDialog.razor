@@ -44,8 +44,8 @@
                                Variant="Variant.Outlined"
                                Margin="Margin.Dense"
                                Required="true"
-                               AdornmentIcon="@Icons.Material.Filled.Receipt"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem T="int" Value="0">--Select Disbursement--</MudSelectItem>
                         @if (Disbursements != null)
                         {
@@ -68,8 +68,8 @@
                                Variant="Variant.Outlined"
                                Margin="Margin.Dense"
                                Required="true"
-                               AdornmentIcon="@Icons.Material.Filled.Category"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem T="string" Value="@((string?)null)">--Select Type--</MudSelectItem>
                         <MudSelectItem T="string" Value="@PenaltyWaiverValue">Penalty Waiver</MudSelectItem>
                         <MudSelectItem T="string" Value="@InterestWaiverValue">Interest Waiver</MudSelectItem>
@@ -86,8 +86,8 @@
                                   InputType="InputType.Number"
                                   Required="true"
                                   RequiredError="Amount is required"
-                                  AdornmentIcon="@Icons.Material.Filled.AttachMoney"
-                                  AdornmentColor="Color.Primary" />
+                                 
+                                  />
                 </MudItem>
 
                 @if (Model.WaiverType == "Interest Waiver")
@@ -106,8 +106,8 @@
                                Variant="Variant.Outlined"
                                Margin="Margin.Dense"
                                Required="true"
-                               AdornmentIcon="@Icons.Material.Filled.Info"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem T="string" Value="@((string?)null)">--Select Reason--</MudSelectItem>
                         <MudSelectItem T="string" Value="@NaturalDisasterValue">Natural Disaster</MudSelectItem>
                         <MudSelectItem T="string" Value="@GovernmentInitiativeValue">Government Initiative</MudSelectItem>

@@ -6,7 +6,7 @@ namespace Application.DTO
     public class TenantRegistrationDTO
     {
         [Required]
-        public string TenantType { get; set; } = "Organization";
+        public string TenantType { get; set; } = "Business";
         
         public string? CompanyName { get; set; }
         

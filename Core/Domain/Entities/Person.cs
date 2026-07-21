@@ -14,7 +14,7 @@ namespace Domain.Entities
         public string? Country{get;set;}
         public string? Status{get;set;}
 
-        // Organization specific fields
+        // Business specific fields
         public string? TenantType { get; set; }
         public string? CompanyName { get; set; }
         public string? TinNumber { get; set; }

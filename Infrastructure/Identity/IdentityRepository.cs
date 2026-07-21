@@ -76,11 +76,11 @@ namespace Infrastructure.Identity
                     Console.WriteLine($"[RegisterUser] User already exists: {dto.Email}");
                     throw new InvalidOperationException($"A user with email '{dto.Email}' already exists.");
                 }
-                bool isOrg = dto.TenantType == "Organization";
+                bool isOrg = dto.TenantType == "Business";
 
                 var _person = new Person
                     {
-                        // For Organization: store CompanyName in FirstName, ContactPerson in LastName
+                        // For Business: store CompanyName in FirstName, ContactPerson in LastName
                         FirstName  = isOrg ? dto.CompanyName  : dto.FirstName,
                         LastName   = isOrg ? dto.ContactPerson : dto.LastName,
                         Sex        = isOrg ? "N/A"             : dto.Sex.ToString(),
@@ -502,7 +502,7 @@ namespace Infrastructure.Identity
                     throw new InvalidOperationException($"An account for '{dto.Email}' has already been set up.");
                 }
 
-                bool isOrg = tenant.TenantType == "Organization";
+                bool isOrg = tenant.TenantType == "Business";
 
                 var person = new Person
                 {

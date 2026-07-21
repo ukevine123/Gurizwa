@@ -1,4 +1,4 @@
-@using Application.DTO
+﻿@using Application.DTO
 @using Application.Interfaces
 @using MudBlazor
 @using Domain.Entities
@@ -46,8 +46,8 @@
                                Value="Model.LoanApplicationId"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                Disabled="true"
-                               AdornmentIcon="@Icons.Material.Filled.Verified"
-                               AdornmentColor="Color.Success">
+                              
+                              >
                         <MudSelectItem T="int" Value="Model.LoanApplicationId">@LoanApplicationName</MudSelectItem>
                     </MudSelect>
                 </MudItem>
@@ -57,8 +57,8 @@
                                Value="Model.AccountId"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                Disabled="true"
-                               AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem T="int" Value="Model.AccountId">@AccountName</MudSelectItem>
                     </MudSelect>
                 </MudItem>
@@ -68,7 +68,7 @@
                     <MudSelect T="int" Label="New Frequency"
                                @bind-Value="Model.PaymentModalityId"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.Category">
+                              >
                         @foreach (var modality in PaymentModalities)
                         {
                             <MudSelectItem T="int" Value="@modality.Id">@modality.Mode</MudSelectItem>
@@ -77,14 +77,14 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker Label="New Start Date" @bind-Date="StartDateWrapper"
+                    <MudDatePicker ShowToolbar="false" Label="New Start Date" DateFormat="yyyy-MM-dd" @bind-Date="StartDateWrapper"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Debt Amount" @bind-Value="PrincipalWrapper"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     ReadOnly="IsReschedule" AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                                     ReadOnly="IsReschedule" />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
@@ -214,3 +214,4 @@
         finally { _isProcessing = false; }
     }
 }
+

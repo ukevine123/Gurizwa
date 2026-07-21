@@ -27,8 +27,8 @@ namespace Application.DTO
          public string Role { get; set;}
          public int PersonId { get; set; }
 
-         // Organization specific fields
-         public string TenantType { get; set; } = "Personal"; // "Personal" or "Organization"
+         // Business specific fields
+         public string TenantType { get; set; } = "Personal"; // "Personal" or "Business"
          public string CompanyName { get; set; } = string.Empty;
          public string TinNumber { get; set; } = string.Empty;
          public string ContactPerson { get; set; } = string.Empty;
@@ -45,7 +45,7 @@ namespace Application.DTO
                  if (!DateOfBirth.HasValue)
                      yield return new ValidationResult("Date of birth is required.", new[] { nameof(DateOfBirth) });
              }
-             else if (TenantType == "Organization")
+             else if (TenantType == "Business")
              {
                  if (string.IsNullOrWhiteSpace(CompanyName))
                      yield return new ValidationResult("Company name is required.", new[] { nameof(CompanyName) });

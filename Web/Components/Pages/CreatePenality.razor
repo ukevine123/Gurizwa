@@ -1,4 +1,4 @@
-@using Application.DTO
+﻿@using Application.DTO
 @using Application.Services.Disbursements
 @using MudBlazor
 @using Domain.Entities
@@ -40,8 +40,8 @@
                                Value="Model.LoanApplicationId"
                                ValueChanged="OnLoanApplicationChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.Description" 
-                               AdornmentColor="Color.Error">
+                               
+                              >
                         <MudSelectItem Value="0">Select Loan Application</MudSelectItem>
                         @foreach (var loan in _loanApplications)
                         {
@@ -70,9 +70,9 @@
                                      Value="Model.Amount"
                                      ValueChanged="UpdatePenaltyPreview"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     Format="N2" Adornment="Adornment.Start" 
-                                     AdornmentIcon="@Icons.Material.Filled.MoneyOff"
-                                     AdornmentColor="Color.Error" Immediate="true" />
+                                     Format="N2" 
+                                    
+                                     Immediate="true" />
                 </MudItem>
 
                 @* --- CALCULATION PREVIEW --- *@
@@ -98,7 +98,7 @@
 
                 @* 4. DATE *@
                 <MudItem xs="12">
-                    <MudDatePicker Label="Issue Date" @bind-Date="_issueDate"
+                    <MudDatePicker ShowToolbar="false" Label="Issue Date" DateFormat="yyyy-MM-dd" @bind-Date="_issueDate"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" />
                 </MudItem>
 
@@ -196,3 +196,4 @@
         finally { _isProcessing = false; }
     }
 }
+

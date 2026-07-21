@@ -20,7 +20,7 @@
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
         <MudItem xs="12" sm="4">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search guarantor..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
+            <MudTextField @bind-Value="_searchString" Placeholder="Search guarantor..." IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
         </MudItem>
 
         <MudItem xs="12" sm="4">
@@ -42,7 +42,9 @@
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <AuthorizeView Roles="Tenant">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                </AuthorizeView>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteGuarantor" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
@@ -155,7 +157,7 @@
      private string _searchString = "";
     private string _selectedGuarantorType = "All";
 
-     private bool IsOrganizationSelected => _selectedGuarantorType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true;
+     private bool IsOrganizationSelected => _selectedGuarantorType?.Equals("Business", StringComparison.OrdinalIgnoreCase) == true;
 
     private IEnumerable<Guarantor> FilteredGuarantors => _guarantor
         .Where(x => string.IsNullOrWhiteSpace(_searchString) || 

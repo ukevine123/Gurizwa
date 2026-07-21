@@ -16,7 +16,7 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
     <MudGrid Class="mb-4" Spacing="2">
         <MudItem xs="12" sm="4">
-            <MudTextField @bind-Value="_searchString" Placeholder="Search borrowers..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
+            <MudTextField @bind-Value="_searchString" Placeholder="Search borrowers..." IconSize="Size.Medium" Class="mt-0" Clearable="true"></MudTextField>
         </MudItem>
         <MudItem xs="12" sm="4">
             <MudSelect T="string" @bind-Value="_selectedBorrowerType" Label="Borrower Type" AnchorOrigin="Origin.BottomCenter" Clearable="false">
@@ -35,7 +35,9 @@
             {
                 <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
                 <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                <AuthorizeView Roles="Tenant">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"  OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                </AuthorizeView>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@ConfirmDeleteBorrower" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
@@ -158,7 +160,7 @@
      private string _searchString = "";
      private string _selectedBorrowerType = "All";
 
-     private bool IsOrganizationSelected => _selectedBorrowerType?.Equals("Organization", StringComparison.OrdinalIgnoreCase) == true;
+     private bool IsOrganizationSelected => _selectedBorrowerType?.Equals("Business", StringComparison.OrdinalIgnoreCase) == true;
 
        List<Borrower> _borrowers = new();
     private HashSet<Borrower> _selectedItems = new();

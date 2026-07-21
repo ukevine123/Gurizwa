@@ -9,7 +9,7 @@ namespace Domain.Entities
         
         [Required]
         [StringLength(50)]
-        public string TenantType { get; set; } // e.g. "Organization" or "Personal"
+        public string TenantType { get; set; } // e.g. "Business" or "Personal"
         
         [StringLength(200)]
         public string? CompanyName { get; set; }

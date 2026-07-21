@@ -80,8 +80,8 @@
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               Placeholder="--Select Account Type"
-                              AdornmentIcon="@Icons.Material.Filled.Category"
-                                AdornmentColor="Color.Primary"
+                             
+                               
                               @bind-Value="Model.AccountTypeId">
 
                               <MudSelectItem Value="0">--Select Account Type--</MudSelectItem>
@@ -114,7 +114,7 @@
                            Variant="Variant.Outlined"
                            Margin="Margin.Dense"
                            AnchorOrigin="Origin.BottomCenter"
-                           AdornmentColor="Color.Primary"
+                          
                            @bind-Value="Model.Currency"
                            For="@(() => Model.Currency)">
                     <MudSelectItem T="string" Value="@string.Empty">--Select Currency--</MudSelectItem>

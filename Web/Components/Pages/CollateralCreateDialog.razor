@@ -1,4 +1,4 @@
-@using Application.DTO
+﻿@using Application.DTO
 @using Application.Interfaces
 @using Application.Services.Collaterals
 @using Application.Services.LoanApplications
@@ -45,8 +45,8 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-               AdornmentIcon="@Icons.Material.Filled.Link"
-               AdornmentColor="Color.Warning">
+              
+              >
         
        <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
         
@@ -78,7 +78,7 @@
                 <MudItem xs="6">
                     <MudNumericField Label="Estimated Value (RWF)" Variant="Variant.Outlined"
                                      Margin="Margin.Dense" @bind-Value="Model.EstimatedValue"
-                                     HideSpinButtons="true" Adornment="Adornment.Start" AdornmentText="Frw" />
+                                     HideSpinButtons="true" AdornmentText="Frw" />
                 </MudItem>
                 <MudItem xs="6">
                     <MudTextField Label="ID / Plate / Title No" Variant="Variant.Outlined"
@@ -89,7 +89,7 @@
                 <MudItem xs="6">
                     <MudSelect T="string" Value="Model.Province" Label="Province" ValueChanged="OnProvinceChanged"
                                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Public" AdornmentColor="Color.Primary">
+                              >
                         @foreach (var p in _provinces)
                         {
                             <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem>
@@ -100,7 +100,7 @@
                     <MudSelect T="string" Value="Model.District" Label="District" ValueChanged="OnDistrictChanged"
                                Disabled="@(string.IsNullOrEmpty(Model.Province))"
                                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Category" AdornmentColor="Color.Primary">
+                              >
                         @foreach (var d in _districts)
                         {
                             <MudSelectItem Value="@d.Name">@d.Name</MudSelectItem>
@@ -111,7 +111,7 @@
                     <MudSelect T="string" Value="Model.Sector" Label="Sector" ValueChanged="OnSectorChanged"
                                Disabled="@(string.IsNullOrEmpty(Model.District))"
                                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Map" AdornmentColor="Color.Primary">
+                              >
                         @foreach (var s in _sectors)
                         {
                             <MudSelectItem Value="@s.Name">@s.Name</MudSelectItem>
@@ -122,7 +122,7 @@
                     <MudSelect T="string" Value="Model.Cell" Label="Cell" ValueChanged="OnCellChanged"
                                Disabled="@(string.IsNullOrEmpty(Model.Sector))"
                                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Layers" AdornmentColor="Color.Primary">
+                              >
                         @foreach (var c in _cells)
                         {
                             <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem>
@@ -133,7 +133,7 @@
                     <MudSelect T="string" @bind-Value="Model.Village" Label="Village"
                                Disabled="@(string.IsNullOrEmpty(Model.Cell))"
                                Variant="Variant.Outlined" Dense="true" Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.HomeWork" AdornmentColor="Color.Primary">
+                              >
                         @foreach (var v in _villages)
                         {
                             <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
@@ -147,7 +147,7 @@
                                   Margin="Margin.Dense" @bind-Value="Model.ValuerName" />
                 </MudItem>
                 <MudItem xs="6">
-                    <MudDatePicker Label="Valuation Date" @bind-Date="Model.ValuationDate" format="yyyy-MM-dd"
+                    <MudDatePicker ShowToolbar="false" Label="Valuation Date" @bind-Date="Model.ValuationDate" DateFormat="yyyy-MM-dd"
                                    Variant="Variant.Outlined" Margin="Margin.Dense" Editable="true" />
                 </MudItem>
 
@@ -255,3 +255,4 @@
         }
     }
 }
+

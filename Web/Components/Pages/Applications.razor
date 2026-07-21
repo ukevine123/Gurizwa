@@ -94,7 +94,11 @@
             <SelectColumn T="LoanApplication" />
             <HierarchyColumn T="LoanApplication" />
             @* <PropertyColumn Property="x => x.Id" Title="ID" /> *@
-           <PropertyColumn Property="x => x.LoanProductSettingId" Title="Product" />
+            <TemplateColumn Title="Product" SortBy="x => x.LoanProductSetting.LoanProduct.ProductName">
+                <CellTemplate>
+                    @context.Item.LoanProductSetting?.LoanProduct?.ProductName
+                </CellTemplate>
+            </TemplateColumn>
             <TemplateColumn Title="Borrower">
                 <CellTemplate>
                     @if (!string.IsNullOrEmpty(context.Item.Borrower?.CompanyName))

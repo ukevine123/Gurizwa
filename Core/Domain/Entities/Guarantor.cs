@@ -26,7 +26,7 @@ namespace Domain.Entities
         public string? Cell {get;set;}
         public string? Village {get;set;}
 
-        // Organization-specific fields (mirroring Borrower entity)
+        // Business-specific fields (mirroring Borrower entity)
         public string? CompanyName {get;set;}
         public string? TIN {get;set;}
         public string? ContactPersonName {get;set;}

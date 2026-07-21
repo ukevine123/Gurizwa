@@ -1,4 +1,4 @@
-@using Application.DTO
+﻿@using Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
 
@@ -53,8 +53,8 @@
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Category"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem Value="0">--Select Loan --</MudSelectItem>
                        @if (loanApplications != null)
                         {
@@ -82,8 +82,8 @@
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Category"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem Value="0">--Select Account --</MudSelectItem>
                         @if (accountN != null)
                         {
@@ -96,7 +96,7 @@
                 </MudItem>           
 
                 <MudItem xs="12"> 
-                    <MudDatePicker Label="Deposited Date" @bind-Value="Model.DepositDate" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.Start" AdornmentColor="Color.Primary" />
+                    <MudDatePicker ShowToolbar="false" Label="Deposited Date" DateFormat="yyyy-MM-dd" @bind-Value="Model.DepositDate" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 </MudItem>
 
                 <MudItem xs="12">
@@ -212,3 +212,4 @@
         }
     }
 }
+

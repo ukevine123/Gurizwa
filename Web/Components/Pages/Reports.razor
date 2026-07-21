@@ -311,7 +311,7 @@
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Active Loans Summary</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
@@ -347,7 +347,7 @@
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Loan Disbursement Report</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
@@ -409,7 +409,7 @@
                     <MudDateRangePicker Label="Activity Period" @bind-DateRange="_activityRange" Class="rounded-lg" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudSelect T="string" @bind-Value="_activityUserSearch" Label="Select Sub-User" Placeholder="Select a user" AdornmentIcon="@Icons.Material.Filled.PersonSearch">
+                    <MudSelect T="string" @bind-Value="_activityUserSearch" Label="Select Sub-User" Placeholder="Select a user">
                         <MudSelectItem T="string" Value="@("")">All Users</MudSelectItem>
                         @foreach (var user in _subUsers)
                         {
@@ -468,7 +468,7 @@
         <MudPaper Class="pa-4 mb-4" Elevation="0">
             <MudGrid AlignItems="AlignItems.Center">
                 <MudItem xs="12" sm="6" md="7">
-                    <MudSelect T="string" @bind-Value="_selectedApplicationCode" Label="Select Loan Application" Placeholder="All Applications" Clearable="true" AdornmentIcon="@Icons.Material.Filled.FilterList" AdornmentColor="MudBlazor.Color.Primary">
+                    <MudSelect T="string" @bind-Value="_selectedApplicationCode" Label="Select Loan Application" Placeholder="All Applications" Clearable="true">
                         <MudSelectItem T="string" Value="@((string)null)">All Applications</MudSelectItem>
                         @foreach (var app in _repaymentSchedules.GroupBy(x => x.ApplicationCode).Select(g => g.First()))
                         {
@@ -490,7 +490,7 @@
                     @(string.IsNullOrEmpty(_selectedApplicationCode) ? "Repayment Schedule (All)" : $"Repayment Schedule — {_selectedApplicationCode}")
                 </MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_repaymentSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="_repaymentSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
@@ -549,7 +549,7 @@
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Overdue Loans</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_overdueSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="_overdueSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
@@ -569,7 +569,7 @@
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Customer Portfolios</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_customerSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="_customerSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.BorrowerName" Title="Customer" />
@@ -589,7 +589,7 @@
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Application Statuses</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="_applicationSearch" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="_applicationSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
                 <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />

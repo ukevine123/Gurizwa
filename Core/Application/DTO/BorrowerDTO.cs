@@ -27,7 +27,7 @@ namespace Application.DTO
         public string Cell {get;set;}
         public string Village {get;set;}
 
-        // Organization specific fields
+        // Business specific fields
         public string? CompanyName {get;set;}
         public string? TIN {get;set;}
         public string? ContactPersonName {get;set;}
@@ -44,7 +44,7 @@ namespace Application.DTO
         public string? SpouceIdNumber {get;set;}
         public string? SpouceName {get;set;}  
 
-        // Organization specific fields
+        // Business specific fields
         public string? CompanyName {get;set;}
         public string? TIN {get;set;}
         public string? ContactPersonName {get;set;}

@@ -41,8 +41,8 @@
                                Value="Model.DisbursementId"
                                ValueChanged="OnDisbursementChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.AccountTree" Adornment="Adornment.Start"
-                               AdornmentColor="Color.Primary" Required="true">
+                              
+                               Required="true">
                         <MudSelectItem T="int" Value="0">Select Disbursement</MudSelectItem>
                         @foreach (var d in Disbursements)
                         {
@@ -67,8 +67,8 @@
                                Value="Model.AccountId"
                                ValueChanged="OnAccountChanged"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet" Adornment="Adornment.Start"
-                               AdornmentColor="Color.Primary" Required="true">
+                              
+                               Required="true">
                         <MudSelectItem T="int" Value="0">Select Account</MudSelectItem>
                         @foreach (var acc in Accounts)
                         {
@@ -84,8 +84,8 @@
                     <MudNumericField T="decimal" Label="Payment Amount" 
                                      @bind-Value="Model.Amount"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney"
-                                     AdornmentColor="Color.Primary" Immediate="true" Format="N2" 
+                                    
+                                     Immediate="true" Format="N2" 
                                      Disabled="@IsPaymentRestricted()"/>
                 </MudItem>
 
@@ -94,7 +94,7 @@
                     <MudTextField T="string" Label="Scheduled Due Date" 
                                   Value="@(ExpectedDueDate == DateTime.MinValue ? "Select a loan" : ExpectedDueDate.ToString("yyyy-MM-dd"))"
                                   Variant="Variant.Outlined" Margin="Margin.Dense"
-                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Event"
+                                 
                                   ReadOnly="true" HelperText="Determined by payment schedule" />
                 </MudItem>
 
@@ -102,8 +102,8 @@
                 <MudItem xs="12">
                     <MudSelect T="int" Label="Payment Type" @bind-Value="Model.PaymentTypeId"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.Class" Adornment="Adornment.Start"
-                               AdornmentColor="Color.Primary" Required="true">
+                              
+                               Required="true">
                         <MudSelectItem T="int" Value="0">Select Payment Type</MudSelectItem>
                         @foreach (var type in PaymentTypes)
                         {

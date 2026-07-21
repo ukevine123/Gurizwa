@@ -28,6 +28,7 @@ namespace Infrastructure.Repositories
             var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await dbContext.LoanApplications
                 .Include(a => a.LoanProductSetting)
+                    .ThenInclude(s => s.LoanProduct)
                 .Include(a => a.Borrower)
                 .Include(a => a.PaymentModality)
                 .Where(a => allowedPersonIds.Contains(a.PersonId))
@@ -43,10 +44,11 @@ namespace Infrastructure.Repositories
             var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
             return await dbContext.LoanApplications
                 .Include(a => a.LoanProductSetting)
+                    .ThenInclude(s => s.LoanProduct)
                 .Include(a => a.Borrower)
                 .Include(a => a.PaymentModality)
                 .Where(a => allowedPersonIds.Contains(a.PersonId))
-                .FirstOrDefaultAsync(a => a.Id == Id); 
+                .FirstOrDefaultAsync(a => a.Id == Id);
         }
          public async Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)
         {
@@ -153,6 +155,7 @@ public async Task<List<LoanApplication>> GetFilteredLoansAsync(string role, int?
 
     var query = dbContext.LoanApplications
         .Include(a => a.LoanProductSetting)
+            .ThenInclude(s => s.LoanProduct)
         .Include(a => a.Borrower)
         .AsQueryable();
 

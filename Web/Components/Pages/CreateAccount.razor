@@ -33,8 +33,8 @@
                 <MudItem xs="12" sm="6">
                     <MudSelect T="int" Label="Account type" @bind-Value="Model.AccountTypeId"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.Category" Adornment="Adornment.Start"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem Value="0">Select Account Type</MudSelectItem>
                         @foreach (var account in AccountTypes)
                         {
@@ -50,9 +50,9 @@
                                        Variant="Variant.Outlined"
                                        Margin="Margin.Dense"
                                        Dense="true"
-                                       AdornmentIcon="@Icons.Material.Filled.AttachMoney"
-                                       Adornment="Adornment.Start"
-                                       AdornmentColor="Color.Primary"
+                                      
+                                      
+                                      
                                        Required="true"
                                        For="@(() => Model.Currency)">
                                 <MudSelectItem T="string" Value="@string.Empty">Select Currency</MudSelectItem>

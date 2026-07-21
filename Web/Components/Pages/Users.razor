@@ -81,8 +81,8 @@ else
                         <MudSpacer />
                         <MudTextField @bind-Value="searchString" 
                                       Placeholder="Search users..." 
-                                      Adornment="Adornment.Start" 
-                                      AdornmentIcon="@Icons.Material.Filled.Search" 
+                                      
+                                      
                                       IconSize="Size.Medium" 
                                       Class="mt-0"
                                       Immediate="true" />
@@ -138,11 +138,13 @@ else
                                                Size="Size.Small"
                                                Href="@($"/Users/{context.Id}")"
                                                Title="View Details" />
-                                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
-                                               Color="Color.Primary" 
-                                               Size="Size.Small"
-                                               OnClick="@(() => OpenEditDialog(context.Id))"
-                                               Title="Edit User" />
+                                <AuthorizeView Roles="Tenant" Context="authState">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                                   Color="Color.Primary" 
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => OpenEditDialog(context.Id))"
+                                                   Title="Edit User" />
+                                </AuthorizeView>
                             </MudButtonGroup>
                         </MudTd>
                     </RowTemplate>
@@ -179,7 +181,7 @@ else
     private async Task OpenRoleManagementDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = DialogService.Show<RoleManagementDialog>("Manage Organization Roles", options);
+        var dialog = DialogService.Show<RoleManagementDialog>("Manage Business Roles", options);
         await dialog.Result;
     }
 

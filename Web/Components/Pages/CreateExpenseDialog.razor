@@ -1,4 +1,4 @@
-@using MudBlazor
+﻿@using MudBlazor
 @using Domain.Entities
 @using Application.Interfaces
 @inject IExpenseService ExpenseService
@@ -7,7 +7,7 @@
 
 <MudDialog Style="overflow:hidden; max-width: 550px; width: 100%; border-radius: 12px;">
     <DialogContent>
-        <!-- ══════════ HEADER BANNER ══════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â• HEADER BANNER â•â•â•â•â•â•â•â•â•â• -->
         <MudPaper Elevation="0"
                   Style="background: linear-gradient(135deg, #4318FF 0%, #8F70FF 100%);
                          padding: 16px 20px; margin-bottom: 20px; border-radius: 8px;">
@@ -25,19 +25,20 @@
             </MudStack>
         </MudPaper>
 
-        <!-- ══════════ FORM ══════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â• FORM â•â•â•â•â•â•â•â•â•â• -->
         <EditForm Model="_expense" OnValidSubmit="Save">
             <DataAnnotationsValidator />
             <MudGrid Spacing="2">
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker Label="Expense Date"
+                    <MudDatePicker ShowToolbar="false" Label="Expense Date"
+                                   DateFormat="yyyy-MM-dd"
                                    @bind-Date="_expenseDate"
                                    Required="true"
                                    RequiredError="Expense date is required!"
                                    Variant="Variant.Outlined"
                                    Margin="Margin.Dense"
-                                   AdornmentIcon="@Icons.Material.Filled.CalendarToday"
-                                   AdornmentColor="Color.Primary" />
+                                  
+                                   />
                 </MudItem>
 
                 <MudItem xs="12" sm="6">
@@ -60,8 +61,8 @@
                                RequiredError="Category is required!"
                                Variant="Variant.Outlined"
                                Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.Category"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem Value="@("Rent")">Rent</MudSelectItem>
                         <MudSelectItem Value="@("Salaries & Wages")">Salaries & Wages</MudSelectItem>
                         <MudSelectItem Value="@("Utilities")">Utilities</MudSelectItem>
@@ -80,8 +81,8 @@
                                @bind-Value="_expense.AccountId"
                                Variant="Variant.Outlined"
                                Margin="Margin.Dense"
-                               AdornmentIcon="@Icons.Material.Filled.AccountBalance"
-                               AdornmentColor="Color.Info"
+                              
+                              
                                Clearable="true">
                         <MudSelectItem T="int?" Value="null">-- None (Unspecified) --</MudSelectItem>
                         @foreach (var account in _accounts)
@@ -196,3 +197,4 @@
         }
     }
 }
+

@@ -85,7 +85,7 @@ namespace Infrastructure.Repositories
                 Sector = guarantorDTO.Sector,
                 Cell = guarantorDTO.Cell,
                 Village = guarantorDTO.Village,
-                // Organization-specific fields
+                // Business-specific fields
                 CompanyName = guarantorDTO.CompanyName,
                 TIN = guarantorDTO.TIN,
                 ContactPersonName = guarantorDTO.ContactPersonName,
@@ -124,7 +124,7 @@ namespace Infrastructure.Repositories
                 _guarantor.Sector = guarantorDTO.Sector;
                 _guarantor.Cell = guarantorDTO.Cell;
                 _guarantor.Village = guarantorDTO.Village;
-                // Organization-specific fields
+                // Business-specific fields
                 _guarantor.CompanyName = guarantorDTO.CompanyName;
                 _guarantor.TIN = guarantorDTO.TIN;
                 _guarantor.ContactPersonName = guarantorDTO.ContactPersonName;

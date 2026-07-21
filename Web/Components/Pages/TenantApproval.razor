@@ -22,13 +22,13 @@ else if (_isLoading)
 else
 {
     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-        <MudTabPanel Text="Pending" BadgeData='"!"' BadgeColor="Color.Error" Icon="@Icons.Material.Filled.PendingActions">
+        <MudTabPanel Text="Pending" BadgeData="@(_pendingTenants.Count().ToString())" BadgeColor="Color.Warning" Icon="@Icons.Material.Filled.PendingActions">
             @RenderTenantTable(_pendingTenants, true)
         </MudTabPanel>
-        <MudTabPanel Text="Approved" Icon="@Icons.Material.Filled.CheckCircle">
+        <MudTabPanel Text="Approved" BadgeData="@(_approvedTenants.Count().ToString())" BadgeColor="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">
             @RenderTenantTable(_approvedTenants, false)
         </MudTabPanel>
-        <MudTabPanel Text="Rejected" Icon="@Icons.Material.Filled.Cancel">
+        <MudTabPanel Text="Rejected" BadgeData="@(_rejectedTenants.Count().ToString())" BadgeColor="Color.Error" Icon="@Icons.Material.Filled.Cancel">
             @RenderTenantTable(_rejectedTenants, false)
         </MudTabPanel>
     </MudTabs>
@@ -50,25 +50,16 @@ else
                     <MudTh>Email</MudTh>
                     <MudTh>Phone</MudTh>
                     <MudTh>Location</MudTh>
-                    <MudTh>Documents</MudTh>
                     <MudTh>Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Type">@context.TenantType</MudTd>
                     <MudTd DataLabel="Name">
-                        @(context.TenantType == "Organization" ? context.CompanyName : $"{context.FirstName} {context.LastName}")
+                        @(context.TenantType == "Business" ? context.CompanyName : $"{context.FirstName} {context.LastName}")
                     </MudTd>
                     <MudTd DataLabel="Email">@context.Email</MudTd>
                     <MudTd DataLabel="Phone">@context.PhoneNumber</MudTd>
                     <MudTd DataLabel="Location">@context.Location</MudTd>
-                    <MudTd DataLabel="Documents">
-                        @foreach (var doc in context.Documents)
-                        {
-                            <div class="mb-1">
-                                <MudIcon Icon="@Icons.Material.Filled.AttachFile" Size="Size.Small" /> @doc.DocumentName
-                            </div>
-                        }
-                    </MudTd>
                     <MudTd DataLabel="Actions">
                         <MudButton Color="Color.Info" Variant="Variant.Filled" Size="Size.Small" OnClick="@(() => ViewDetails(context, showActions))" Class="mr-2">View Details</MudButton>
                         @if (showActions)

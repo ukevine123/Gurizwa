@@ -1,4 +1,4 @@
-@using Application.DTO
+﻿@using Application.DTO
 @using Application.Interfaces
 @using MudBlazor
 @using Domain.Entities
@@ -51,8 +51,8 @@
                                ValueChanged="OnLoanSelected"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                Disabled="IsReschedule"
-                               AdornmentIcon="@Icons.Material.Filled.Verified"
-                               AdornmentColor="Color.Success">
+                              
+                              >
                         <MudSelectItem T="int" Value="0">Select Application</MudSelectItem>
                         @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Approved || l.Id == Model.LoanApplicationId))
                         {
@@ -77,8 +77,8 @@
                                ValueChanged="OnAccountSelected"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                Disabled="IsReschedule"
-                               AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet"
-                               AdornmentColor="Color.Primary">
+                              
+                              >
                         <MudSelectItem T="int" Value="0">Select Source Account</MudSelectItem>
                         @if (Accounts != null)
                         {
@@ -98,8 +98,8 @@
                                Value="Model.PaymentModalityId"
                                ValueChanged="OnModalitySelected"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-                               AdornmentIcon="@Icons.Material.Filled.Category" 
-                               AdornmentColor="Color.Primary">
+                               
+                              >
                         <MudSelectItem T="int" Value="0">Select Frequency</MudSelectItem>
                         @foreach (var modality in PaymentModalities)
                         {
@@ -110,55 +110,55 @@
 
                 @* 4. FINANCIAL PARAMETERS *@
                 <MudItem xs="12" sm="6">
-                    <MudDatePicker Label="Repayment Start Date" @bind-Date="StartDateWrapper"
+                    <MudDatePicker ShowToolbar="false" Label="Repayment Start Date" DateFormat="yyyy-MM-dd" @bind-Date="StartDateWrapper"
                                    Variant="Variant.Outlined" Margin="Margin.Dense"
-                                   AdornmentColor="Color.Primary" />
+                                   />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Principal" @bind-Value="PrincipalWrapper"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
                                      ReadOnly="IsReschedule"
-                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
-                                     AdornmentColor="Color.Primary" Immediate="true" />
+                                    
+                                     Immediate="true" />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Proc. Fee (%)" @bind-Value="Model.ProcessingFeePercentage"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
                                      ReadOnly="true"
-                                     AdornmentIcon="@Icons.Material.Filled.Percent"
-                                     AdornmentColor="Color.Info" />
+                                    
+                                     />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Proc. Fee Amount" @bind-Value="Model.ProcessingFeeAmount"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
                                      ReadOnly="true"
-                                     AdornmentIcon="@Icons.Material.Filled.MoneyOff"
-                                     AdornmentColor="Color.Error" />
+                                    
+                                     />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Interest Rate (%)" @bind-Value="RateWrapper"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     AdornmentIcon="@Icons.Material.Filled.Percent"
-                                     AdornmentColor="Color.Primary" Immediate="true" />
+                                    
+                                     Immediate="true" />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="int" Label="No. of Installments" @bind-Value="InstallmentWrapper"
                                      Variant="Variant.Outlined" Margin="Margin.Dense" Min="1"
-                                     AdornmentIcon="@Icons.Material.Filled.Repeat"
-                                     AdornmentColor="Color.Primary" Immediate="true" />
+                                    
+                                     Immediate="true" />
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Disbursed Amount" Value="@(Model.PrincipalOffered - Model.ProcessingFeeAmount)"
                                      Variant="Variant.Outlined" Margin="Margin.Dense"
                                      ReadOnly="true"
-                                     AdornmentIcon="@Icons.Material.Filled.Payment"
-                                     AdornmentColor="Color.Success" />
+                                    
+                                     />
                 </MudItem>
 
                 @* 5. CALCULATION RESULT *@
@@ -166,7 +166,7 @@
                      <MudNumericField T="decimal" Label="Total Repayable" @bind-Value="Model.Amount"
                                       Variant="Variant.Filled" Margin="Margin.Dense" ReadOnly="true"
                                       Format="N2" Style="background-color: #f8f9fa; font-weight: 700; color: #1B2559;"
-                                      AdornmentIcon="@Icons.Material.Filled.Calculate" />
+                                      />
                 </MudItem>
 
                 @* 6. PREVIEW TABLE *@
@@ -397,3 +397,4 @@
         finally { _isProcessing = false; }
     }
 }
+

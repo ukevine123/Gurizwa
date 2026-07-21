@@ -33,7 +33,7 @@
                         <MudItem xs="12" md="8">
                             <MudSelect T="int" Label="Select Document" @bind-Value="newRequirement.RequiredDocumentId" 
                                        Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" 
-                                       AdornmentIcon="@Icons.Material.Filled.Description">
+                                      >
                                 <MudSelectItem Value="0">-- Select Existing Document --</MudSelectItem>
                                 @foreach (var doc in _allAvailableDocuments)
                                 {
