@@ -42,6 +42,7 @@ namespace Application.DTO
 
     public decimal ProcessingFeePercentage { get; set; }
     public decimal ProcessingFeeAmount { get; set; }
+    public bool IsPrepayment { get; set; } = false;
      
         
     }

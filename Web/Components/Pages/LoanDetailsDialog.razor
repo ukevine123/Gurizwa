@@ -33,14 +33,14 @@
                         <MudProgressLinear Color="Color.Primary" Value="@((double)paidCount / totalInstallments * 100)" Class="rounded-lg" Size="Size.Small" />
                     </MudStack>
                 </MudItem>
-                <MudItem xs="3" Class="d-flex justify-end">
+                <MudItem xs="3" Class="d-flex justify-end align-center">
                     @if (remainingBalance > 0.01m)
                     {
                         <MudButton Variant="Variant.Filled" 
                                    Color="Color.Error" 
                                    StartIcon="@Icons.Material.Filled.Autorenew"
                                    OnClick="@(() => OnRescheduleClick(remainingBalance))"
-                                   Style="font-weight:700; border-radius:8px; height:50px;">
+                                   Style="font-weight:700; border-radius:8px; height:45px;">
                             RESCHEDULE
                         </MudButton>
                     }
@@ -90,12 +90,23 @@
     [Parameter] public Disbursement Disbursement { get; set; } = new();
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
+    private async Task PrintSchedule()
+    {
+        var parameters = new DialogParameters
+        {
+            ["Disbursement"] = Disbursement
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<RepaymentSchedulePrintDialog>("Print Repayment Schedule", parameters, options);
+    }
+
     private async Task OnRescheduleClick(decimal debt)
     {
         var parameters = new DialogParameters<DisbursementDialog>
         {
             { x => x.TotalDebt, debt },
-            { x => x.OldDisbursementId, Disbursement.Id }
+            { x => x.OldDisbursementId, Disbursement.Id },
+            { x => x.OriginalInterestRate, Disbursement.InterestRate > 0 ? Disbursement.InterestRate : (Disbursement.LoanApplication?.LoanProductSetting?.InterestRate ?? 0) }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };

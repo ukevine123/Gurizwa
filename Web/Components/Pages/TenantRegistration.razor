@@ -1,4 +1,4 @@
-@page "/register"
+﻿@page "/register"
 @attribute [AllowAnonymous]
 @layout AuthLayout
 @using Application.DTO
@@ -130,7 +130,7 @@
             <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#3b5bdb; font-size: 4rem;" Class="mb-4" />
             <MudText Typo="Typo.h5" Style="font-weight: 800; margin-bottom: 8px;">Registration Received!</MudText>
             <MudText Typo="Typo.body1" Color="Color.Secondary" Style="margin-bottom: 32px;">
-                Your registration has been submitted and is pending administrator approval. We will notify you via email once approved.
+                Your registration has been submitted and is pending administrator approval. You will be waiting for 2 days for Approval. You may check your email for more details (including Spam folder).
             </MudText>
             <MudButton Variant="Variant.Filled" FullWidth="true" Style="background: #4318FF; color: white; border-radius: 25px;" OnClick='() => NavigationManager.NavigateTo("/account/login")'>
                 Return to Login
@@ -165,7 +165,7 @@
 
                 <MudRadioGroup @bind-Value="Model.TenantType" Class="mb-4 d-flex justify-center">
                     <MudRadio Value="@("Personal")" Color="Color.Primary">Personal</MudRadio>
-                    <MudRadio Value="@("Business")" Color="Color.Primary">Business</MudRadio>
+                    <MudRadio Value="@("Organization")" Color="Color.Primary">Business</MudRadio>
                 </MudRadioGroup>
 
                 <MudGrid Spacing="2" Class="mb-4">
@@ -226,10 +226,10 @@
                         }
                     </div>
 
-                    <!-- Non-Deposit Taking Financial Service Providers (NDFSPs) -->
+                    <!-- (NDFSPs) BNR Licence -->
                     <div>
                         <span class="text-body2 mb-2 d-block" style="font-weight: 600; color: #1a1a1a; font-size: 0.9rem;">
-                            Non-Deposit Taking Financial Service Providers (NDFSPs) <span style="color: #E31A1A;">*</span>
+                            (NDFSPs) BNR Licence <span style="color: #E31A1A;">*</span>
                         </span>
                         
                         <MudFileUpload T="IBrowserFile" FilesChanged="UploadNdfsps" Accept=".pdf,.png,.jpg,.jpeg">
@@ -237,7 +237,7 @@
                                 <MudButton Variant="Variant.Filled" Color="@(_ndfspsUploaded ? Color.Success : Color.Primary)" 
                                            StartIcon="@(_ndfspsUploaded ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.CloudUpload)"
                                            Class="w-100" Style="text-transform: none; font-weight: 600;">
-                                    @(_ndfspsUploaded ? "Uploaded: " + _ndfspsName : "Click to Upload NDFSPs Document")
+                                    @(_ndfspsUploaded ? "Uploaded: " + _ndfspsName : "Click to Upload (NDFSPs) BNR Licence")
                                 </MudButton>
                             </ActivatorContent>
                         </MudFileUpload>
@@ -258,10 +258,10 @@
                     </ActivatorContent>
                 </MudFileUpload>
                 
-                @if (Model.Documents.Any(d => !d.FileName.StartsWith("Business Registration Certificate") && !d.FileName.StartsWith("Non-Deposit Taking Financial Service Providers")))
+                @if (Model.Documents.Any(d => !d.FileName.StartsWith("Business Registration Certificate") && !d.FileName.StartsWith("Non-Deposit Taking Financial Service Providers") && !d.FileName.StartsWith("(NDFSPs) BNR Licence")))
                 {
                     <MudList T="string" Dense="true" Class="mt-2">
-                        @foreach (var file in Model.Documents.Where(d => !d.FileName.StartsWith("Business Registration Certificate") && !d.FileName.StartsWith("Non-Deposit Taking Financial Service Providers")))
+                        @foreach (var file in Model.Documents.Where(d => !d.FileName.StartsWith("Business Registration Certificate") && !d.FileName.StartsWith("Non-Deposit Taking Financial Service Providers") && !d.FileName.StartsWith("(NDFSPs) BNR Licence")))
                         {
                             <MudListItem T="string" Icon="@Icons.Material.Filled.AttachFile">@file.FileName</MudListItem>
                         }
@@ -342,6 +342,26 @@
 
 @code {
     private TenantRegistrationDTO Model { get; set; } = new();
+    private string _contactPerson = "";
+    private string ContactPerson
+    {
+        get => string.IsNullOrEmpty(_contactPerson) ? ($"{Model.FirstName} {Model.LastName}").Trim() : _contactPerson;
+        set
+        {
+            _contactPerson = value ?? "";
+            if (!string.IsNullOrWhiteSpace(_contactPerson))
+            {
+                var parts = _contactPerson.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                Model.FirstName = parts.Length > 0 ? parts[0] : "";
+                Model.LastName = parts.Length > 1 ? parts[1] : "";
+            }
+            else
+            {
+                Model.FirstName = "";
+                Model.LastName = "";
+            }
+        }
+    }
     private string ErrorMessage { get; set; } = string.Empty;
     private bool _isProcessing = false;
     private bool _registrationSuccess = false;
@@ -430,10 +450,10 @@
             using var ms = new MemoryStream();
             await file.OpenReadStream(maxAllowedSize: 10485760).CopyToAsync(ms);
             
-            Model.Documents.RemoveAll(d => d.FileName.StartsWith("Non-Deposit Taking Financial Service Providers"));
+            Model.Documents.RemoveAll(d => d.FileName.StartsWith("Non-Deposit Taking Financial Service Providers") || d.FileName.StartsWith("(NDFSPs) BNR Licence"));
             
             var extension = System.IO.Path.GetExtension(file.Name);
-            var finalFileName = $"Non-Deposit Taking Financial Service Providers (NDFSPs){extension}";
+            var finalFileName = $"(NDFSPs) BNR Licence{extension}";
             
             Model.Documents.Add(new TenantDocumentUploadDTO 
             { 
@@ -447,7 +467,7 @@
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Failed to upload NDFSPs Document: {ex.Message}";
+            ErrorMessage = $"Failed to upload (NDFSPs) BNR Licence Document: {ex.Message}";
         }
     }
 
@@ -465,7 +485,7 @@
 
         if (!_ndfspsUploaded)
         {
-            ErrorMessage = "You must upload the 'Non-Deposit Taking Financial Service Providers (NDFSPs)' document to submit your registration.";
+            ErrorMessage = "You must upload the '(NDFSPs) BNR Licence' document to submit your registration.";
             _isProcessing = false;
             return;
         }

@@ -53,7 +53,7 @@ else
                     <MudTh>Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd DataLabel="Type">@context.TenantType</MudTd>
+                    <MudTd DataLabel="Type">@(context.TenantType == "Organization" ? "Business" : context.TenantType)</MudTd>
                     <MudTd DataLabel="Name">
                         @(context.TenantType == "Business" ? context.CompanyName : $"{context.FirstName} {context.LastName}")
                     </MudTd>

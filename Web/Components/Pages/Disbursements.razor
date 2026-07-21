@@ -96,14 +96,21 @@
                 </CellTemplate>
             </TemplateColumn>
 
-            @* <TemplateColumn Title="Details" CellClass="d-flex justify-end">
+            @* ACTION COLUMN: PRINT *@
+            <TemplateColumn Title="Action" HeaderStyle="text-align: center;" Style="text-align: center;">
                 <CellTemplate>
-                    <MudIconButton Icon="@Icons.Material.Filled.ReceiptLong" 
-                                   Color="Color.Info" 
+                    <div class="d-flex justify-center align-center">
+                        <MudButton Variant="Variant.Outlined" 
+                                   Color="Color.Primary" 
                                    Size="Size.Small" 
-                                   OnClick="@(() => OpenAmortizationDetails(context.Item))" />
+                                   StartIcon="@Icons.Material.Filled.Print" 
+                                   OnClick="@(() => PrintRepaymentSchedule(context.Item))"
+                                   Style="font-weight:600;">
+                            Print
+                        </MudButton>
+                    </div>
                 </CellTemplate>
-            </TemplateColumn> *@
+            </TemplateColumn>
         </Columns>
 
         <PagerContent>
@@ -158,5 +165,16 @@
         };
 
         await DialogService.ShowAsync<LoanDetailsDialog>("Amortization Schedule", parameters, options);
+    }
+
+    private async Task PrintRepaymentSchedule(Disbursement item)
+    {
+        var fullItem = await DisbursementService.GetDisbursementByIdAsync(item.Id);
+        var parameters = new DialogParameters
+        {
+            ["Disbursement"] = fullItem
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<RepaymentSchedulePrintDialog>("Print Repayment Schedule", parameters, options);
     }
 }
