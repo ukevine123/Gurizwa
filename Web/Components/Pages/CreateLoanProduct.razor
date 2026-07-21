@@ -27,9 +27,9 @@
                         <ValidationSummary class="alert alert-danger py-2 mb-3" />
 
                         <MudStack Spacing="2">
-                            <MudTextField Label="ProductName" @bind-Value="Model.ProductName" For="@(() => Model.ProductName)" />
-                            @* <MudTextField Label="InterestRate" @bind-Value="Model.InterestRate" For="@(() => Model.InterestRate)" /> *@
-                            <MudTextField Label="Description" @bind-Value="Model.Description" For="@(() => Model.Description)" />
+                            <MudTextField Label="Product Name" @bind-Value="Model.ProductName" For="@(() => Model.ProductName)" />
+                            @* <MudTextField Label="Interest Rate" @bind-Value="Model.InterestRate" For="@(() => Model.InterestRate)" /> *@
+                            <MudTextField Label="Description" @bind-Value="Model.Description" For="@(() => Model.Description)" AutoGrow MaxLength="250" Counter="250" Immediate="true" />
                             
                             
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Add Loan Product</MudButton>

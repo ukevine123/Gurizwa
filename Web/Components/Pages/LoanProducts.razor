@@ -39,10 +39,7 @@
                 <ToolBarContent>
                     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Loan Products List</MudText>
                     <MudSpacer />
-                    <MudMenu Label="Add Loan Product" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary" Class="rounded-lg">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-                    </MudMenu>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Loan Product</MudButton>
                 </ToolBarContent>
                 <Columns>
                     <SelectColumn T="LoanProduct" />
@@ -81,16 +78,13 @@
                 <ToolBarContent>
                     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Loan Product Settings</MudText>
                     <MudSpacer />
-                    <MudMenu Label="Add LoanProduct Setting" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary" Class="rounded-lg">
-                        <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@GoToCreateLoanProductSetting">Add</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-                    </MudMenu>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@GoToCreateLoanProductSetting">Add Loan product Setting</MudButton>
                 </ToolBarContent>
                 <Columns>
                     <SelectColumn T="LoanProductSetting" />
                     <PropertyColumn Property="x => x.LoanProduct.ProductName" Title="Loan Product" Sortable="true" />
                     <PropertyColumn Property="x => x.InterestRate" Title="Interest Rate (%)" Sortable="true" />
-                    <PropertyColumn Property="x => x.GracePeriodDays" Title="Grace Period (Days)" Sortable="true" />
+                    <PropertyColumn Property="x => x.GracePeriodDays" Title="Grace Period (Days)" Sortable="true" Format="0" />
                 </Columns>
                 <PagerContent>
                     <MudDataGridPager T="LoanProductSetting" />

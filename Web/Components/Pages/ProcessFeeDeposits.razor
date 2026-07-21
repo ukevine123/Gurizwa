@@ -38,37 +38,20 @@
             <MudText Typo="Typo.h5" Color="Color.Primary">p</MudText>
             <MudSpacer />
 
-            <MudMenu Label="Add Fee Deposit"
-                     Variant="Variant.Filled"
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
-                     Color="Color.Primary">
-
-                <MudMenuItem Icon="@Icons.Material.Filled.Add"
-                             OnClick="OpenDialog">
-                    Add
-                </MudMenuItem>
-
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    Print
-                </MudMenuItem>
-
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Fee Deposit</MudButton>
         </ToolBarContent>
 
           <ToolBarContent>
             @* <MudText Typo="Typo.h5" Color="Color.Primary">Guarantor</MudText> *@
             <MudSpacer />
-            <MudMenu Label="Add Fee Deposit" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Fee Deposit</MudButton>
         </ToolBarContent>
 
         <Columns>
             <SelectColumn T="ProcessFeeDeposit" />
             
             <PropertyColumn Property="x => x.LoanApplication.ApplicationCode" Title="Loan Application " />
-            @* <PropertyColumn Property="x => x.LoanApplication.Borrower.FirstName  " + x.LoanApplication.Borrower.LastName" Title="LoanApplication" /> *@
+            @* <PropertyColumn Property="x => x.LoanApplication.Borrower.FirstName  " + x.LoanApplication.Borrower.LastName" Title="Loan Application" /> *@
             <PropertyColumn Property="x => x.Amount" Title="Amount" />
             <PropertyColumn Property="x => x.DepositDate" Title="Deposit Date" Format="yyyy-MM-dd" />
             <PropertyColumn Property="x => x.Account.AccountNumber" Title="Account number" />

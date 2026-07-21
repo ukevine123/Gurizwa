@@ -1,4 +1,4 @@
-﻿@using MudBlazor
+@using MudBlazor
 @using Domain.Entities
 @using Application.Interfaces
 @inject IExpenseService ExpenseService
@@ -98,6 +98,10 @@
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Dense"
                                   Lines="3"
+                                  AutoGrow
+                                  MaxLength="250"
+                                  Counter="250"
+                                  Immediate="true"
                                   Required="true"
                                   RequiredError="Description is required!"
                                   Placeholder="Enter details regarding this expense..." />

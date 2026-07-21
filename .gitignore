@@ -45,3 +45,5 @@ secrets.json
 TODO.md
 
 fix_dialogs.py
+resolve_conflicts.ps1
+fix_datepickers.ps1
