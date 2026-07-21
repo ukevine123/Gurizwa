@@ -10,10 +10,10 @@
 @inject IExportService ExportService
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Portfolio Reports</PageTitle>
+<PageTitle>Reports and Analytics</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Primary" Class="mb-6">Portfolio Reports</MudText>
+    <MudText Typo="Typo.h4" Color="MudBlazor.Color.Primary" Class="mb-6">Reports and Analytics</MudText>
 
     @* Overview Dashboard Cards - Acting as shortcuts *@
     <MudGrid Class="mb-6">
@@ -23,7 +23,6 @@
                     <div class="rc-icon-box bg-purple">
                         <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Active Loans</div>
                 <div class="rc-desc">Overview of @_activeLoans.Count active loans and their balances</div>
@@ -33,7 +32,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("ActiveLoans", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("ActiveLoans", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -43,7 +41,6 @@
                     <div class="rc-icon-box bg-blue">
                         <MudIcon Icon="@Icons.Material.Filled.Payments" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Disbursements</div>
                 <div class="rc-desc">Detailed breakdown of @_disbursements.Count loan disbursements</div>
@@ -53,7 +50,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("Disbursements", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("Disbursements", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -63,7 +59,6 @@
                     <div class="rc-icon-box bg-green">
                         <MudIcon Icon="@Icons.Material.Filled.Event" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Maturity Tracker</div>
                 <div class="rc-desc">Track @_maturities.Count loans reaching maturity dates</div>
@@ -73,7 +68,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("MaturityTracker", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("MaturityTracker", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -83,7 +77,6 @@
                     <div class="rc-icon-box bg-yellow">
                         <MudIcon Icon="@Icons.Material.Filled.History" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">User Activities</div>
                 <div class="rc-desc">Performance insights for @(_activities.Select(a => a.UserName).Distinct().Count()) active users</div>
@@ -93,7 +86,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("UserActivities", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("UserActivities", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -106,7 +98,6 @@
                     <div class="rc-icon-box bg-pink">
                         <MudIcon Icon="@Icons.Material.Filled.Schedule" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Repayment Schedules</div>
                 <div class="rc-desc">Health scores and @_repaymentSchedules.Count repayment schedules</div>
@@ -116,7 +107,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("RepaymentSchedules", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("RepaymentSchedules", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -126,7 +116,6 @@
                     <div class="rc-icon-box bg-red">
                         <MudIcon Icon="@Icons.Material.Filled.Warning" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Overdue Loans</div>
                 <div class="rc-desc">High level KPI summary for @_overdues.Count overdue loans</div>
@@ -136,7 +125,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("OverdueLoans", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("OverdueLoans", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -146,7 +134,6 @@
                     <div class="rc-icon-box bg-cyan">
                         <MudIcon Icon="@Icons.Material.Filled.ContactPage" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Customer Portfolios</div>
                 <div class="rc-desc">Detailed overview of @_customerPortfolios.Count customer portfolios</div>
@@ -156,7 +143,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("CustomerPortfolios", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("CustomerPortfolios", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -166,7 +152,6 @@
                     <div class="rc-icon-box bg-lightgreen">
                         <MudIcon Icon="@Icons.Material.Filled.PendingActions" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Application Statuses</div>
                 <div class="rc-desc">Analyze pipeline metrics for @_applicationStatuses.Count applications</div>
@@ -176,7 +161,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("ApplicationStatuses", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("ApplicationStatuses", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -189,7 +173,6 @@
                     <div class="rc-icon-box bg-purple">
                         <MudIcon Icon="@Icons.Material.Filled.NotificationImportant" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Upcoming Dues</div>
                 <div class="rc-desc">Filter upcoming dues by 5 or 7 days</div>
@@ -199,7 +182,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("UpcomingDues", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("UpcomingDues", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -209,7 +191,6 @@
                     <div class="rc-icon-box bg-green">
                         <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Size="MudBlazor.Size.Small" Style="color: white;" />
                     </div>
-                    <MudIcon Icon="@Icons.Material.Outlined.StarBorder" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
                 <div class="rc-title">Income Statement</div>
                 <div class="rc-desc">Portfolio P&L summary and operating expenses</div>
@@ -220,7 +201,6 @@
                         <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("IncomeStatement", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
                         <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("IncomeStatement", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
                     </div>
-                    <MudIcon Icon="@Icons.Material.Filled.MoreHoriz" Size="MudBlazor.Size.Small" Style="color: #6B7280;" />
                 </div>
             </div>
         </MudItem>
@@ -458,6 +438,70 @@
                 </MudPaper>
             </MudItem>
         </MudGrid>
+
+        <div class="d-flex justify-space-between align-center mt-6 mb-4">
+            <MudText Typo="Typo.h6" Style="font-weight: 700;">Activity Log</MudText>
+            <MudButton Variant="Variant.Text" OnClick="@(() => _showActivityLog = !_showActivityLog)" EndIcon="@(_showActivityLog ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.NorthEast)" Color="MudBlazor.Color.Primary" Style="text-transform: none; font-weight: 700; font-size: 14px;">View All</MudButton>
+        </div>
+
+        @if (_showActivityLog)
+        {
+            <MudDataGrid T="UserActivityReportDTO" Items="@targetActivities" Hover="true" Striped="true" Elevation="1" QuickFilter="@_activityFilter" Class="rounded-xl">
+            <ToolBarContent>
+                <MudSpacer />
+                <MudTextField @bind-Value="_activitySearch" Placeholder="Search activities..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0" Style="max-width: 300px;"></MudTextField>
+            </ToolBarContent>
+            <Columns>
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.Action</MudText>
+                        <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">@context.Item.EntityName</MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="People">
+                    <CellTemplate>
+                        <div class="d-flex align-center gap-3">
+                            <MudAvatar Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" Variant="Variant.Filled" Style="font-weight: 700; font-size: 11px;">
+                                @GetUserInitials(context.Item.UserName)
+                            </MudAvatar>
+                            <MudText Typo="Typo.body2" Style="color: #6B7280; font-weight: 500;">@context.Item.UserName</MudText>
+                        </div>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Priority">
+                    <CellTemplate>
+                        @{
+                            var priority = GetActivityPriority(context.Item);
+                            var color = GetActivityPriorityColor(priority);
+                        }
+                        <MudChip T="string" Color="@color" Size="MudBlazor.Size.Small" Variant="Variant.Text" Style="font-weight: 600;">@priority</MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Date and Time">
+                    <CellTemplate>
+                        <div class="d-flex align-center gap-2" style="color: #6B7280;">
+                            <MudIcon Icon="@Icons.Material.Filled.Event" Size="MudBlazor.Size.Small" />
+                            <MudText Typo="Typo.body2">@context.Item.Timestamp.ToString("dd-MM-yyyy")</MudText>
+                            <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="MudBlazor.Size.Small" />
+                            <MudText Typo="Typo.body2">@context.Item.Timestamp.ToString("h:mm tt")</MudText>
+                        </div>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Status">
+                    <CellTemplate>
+                        @{
+                            var status = GetActivityStatus(context.Item);
+                            var color = GetActivityStatusColor(status);
+                        }
+                        <MudChip T="string" Color="@color" Size="MudBlazor.Size.Small" Variant="Variant.Filled" Style="font-weight: 600;">@status</MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="UserActivityReportDTO" />
+            </PagerContent>
+        </MudDataGrid>
+        }
     }
     else if (_activeReport == "RepaymentSchedules")
     {
@@ -825,6 +869,7 @@
     private string _disbursementSearch = "";
     private string _activityUserSearch = "";
     private string _activitySearch = "";
+    private bool _showActivityLog = false;
     private string _repaymentSearch = "";
     private string _overdueSearch = "";
     private string _customerSearch = "";
@@ -970,4 +1015,58 @@
         if (x.ApplicationCode?.Contains(_applicationSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
         return false;
     };
+
+    private string GetUserInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "U";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpper();
+        return (parts[0].Substring(0, 1) + parts[1].Substring(0, 1)).ToUpper();
+    }
+
+    private string GetActivityPriority(UserActivityReportDTO activity)
+    {
+        var action = activity.Action?.ToLower() ?? "";
+        var entity = activity.EntityName?.ToLower() ?? "";
+        
+        if (action.Contains("approve") || entity.Contains("disbursement") || action.Contains("reject"))
+            return "Urgent";
+        if (entity.Contains("application") || entity.Contains("payment"))
+            return "Medium";
+        return "Low";
+    }
+
+    private MudBlazor.Color GetActivityPriorityColor(string priority)
+    {
+        return priority switch
+        {
+            "Urgent" => MudBlazor.Color.Error,
+            "Medium" => MudBlazor.Color.Warning,
+            _ => MudBlazor.Color.Default
+        };
+    }
+
+    private string GetActivityStatus(UserActivityReportDTO activity)
+    {
+        var action = activity.Action?.ToLower() ?? "";
+        if (action.Contains("create") || action.Contains("add") || action.Contains("submit"))
+            return "Done";
+        if (action.Contains("update") || action.Contains("edit"))
+            return "In progress";
+        if (action.Contains("delete") || action.Contains("remove") || action.Contains("reject"))
+            return "Failed";
+        
+        return "Done";
+    }
+
+    private MudBlazor.Color GetActivityStatusColor(string status)
+    {
+        return status switch
+        {
+            "Done" => MudBlazor.Color.Success,
+            "In progress" => MudBlazor.Color.Primary,
+            "Failed" => MudBlazor.Color.Error,
+            _ => MudBlazor.Color.Default
+        };
+    }
 }

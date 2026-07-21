@@ -6,7 +6,8 @@
 @inject NavigationManager NavigationManager
 @inject IUserContext UserContext
 @inject IReportService ReportService
-
+@inject IDialogService DialogService
+@using Web.Components.Pages
 <MudThemeProvider Theme="_theme" 
 @bind-IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -286,6 +287,7 @@
                     </MudStack>
                 </ActivatorContent>
                 <ChildContent>
+                    <MudMenuItem OnClick="OpenChangePasswordDialog">Change Password</MudMenuItem>
                     <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
                 </ChildContent>
             </MudMenu>
@@ -469,4 +471,14 @@
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
     void ToggleTheme() => _isDarkMode = !_isDarkMode;
     void Logout() => NavigationManager.NavigateTo("/api/account/logout", forceLoad: true);
+
+    private async Task OpenChangePasswordDialog()
+    {
+        if (UserContext.Id.HasValue)
+        {
+            var parameters = new DialogParameters { { "UserId", UserContext.Id.Value } };
+            var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+            await DialogService.ShowAsync<ChangePasswordDialog>("Change Password", parameters, options);
+        }
+    }
 }

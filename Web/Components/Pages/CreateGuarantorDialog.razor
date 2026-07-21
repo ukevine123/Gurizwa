@@ -1,4 +1,4 @@
-﻿@using Application.DTO
+@using Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
 @using Application.Services.GuarantorTypes
@@ -64,7 +64,7 @@
                     </MudSelect>
                     
                     <MudSelect T="int"
-                               Label="LoanApplication"
+                               Label="Loan Application"
                                Placeholder="--Select Loan Application--"
                                @bind-Value="Model.LoanApplicationId"
                                Variant="Variant.Outlined"
@@ -89,10 +89,10 @@
                 @if (!isOrganization)
                 {
                     <MudItem xs="6">
-                        <MudTextField Label="FirstName" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" />
+                        <MudTextField Label="First Name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" />
                     </MudItem>
                     <MudItem xs="6">
-                        <MudTextField Label="LastName" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.LastName" For="@(() => Model.LastName)" />
+                        <MudTextField Label="Last Name" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Model.LastName" For="@(() => Model.LastName)" />
                     </MudItem>
                 }
                 else

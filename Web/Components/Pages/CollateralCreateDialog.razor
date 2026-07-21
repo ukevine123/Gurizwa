@@ -1,4 +1,4 @@
-﻿@using Application.DTO
+@using Application.DTO
 @using Application.Interfaces
 @using Application.Services.Collaterals
 @using Application.Services.LoanApplications
@@ -153,7 +153,7 @@
 
                 <MudItem xs="12">
                     <MudTextField Label="Asset Description" Variant="Variant.Outlined"
-                                  Margin="Margin.Dense" @bind-Value="Model.Description" Lines="2" />
+                                  Margin="Margin.Dense" @bind-Value="Model.Description" Lines="2" AutoGrow MaxLength="250" Counter="250" Immediate="true" />
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-2">

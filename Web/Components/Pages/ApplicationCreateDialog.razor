@@ -98,30 +98,28 @@
     </MudItem>
 
     <MudItem xs="6">
-        <MudSelect T="int"
-           Label="Product"
-           Value="Model.LoanProductSettingId"
-           ValueChanged="@((int i) => OnProductChanged(i))"
-           Variant="Variant.Outlined"
-           Dense="true"
-          
-           Placeholder="--Select Product--"
-          
-          
-            OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
-           
-    
-    <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
+        <MudItem xs="12">
+            <MudSelect T="int"
+               Label="Product"
+               Value="Model.LoanProductSettingId"
+               ValueChanged="@((int i) => OnProductChanged(i))"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Placeholder="--Select Product--"
+               OnAdornmentClick="@(() => OpenDetailDialog(Model.LoanProductSettingId))">
+               
+                <MudSelectItem T="int" Value="0">-- Select Product --</MudSelectItem>
 
-            @if (_loanProductSettings != null && _loanProductSettings.Count > 0)
-            {
-                foreach (var product in _loanProductSettings)
+                @if (_loanProductSettings != null && _loanProductSettings.Count > 0)
                 {
-                    @* Ensure Value matches the T type (int) *@
-                    <MudSelectItem T="int" Value="@product.Id">@(product.LoanProduct?.ProductName ?? "N/A")</MudSelectItem>
+                    foreach (var product in _loanProductSettings)
+                    {
+                        @* Ensure Value matches the T type (int) *@
+                        <MudSelectItem T="int" Value="@product.Id">@(product.LoanProduct?.ProductName ?? "N/A")</MudSelectItem>
+                    }
                 }
-            }
-        </MudSelect>
+            </MudSelect>
+        </MudItem>
         @if (SelectedProductSetting != null)
         {
             <MudItem xs="12">
@@ -137,7 +135,7 @@
 
      <MudItem xs="6">
                     <MudSelect T="int"
-            Label="PaymentModality"
+            Label="Payment Modality"
             Placeholder="--Select PaymentModality--"
             @bind-Value="Model.PaymentModalityId"
             Variant="Variant.Outlined"

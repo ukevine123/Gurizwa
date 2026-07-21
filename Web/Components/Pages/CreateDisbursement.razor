@@ -18,6 +18,7 @@
 @inject IAccountService AccountService
 @inject IPenalityService PenalityService
 @inject ISnackbar Snackbar
+@inject IUserContext UserContext
 
 <MudDialog Style="border-radius:12px; overflow:hidden; max-width: 750px;">
     <DialogContent>
@@ -228,16 +229,19 @@
     </DialogContent>
 
     <DialogActions>
-        <MudStack Row="true" Class="px-4 pb-4" Style="width: 100%;">
-            <MudButton Variant="Variant.Filled"
-                       OnClick="OnValidSubmit"
-                       Disabled="@(_isProcessing)"
-                       StartIcon="@(IsReschedule ? Icons.Material.Filled.Update : Icons.Material.Filled.Save)"
-                       FullWidth="true"
-                       Style="@ButtonStyle">
-                @(_isProcessing ? "PROCESSING..." : (IsReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM DISBURSEMENT"))
-            </MudButton>
-        </MudStack>
+        @if (UserContext.PrimaryRole == "Manager" || UserContext.PrimaryRole == "Tenant")
+        {
+            <MudStack Row="true" Class="px-4 pb-4" Style="width: 100%;">
+                <MudButton Variant="Variant.Filled"
+                           OnClick="OnValidSubmit"
+                           Disabled="@(_isProcessing)"
+                           StartIcon="@(IsReschedule ? Icons.Material.Filled.Update : Icons.Material.Filled.Save)"
+                           FullWidth="true"
+                           Style="@ButtonStyle">
+                    @(_isProcessing ? "PROCESSING..." : (IsReschedule ? "CONFIRM RESCHEDULE" : "CONFIRM DISBURSEMENT"))
+                </MudButton>
+            </MudStack>
+        }
     </DialogActions>
 </MudDialog>
 

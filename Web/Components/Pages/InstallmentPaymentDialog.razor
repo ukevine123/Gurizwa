@@ -1,0 +1,196 @@
+@using Application.DTO
+@using Application.Interfaces
+@using MudBlazor
+@using Domain.Entities
+@using System.ComponentModel.DataAnnotations
+@using Application.Services.Payments
+@using Application.Services.Disbursements
+@using Application.Services.PaymentTypes
+@using Application.Services.Accounts
+
+@inject IPaymentService PaymentService
+@inject IAccountService AccountService
+@inject IPaymentTypeService PaymentTypeService
+@inject ISnackbar Snackbar
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 600px;">
+    <DialogContent>
+        <MudPaper Elevation="0" Class="pa-5 mb-4"
+                  Style="background: linear-gradient(135deg, #4318FF); border-radius:12px; color:white;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                <MudAvatar Style="height:50px; width:50px; background: rgba(255,255,255,0.2);">
+                    <MudIcon Icon="@Icons.Material.Filled.Payment" Style="font-size:2rem; color: white;" />
+                </MudAvatar>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.h6" Style="font-weight:700;">Installment Payment</MudText>
+                    <MudText Typo="Typo.body2" Style="color:rgba(255,255,255,0.8);">Pay for Installment #@InstallmentNo</MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <EditForm Model="Model">
+            <DataAnnotationsValidator />
+            <MudGrid Spacing="3">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2"><b>Scheduled Due Date:</b> @DueDate.ToString("yyyy-MM-dd")</MudText>
+                    <MudText Typo="Typo.body2"><b>Expected Amount:</b> @ScheduledAmount.ToString("N2")</MudText>
+                </MudItem>
+
+                @* --- ACCOUNT SELECTION --- *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Receiving Account" 
+                               @bind-Value="Model.AccountId"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.AccountBalanceWallet" Adornment="Adornment.Start"
+                               AdornmentColor="Color.Primary" Required="true">
+                        <MudSelectItem T="int" Value="0">Select Account</MudSelectItem>
+                        @foreach (var acc in Accounts)
+                        {
+                            <MudSelectItem T="int" Value="@acc.Id">
+                                @acc.Name (@(acc.Balance.ToString("n") ?? "0.00"))
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* --- PAYMENT TYPE --- *@
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="int" Label="Payment Type" @bind-Value="Model.PaymentTypeId"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               AdornmentIcon="@Icons.Material.Filled.Class" Adornment="Adornment.Start"
+                               AdornmentColor="Color.Primary" Required="true">
+                        <MudSelectItem T="int" Value="0">Select Payment Type</MudSelectItem>
+                        @foreach (var type in PaymentTypes)
+                        {
+                            <MudSelectItem T="int" Value="@type.Id">@type.PaymentTypeName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                @* --- AMOUNT INPUT --- *@
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal" Label="Payment Amount" 
+                                     @bind-Value="Model.Amount"
+                                     Variant="Variant.Outlined" Margin="Margin.Dense"
+                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     AdornmentColor="Color.Primary" Immediate="true" Format="N2" />
+                </MudItem>
+
+                @* --- PAYMENT DATE --- *@
+                <MudItem xs="12" sm="6">
+                    <MudDatePicker Label="Payment Date" @bind-Date="PaymentDateProxy"
+                                   Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   AdornmentColor="Color.Primary" Required="true" />
+                </MudItem>
+                
+                @if (CalculatedPenalty > 0)
+                {
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Style="border-radius: 8px;">
+                            <b>LATE PENALTY (@PenaltyRate%):</b> @CalculatedPenalty.ToString("n") will be added due to late payment/shortfall.
+                        </MudAlert>
+                    </MudItem>
+                }
+
+                @* --- SUBMIT ACTION --- *@
+                <MudItem xs="12" Class="mt-2">
+                    <MudButton OnClick="OnValidSubmit" Variant="Variant.Filled" 
+                               Disabled="@_isProcessing"
+                               StartIcon="@Icons.Material.Filled.CheckCircle" FullWidth="true"
+                               Style="background: linear-gradient(135deg, #4318FF); color: white; border-radius: 8px; padding: 12px 0; font-weight: 700;">
+                        @(_isProcessing ? "PROCESSING..." : "CONFIRM TRANSACTION")
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public int DisbursementId { get; set; }
+    [Parameter] public int InstallmentNo { get; set; }
+    [Parameter] public decimal ScheduledAmount { get; set; }
+    [Parameter] public DateTime DueDate { get; set; }
+    [Parameter] public decimal PenaltyRate { get; set; }
+
+    private CreatePaymentDTO Model { get; set; } = new();
+    private DateTime? PaymentDateProxy 
+    {
+        get => Model.PaymentDate == DateTime.MinValue ? null : Model.PaymentDate;
+        set => Model.PaymentDate = value ?? DateTime.Today;
+    }
+
+    private List<Account> Accounts = new(); 
+    private List<PaymentType> PaymentTypes = new(); 
+    private bool _isProcessing;
+
+    private decimal Shortfall => (ScheduledAmount > Model.Amount) ? ScheduledAmount - Model.Amount : 0;
+    
+    private decimal CalculatedPenalty 
+    {
+        get
+        {
+            if (DateTime.Today > DueDate || Shortfall > 0)
+            {
+                return Shortfall * (PenaltyRate / 100m);
+            }
+            return 0;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model.DisbursementId = DisbursementId;
+        Model.Amount = ScheduledAmount;
+        Model.PaymentDate = DateTime.Today;
+
+        var tTask = PaymentTypeService.GetAllPaymentTypesAsync();
+        var aTask = AccountService.GetAllAccountsAsync(); 
+        
+        await Task.WhenAll(tTask, aTask);
+            
+        PaymentTypes = tTask.Result ?? new();
+        Accounts = aTask.Result ?? new(); 
+    }
+
+    private async Task OnValidSubmit()
+    {
+        if (Model.AccountId == 0 || Model.PaymentTypeId == 0 || Model.Amount <= 0)
+        {
+            Snackbar.Add("Please fill all required fields correctly.", Severity.Warning);
+            return;
+        }
+
+        _isProcessing = true;
+        
+        try
+        {
+            if (CalculatedPenalty > 0) 
+            {
+                Snackbar.Add($"Late payment/Shortfall detected. {PenaltyRate}% Penalty ({CalculatedPenalty:n}) added to loan balance.", Severity.Warning);
+                await PaymentService.CreatePaymentWithPenaltyAsync(Model, Shortfall, CalculatedPenalty);
+            } 
+            else 
+            {
+                await PaymentService.CreatePaymentAsync(Model);
+                Snackbar.Add("Payment recorded successfully.", Severity.Success);
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        } 
+        catch (InvalidOperationException ex) 
+        {
+            Snackbar.Add(ex.Message, Severity.Warning);
+        }
+        catch (Exception ex) 
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        } 
+        finally 
+        { 
+            _isProcessing = false; 
+        }
+    }
+}

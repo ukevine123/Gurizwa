@@ -34,8 +34,6 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
         </MudItem>
     </MudGrid>
 
@@ -68,30 +66,13 @@
             <!-- <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText> -->
             <MudSpacer />
 
-            <MudMenu Label="Add Account"
-                     Variant="Variant.Filled"
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
-                     Color="Color.Primary">
-
-                <MudMenuItem Icon="@Icons.Material.Filled.Add"
-                             OnClick="OpenDialog">
-                    Add
-                </MudMenuItem>
-
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    print
-                </MudMenuItem>
-
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Account</MudButton>
         </ToolBarContent>
 
           <ToolBarContent>
             <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText>
             <MudSpacer />
-            <MudMenu Label="Add Account" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">print</MudMenuItem>
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Account</MudButton>
         </ToolBarContent>
 
         <Columns>

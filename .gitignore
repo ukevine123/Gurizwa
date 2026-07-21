@@ -48,3 +48,4 @@ fix_dialogs.py
 Releases/
 dotnet-install.*
 fix_datepickers.*
+resolve_conflicts.ps1

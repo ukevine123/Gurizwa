@@ -21,8 +21,6 @@
             <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
             <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
         }
-        <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
     </MudItem>
 </MudGrid>
 
@@ -39,14 +37,7 @@
     @* <ToolBarContent>
         <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Reasons List</MudText>
         <MudSpacer />
-        <MudMenu Label="Add Reason" 
-                 Variant="Variant.Filled" 
-                 EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
-                 Color="Color.Primary"
-                 Class="rounded-lg">
-            <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreateReason())">Add</MudMenuItem>
-            <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-        </MudMenu>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreateReason())">Add Reason</MudButton>
     </ToolBarContent>
 
     <Columns>

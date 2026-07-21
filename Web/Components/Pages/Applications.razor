@@ -30,8 +30,6 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDeleteApplication(_selectedItems.First()))" />
                 <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
             }
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
         </MudItem>
     </MudGrid>
 
@@ -64,30 +62,13 @@
             <MudText Typo="Typo.h5" Color="Color.Primary">Application</MudText>
             <MudSpacer />
 
-            <MudMenu Label="Add Loan application"
-                     Variant="Variant.Filled"
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown"
-                     Color="Color.Primary">
-
-                <MudMenuItem Icon="@Icons.Material.Filled.Add"
-                             OnClick="OpenDialog">
-                    Add
-                </MudMenuItem>
-
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">
-                    Print
-                </MudMenuItem>
-
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Loan application</MudButton>
         </ToolBarContent>
 
           <ToolBarContent>
             @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
             <MudSpacer />
-            <MudMenu Label="Add Loan Application" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Color="Color.Primary">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Loan Application</MudButton>
         </ToolBarContent>
 
         <Columns>
