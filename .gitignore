@@ -45,3 +45,6 @@ secrets.json
 TODO.md
 
 fix_dialogs.py
+Releases/
+dotnet-install.*
+fix_datepickers.*
