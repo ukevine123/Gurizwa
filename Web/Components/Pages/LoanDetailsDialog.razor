@@ -1,6 +1,9 @@
 @using Domain.Entities
 @using MudBlazor
 @using Application.Services.Disbursements
+@using Application.Interfaces
+
+@inject IUserContext UserContext
 
 <MudDialog Style="border-radius:12px; overflow:hidden; max-width: 800px;">
     <DialogContent>
@@ -36,13 +39,16 @@
                 <MudItem xs="3" Class="d-flex justify-end align-center">
                     @if (remainingBalance > 0.01m)
                     {
-                        <MudButton Variant="Variant.Filled" 
-                                   Color="Color.Error" 
-                                   StartIcon="@Icons.Material.Filled.Autorenew"
-                                   OnClick="@(() => OnRescheduleClick(remainingBalance))"
-                                   Style="font-weight:700; border-radius:8px; height:45px;">
-                            RESCHEDULE
-                        </MudButton>
+                        @if (UserContext.PrimaryRole == "Manager" || UserContext.PrimaryRole == "Tenant")
+                        {
+                            <MudButton Variant="Variant.Filled" 
+                                       Color="Color.Error" 
+                                       StartIcon="@Icons.Material.Filled.Autorenew"
+                                       OnClick="@(() => OnRescheduleClick(remainingBalance))"
+                                       Style="font-weight:700; border-radius:8px; height:45px;">
+                                RESCHEDULE
+                            </MudButton>
+                        }
                     }
                     else
                     {
