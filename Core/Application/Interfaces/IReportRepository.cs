@@ -34,5 +34,8 @@ namespace Application.Interfaces
         Task<List<ApplicationStatusReportDTO>> GetApplicationStatusReportAsync();
         Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync();
         Task LogActivityAsync(string action, string entityName, string entityId, string description);
+        
+        // Loan Products
+        Task<List<LoanProductTrackerDTO>> GetLoanProductTrackerAsync();
     }
 }

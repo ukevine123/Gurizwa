@@ -29,21 +29,33 @@ namespace Infrastructure.Repositories
         using var dbContext = await _contextFactory.CreateDbContextAsync();
         
         var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
+        if (allowedPersonIds == null || !allowedPersonIds.Any())
+        {
+            return new List<Borrower>();
+        }
+
         var borrowers = await dbContext.Borrowers
             .Include(a => a.BorrowerType)
             .Where(a => allowedPersonIds.Contains(a.PersonId))
             .ToListAsync();
 
         var borrowerIds = borrowers.Select(b => b.Id).ToList();
-        var disbursements = await dbContext.Disbursements
-            .Include(d => d.LoanApplication)
-            .Where(d => borrowerIds.Contains(d.LoanApplication.BorrowerId) && d.IsActive)
-            .ToListAsync();
+        
+        var disbursements = new List<Disbursement>();
+        var payments = new List<Payment>();
+        
+        if (borrowerIds.Any())
+        {
+            disbursements = await dbContext.Disbursements
+                .Include(d => d.LoanApplication)
+                .Where(d => borrowerIds.Contains(d.LoanApplication.BorrowerId) && d.IsActive)
+                .ToListAsync();
 
-        var payments = await dbContext.Payments
-            .Include(p => p.Disbursement).ThenInclude(d => d.LoanApplication)
-            .Where(p => borrowerIds.Contains(p.Disbursement.LoanApplication.BorrowerId) && p.IsActive)
-            .ToListAsync();
+            payments = await dbContext.Payments
+                .Include(p => p.Disbursement).ThenInclude(d => d.LoanApplication)
+                .Where(p => borrowerIds.Contains(p.Disbursement.LoanApplication.BorrowerId) && p.IsActive)
+                .ToListAsync();
+        }
 
         foreach (var borrower in borrowers)
         {

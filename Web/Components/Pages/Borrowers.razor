@@ -69,17 +69,10 @@
     <MudDataGrid T="Borrower" Items="@FilteredBorrowers" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none" Filterable="true">
 
-                  <ToolBarContent>
+        <ToolBarContent>
             <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText>
             <MudSpacer />
-
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Borrowe</MudButton>
-        </ToolBarContent>
-
-          <ToolBarContent>
-            @* <MudText Typo="Typo.h5" Color="Color.Primary">Borrower</MudText> *@
-            <MudSpacer />
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Borrower</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Borrower</MudButton>
         </ToolBarContent>
 
         <Columns>

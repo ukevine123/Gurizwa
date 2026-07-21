@@ -394,7 +394,8 @@ namespace Infrastructure.Repositories
 
             // 1. Interest & Penalty Income (from Payments)
             var payments = await dbContext.Payments
-                .Include(p => p.Disbursement)
+                .Include(p => p.Account)
+                .Include(p => p.Disbursement).ThenInclude(d => d.LoanApplication)
                 .Where(p => p.PersonId == currentPersonId.Value &&
                             p.IsActive &&
                             p.PaymentDate >= start && p.PaymentDate < endExclusive &&
@@ -404,33 +405,62 @@ namespace Infrastructure.Repositories
             decimal totalInterest = 0;
             decimal totalPenalty = 0;
 
+            var interestDetails = new List<InterestIncomeDetailDTO>();
+            var penaltyDetails = new List<PenaltyIncomeDetailDTO>();
+
             foreach (var p in payments)
             {
-                totalPenalty += p.PenaltyPaid;
+                if (p.PenaltyPaid > 0)
+                {
+                    totalPenalty += p.PenaltyPaid;
+                    penaltyDetails.Add(new PenaltyIncomeDetailDTO {
+                        LoanApplicationCode = p.Disbursement?.LoanApplication?.ApplicationCode ?? "N/A",
+                        PaymentDate = p.PaymentDate,
+                        Amount = p.PenaltyPaid,
+                        Reason = "Late Payment"
+                    });
+                }
                 
+                decimal currentInterest = 0;
                 if (p.InterestPaid > 0)
                 {
-                    totalInterest += p.InterestPaid;
+                    currentInterest = p.InterestPaid;
                 }
                 else if (p.Disbursement != null && p.Disbursement.TotalInstallments > 0)
                 {
                     // Fallback calculation for payments recorded before the interest fix
                     decimal totalExpectedInterest = p.Disbursement.PrincipalOffered * (p.Disbursement.InterestRate / 100);
                     decimal scheduledInterest = totalExpectedInterest / p.Disbursement.TotalInstallments;
-                    totalInterest += Math.Min(p.Amount, scheduledInterest);
+                    currentInterest = Math.Min(p.Amount, scheduledInterest);
+                }
+
+                if (currentInterest > 0)
+                {
+                    totalInterest += currentInterest;
+                    interestDetails.Add(new InterestIncomeDetailDTO {
+                        NameOfInterest = $"Interest from {p.Disbursement?.LoanApplication?.ApplicationCode ?? "Loan"}",
+                        Amount = currentInterest,
+                        AccountReceiver = p.Account?.Name ?? "Main Account",
+                        DateOfInterest = p.PaymentDate
+                    });
                 }
             }
 
-            // 2. Processing Fee Income
-            // Some process fee deposits might not have their PersonId perfectly aligned if they were created before we forced user.Person.Id. 
-            // We can match them based on Account or LoanApplication ownership as well, but for simplicity, we check if they are in the date range.
+            // 2. Processing Fees (from ProcessFeeDeposits)
             var fees = await dbContext.ProcessFeeDeposits
+                .Include(f => f.Account)
                 .Include(f => f.LoanApplication)
                 .Where(f => (f.PersonId == currentPersonId.Value || f.LoanApplication.PersonId == currentPersonId.Value) &&
                             f.DepositDate >= start && f.DepositDate < endExclusive)
                 .ToListAsync();
 
             var totalFees = fees.Sum(f => f.Amount);
+            var processingFeeDetails = fees.Select(f => new ProcessingFeeDetailDTO {
+                LoanApplicationCode = f.LoanApplication?.ApplicationCode ?? "N/A",
+                PaymentDate = f.DepositDate,
+                Amount = f.Amount,
+                AccountReceiver = f.Account?.Name ?? "Main Account"
+            }).ToList();
 
             // 3. Waivers & Write-offs
             var waivers = await dbContext.Waivers
@@ -443,15 +473,28 @@ namespace Infrastructure.Repositories
             // Filter waivers manually if needed, assuming Disbursement is loaded.
             var validWaivers = waivers.Where(w => w.Disbursement != null && (w.Disbursement.PersonId == currentPersonId.Value)).ToList();
             var totalWaivers = validWaivers.Sum(w => w.Amount);
+            var waiverDetails = validWaivers.Select(w => new WaiverDetailDTO {
+                LoanApplicationCode = w.Disbursement?.LoanApplication?.ApplicationCode ?? "N/A",
+                AmountWaived = w.Amount,
+                WaiverType = w.WaiverTypeName ?? "General",
+                WaivingDate = w.ApprovedDate ?? DateTime.Now
+            }).ToList();
 
             // 4. Operating Expenses
             var expenses = await dbContext.Expenses
+                .Include(e => e.Account)
                 .Where(e => e.PersonId == currentPersonId.Value &&
                             e.IsActive &&
                             e.ExpenseDate >= start && e.ExpenseDate < endExclusive)
                 .ToListAsync();
 
             var totalExpenses = expenses.Sum(e => e.Amount);
+            var expenseDetails = expenses.Select(e => new OperatingExpenseDetailDTO {
+                ExpenseName = e.Description ?? "Expense",
+                Amount = e.Amount,
+                ExpenseDate = e.ExpenseDate,
+                AccountFunding = e.Account?.Name ?? "Main Account"
+            }).ToList();
 
             return new IncomeStatementReportDTO
             {
@@ -461,7 +504,12 @@ namespace Infrastructure.Repositories
                 TotalProcessingFeeIncome = totalFees,
                 TotalPenaltyIncome = totalPenalty,
                 TotalWaiversAndWriteOffs = totalWaivers,
-                TotalOperatingExpenses = totalExpenses
+                TotalOperatingExpenses = totalExpenses,
+                InterestDetails = interestDetails,
+                PenaltyDetails = penaltyDetails,
+                ProcessingFeeDetails = processingFeeDetails,
+                WaiverDetails = waiverDetails,
+                OperatingExpenseDetails = expenseDetails
             };
         }
 
@@ -548,6 +596,83 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync() => await Task.FromResult(new List<CustomerRiskProfileReportDTO>());
+
+        public async Task<List<LoanProductTrackerDTO>> GetLoanProductTrackerAsync()
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue) return new List<LoanProductTrackerDTO>();
+
+            var settingsList = await dbContext.LoanProductSettings
+                .Include(s => s.LoanProduct)
+                .Where(s => s.PersonId == currentPersonId.Value)
+                .ToListAsync();
+
+            var disbursements = await dbContext.Disbursements
+                .Include(d => d.LoanApplication).ThenInclude(la => la.Borrower)
+                .Include(d => d.LoanApplication).ThenInclude(la => la.LoanProductSetting)
+                .Include(d => d.Payments)
+                .Where(d => d.PersonId == currentPersonId.Value || d.LoanApplication.PersonId == currentPersonId.Value)
+                .ToListAsync();
+
+            var waivers = await dbContext.Waivers
+                .Include(w => w.Disbursement).ThenInclude(d => d.LoanApplication).ThenInclude(la => la.LoanProductSetting)
+                .Where(w => w.Status == "Approved" && w.IsActive && (w.Disbursement.PersonId == currentPersonId.Value))
+                .ToListAsync();
+
+            var trackerReports = new List<LoanProductTrackerDTO>();
+
+            foreach(var setting in settingsList)
+            {
+                var prodDisbursements = disbursements.Where(d => d.LoanApplication?.LoanProductSettingId == setting.Id).ToList();
+                var prodWaivers = waivers.Where(w => w.Disbursement?.LoanApplication?.LoanProductSettingId == setting.Id).ToList();
+                
+                int appliedBorrowers = prodDisbursements.Select(d => d.LoanApplication.BorrowerId).Distinct().Count();
+                
+                decimal totalInterest = prodDisbursements.SelectMany(d => d.Payments).Where(p => p.IsActive).Sum(p => p.InterestPaid);
+                
+                decimal totalWaived = prodWaivers.Sum(w => w.Amount);
+                
+                // Estimate losses as outstanding balance of overdues/defaults
+                decimal totalLosses = prodDisbursements.Where(d => d.IsActive).Sum(d => {
+                    decimal paid = d.Payments.Where(p => p.IsActive).Sum(p => p.Amount);
+                    // Simplified: if matured and unpaid, it's a loss, otherwise 0. For now, sum of overdue.
+                    if (DateTime.Now > d.EndDate && paid < d.Amount) {
+                        return d.Amount - paid;
+                    }
+                    return 0;
+                });
+                
+                int totalRescheduled = prodDisbursements.Count(d => d.LoanApplication.Status == Domain.ValueObjects.LoanStatus.Rescheduled);
+
+                var productBorrowers = prodDisbursements.Select(d => new ProductBorrowerDTO {
+                    BorrowerId = d.LoanApplication.BorrowerId,
+                    LoanId = d.Id,
+                    BorrowerName = d.LoanApplication.Borrower != null ? (!string.IsNullOrEmpty(d.LoanApplication.Borrower.CompanyName) ? d.LoanApplication.Borrower.CompanyName : $"{d.LoanApplication.Borrower.FirstName} {d.LoanApplication.Borrower.LastName}").Trim() : "N/A",
+                    ApplicationCode = d.LoanApplication.ApplicationCode ?? "N/A",
+                    LoanStatus = d.LoanApplication.Status.ToString(),
+                    PrincipalBalance = d.Amount - d.Payments.Where(p => p.IsActive).Sum(p => p.PrincipalPaid),
+                    ApplicationDate = d.LoanApplication.DateofApplication
+                }).ToList();
+
+                trackerReports.Add(new LoanProductTrackerDTO
+                {
+                    ProductId = setting.LoanProductId,
+                    ProductName = setting.LoanProduct?.ProductName ?? "N/A",
+                    InterestRate = setting.InterestRate,
+                    ProcessingFee = setting.ProcessingFee,
+                    PenaltyRate = setting.PenalityRate,
+                    NumberOfAppliedBorrowers = appliedBorrowers,
+                    TotalInterestEarned = totalInterest,
+                    TotalLosses = totalLosses,
+                    TotalWaived = totalWaived,
+                    TotalRescheduled = totalRescheduled,
+                    Borrowers = productBorrowers
+                });
+            }
+
+            return trackerReports;
+        }
 
         private async Task<int?> GetCurrentPersonIdAsync(ApplicationDbContext dbContext)
         {

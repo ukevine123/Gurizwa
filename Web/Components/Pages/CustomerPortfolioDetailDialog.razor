@@ -1,0 +1,230 @@
+@using Application.DTO
+@using Domain.Entities
+@using Application.Services.Borrowers
+@using Application.Interfaces
+@using Application.Services.LoanApplications
+@using MudBlazor
+
+@inject IBorrowerService BorrowerService
+@inject ILoanApplicationService LoanApplicationService
+@inject IReportService ReportService
+@inject IDialogService DialogService
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 900px;">
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center my-4">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            @* --- HEADER DATA --- *@
+            <MudPaper Elevation="0" Class="pa-5 mb-4" 
+                      Style="background: linear-gradient(135deg, #f4f7fe 0%, #eef2fb 100%); border-radius: 12px; border: 1px solid #e0e6ed;">
+                <MudGrid AlignItems="AlignItems.Center">
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">CUSTOMER PROFILE</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight:800; color: #1B2559;">
+                            @(string.IsNullOrEmpty(_borrower?.CompanyName) ? $"{_borrower?.FirstName} {_borrower?.LastName}" : _borrower?.CompanyName)
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Phone: @_borrower?.PhoneNumber</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Location: @_borrower?.District, @_borrower?.Sector</MudText>
+                        
+                        <div class="mt-2">
+                            @if (_isTrustable)
+                            {
+                                <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.VerifiedUser" Style="font-weight:700;">Trustable & On-Time</MudChip>
+                            }
+                            else if (_hasDefaults)
+                            {
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Warning" Style="font-weight:700;">Defaulter / Overdue</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Default" Size="Size.Small" Style="font-weight:700;">New / Neutral</MudChip>
+                            }
+                        </div>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="4" Class="px-4" Style="border-left: 1px solid #e0e6ed;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">PORTFOLIO SUMMARY</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700; color: #1B2559;">Total Outstanding: <span class="text-danger">@_portfolio?.TotalOutstanding.ToString("n")</span></MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700; color: #1B2559;">Total Paid: <span class="text-success">@_portfolio?.TotalPaid.ToString("n")</span></MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1" Color="Color.Secondary">
+                            Total Loans Applied: <b>@_totalApplications</b>
+                        </MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="12" md="4" Class="px-4" Style="border-left: 1px solid #e0e6ed;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">ACTIVITY STATUS</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4" Class="mt-2">
+                            <div>
+                                <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight:800; text-align:center;">@_portfolio?.ActiveLoans</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">ACTIVE</MudText>
+                            </div>
+                            <div>
+                                <MudText Typo="Typo.h5" Color="Color.Success" Style="font-weight:800; text-align:center;">@_portfolio?.ClosedLoans</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">CLOSED</MudText>
+                            </div>
+                            <div>
+                                <MudText Typo="Typo.h5" Color="Color.Error" Style="font-weight:800; text-align:center;">@_defaultingLoansCount</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">OVERDUE</MudText>
+                            </div>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <div class="d-flex align-center mb-3">
+                <MudText Typo="Typo.h6" Style="font-weight:700;">Loan Application History</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_searchString" Placeholder="Search by code or product..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="max-width: 300px;"></MudTextField>
+            </div>
+            
+            @if (_applications == null || !_applications.Any())
+            {
+                <MudText Typo="Typo.body2" Class="pa-4">No loan applications found for this customer.</MudText>
+            }
+            else
+            {
+                <MudTable Items="@_applications" Hover="true" Dense="true" Height="300px" FixedHeader="true" 
+                          Elevation="0" Class="rounded-lg border shadow-sm" Style="background-color: white;" Filter="new Func<LoanApplication,bool>(FilterFunc)">
+                    <HeaderContent>
+                        <MudTh>Code</MudTh>
+                        <MudTh>Product</MudTh>
+                        <MudTh>Date</MudTh>
+                        <MudTh>Amount</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd><b>@context.ApplicationCode</b></MudTd>
+                        <MudTd>@(context.LoanProductSetting?.LoanProduct?.ProductName ?? "N/A")</MudTd>
+                        <MudTd>@context.DateofApplication.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@context.AmountRequested.ToString("n")</MudTd>
+                        <MudTd>
+                            <MudChip T="string" 
+                                     Size="Size.Small" 
+                                     Variant="Variant.Filled" 
+                                     Color="@GetStatusColor(context.Status.ToString())"
+                                     Style="min-width: 95px; font-weight: 800; font-size: 0.7rem;">
+                                @context.Status
+                            </MudChip>
+                        </MudTd>
+                        <MudTd>
+                            @if(context.Status == Domain.ValueObjects.LoanStatus.Approved || context.Status == Domain.ValueObjects.LoanStatus.Disbursed || context.Status == Domain.ValueObjects.LoanStatus.Paid || context.Status == Domain.ValueObjects.LoanStatus.Rescheduled)
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="@(() => OpenLoanDetails(context))">View Details</MudButton>
+                            }
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Filled">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    [Parameter] public int BorrowerId { get; set; }
+
+    private bool _isLoading = true;
+    private Borrower? _borrower;
+    private CustomerPortfolioReportDTO? _portfolio;
+    private List<LoanApplication> _applications = new();
+    private string _searchString = "";
+    
+    private int _totalApplications = 0;
+    private int _defaultingLoansCount = 0;
+    private bool _hasDefaults = false;
+    private bool _isTrustable = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _borrower = await BorrowerService.GetBorrowerById(BorrowerId);
+            
+            // Get Portfolio Summary
+            var allPortfolios = await ReportService.GetCustomerPortfolioReportAsync();
+            _portfolio = allPortfolios.FirstOrDefault(p => p.BorrowerId == BorrowerId) ?? new CustomerPortfolioReportDTO();
+
+            // Get All Applications for this borrower
+            var allApps = await LoanApplicationService.GetAllLoanApplicationsAsync();
+            _applications = allApps.Where(a => a.BorrowerId == BorrowerId).OrderByDescending(a => a.DateofApplication).ToList();
+            _totalApplications = _applications.Count;
+
+            // Check Defaults
+            var allOverdues = await ReportService.GetOverdueReportAsync();
+            
+            // A customer has defaults if any of their approved/active loan IDs are in the overdue report
+            var borrowerAppCodes = _applications.Select(a => a.ApplicationCode).ToList();
+            var customerOverdues = allOverdues.Where(o => borrowerAppCodes.Contains(o.ApplicationCode)).ToList();
+            
+            _defaultingLoansCount = customerOverdues.Count;
+            _hasDefaults = _defaultingLoansCount > 0;
+
+            // Evaluate Trustability
+            // E.g., at least 1 closed loan (or active and paying well), and NO defaults.
+            _isTrustable = (_portfolio.ClosedLoans > 0 || _portfolio.ActiveLoans > 0) && !_hasDefaults;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private async Task OpenLoanDetails(LoanApplication app)
+    {
+        var summary = new ActiveLoanSummaryDTO 
+        {
+            LoanId = app.Id,
+            BorrowerName = string.IsNullOrEmpty(_borrower?.CompanyName) ? $"{_borrower?.FirstName} {_borrower?.LastName}" : _borrower?.CompanyName,
+            PrincipalBalance = 0, // This is just a placeholder, the dialog calculates real schedule/transactions
+            ApplicationCode = app.ApplicationCode ?? string.Empty
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["LoanId"] = app.Id,
+            ["LoanSummary"] = summary
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<ActiveLoanDetailDialog>($"Loan Details - {app.ApplicationCode}", parameters, options);
+    }
+
+    private Color GetStatusColor(string status) => status.ToLower() switch
+    {
+        "approved" or "disbursed" or "rescheduled" => Color.Success,
+        "applied" => Color.Warning,
+        "rejected" => Color.Error,
+        "paid" => Color.Info,
+        _ => Color.Default
+    };
+
+    private bool FilterFunc(LoanApplication app)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        
+        if (app.ApplicationCode != null && app.ApplicationCode.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+            
+        if (app.LoanProductSetting?.LoanProduct?.ProductName != null && app.LoanProductSetting.LoanProduct.ProductName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+}

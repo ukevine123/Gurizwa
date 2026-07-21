@@ -1,0 +1,287 @@
+@using Application.DTO
+@using Domain.Entities
+@using Application.Services.Disbursements
+@using Application.Services.LoanApplications
+@using Application.Interfaces
+@using MudBlazor
+
+@inject IDisbursementService DisbursementService
+@inject ILoanApplicationService LoanApplicationService
+@inject ILoanProductSetting ProductSettingRepo
+
+<MudDialog Style="border-radius:12px; overflow:hidden; max-width: 900px;">
+    <DialogContent>
+        @if (_isLoading)
+        {
+            <div class="d-flex justify-center my-4">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            </div>
+        }
+        else
+        {
+            @* --- CALCULATED HEADER DATA --- *@
+            <MudPaper Elevation="0" Class="pa-5 mb-4" 
+                      Style="background: linear-gradient(135deg, #f4f7fe 0%, #eef2fb 100%); border-radius: 12px; border: 1px solid #e0e6ed;">
+                <MudGrid AlignItems="AlignItems.Center">
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">BORROWER</MudText>
+                        <MudText Typo="Typo.h6" Style="font-weight:800; color: #1B2559;">@LoanSummary.BorrowerName</MudText>
+                        @if (_isRescheduled)
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small" Class="mt-1" Style="font-weight:700;">Rescheduled</MudChip>
+                        }
+                        @if (_hasWaiver)
+                        {
+                            <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Class="mt-1" Style="font-weight:700;">Waived</MudChip>
+                        }
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="4" Class="px-4" Style="border-left: 1px solid #e0e6ed;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">LOAN DETAILS</MudText>
+                        <MudText Typo="Typo.body2" Style="font-weight:700; color: #1B2559;">
+                            Product: @(_loanProductSetting?.LoanProduct?.ProductName ?? "N/A")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Applied: @(_application?.DateofApplication.ToString("dd MMM yyyy") ?? "N/A")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Started: @(_disbursement?.StartDate.ToString("dd MMM yyyy") ?? "N/A")
+                        </MudText>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="12" md="4" Class="px-4" Style="border-left: 1px solid #e0e6ed;">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">REMAINING BALANCE</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Error" Style="font-weight:800;">@LoanSummary.PrincipalBalance.ToString("n")</MudText>
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-1">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Style="font-weight:600;">PROGRESS:</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Primary" Style="font-weight:800;">@_paidCount/@_totalInstallments</MudText>
+                            <MudProgressLinear Color="Color.Primary" Value="@(_totalInstallments > 0 ? (double)_paidCount / _totalInstallments * 100 : 0)" Class="rounded-lg flex-grow-1" Size="Size.Small" />
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                <MudTabPanel Text="Repayment Schedule" Icon="@Icons.Material.Filled.Schedule">
+                    @if (_schedule == null || !_schedule.Any())
+                    {
+                        <MudText Typo="Typo.body2" Class="pa-4">No schedule found.</MudText>
+                    }
+                    else
+                    {
+                        <MudTable Items="@_schedule" Hover="true" Dense="true" Height="300px" FixedHeader="true" 
+                                  Elevation="0" Class="rounded-lg border shadow-sm" Style="background-color: white;">
+                            <HeaderContent>
+                                <MudTh>INST.</MudTh>
+                                <MudTh>DUE DATE</MudTh>
+                                <MudTh>EXPECTED</MudTh>
+                                <MudTh>REMAINING</MudTh>
+                                <MudTh>STATUS</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd><b>#@context.No</b></MudTd>
+                                <MudTd>@context.DueDate.ToString("yyyy-MM-dd")</MudTd>
+                                <MudTd>@context.TotalAmount.ToString("n")</MudTd>
+                                <MudTd>
+                                    <MudText Color="@(context.RemainingAmount > 0 ? Color.Error : Color.Success)" 
+                                             Typo="Typo.body2" Style="font-weight:700;">
+                                        @(context.RemainingAmount > 0 ? context.RemainingAmount.ToString("n") : "SETTLED")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd>
+                                    <MudChip T="string" 
+                                             Size="Size.Small" 
+                                             Variant="Variant.Filled" 
+                                             Color="@GetStatusColor(context.Status)"
+                                             Style="min-width: 95px; font-weight: 800; font-size: 0.7rem;">
+                                        @context.Status
+                                    </MudChip>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudTabPanel>
+                
+                <MudTabPanel Text="All Activities (Transactions)" Icon="@Icons.Material.Filled.History">
+                    @if (_transactions == null || !_transactions.Any())
+                    {
+                        <MudText Typo="Typo.body2" Class="pa-4">No activities found.</MudText>
+                    }
+                    else
+                    {
+                        <MudTable Items="@_transactions" Dense="true" Hover="true" Striped="true" Height="300px" FixedHeader="true" 
+                                  Elevation="0" Class="rounded-lg border shadow-sm" Style="background-color: white;">
+                            <HeaderContent>
+                                <MudTh>Date</MudTh>
+                                <MudTh>Activity Type</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh>Amount</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Date">@context.TransactionDate.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                                <MudTd DataLabel="Activity Type">
+                                    <MudChip T="string" Size="Size.Small" Color="@GetTransactionChipColor(context.TransactionType)" Style="font-weight: 700;">
+                                        @context.TransactionType
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Description">@context.Description</MudTd>
+                                <MudTd DataLabel="Amount" Style="font-weight: 700;">
+                                    @if(context.Amount > 0)
+                                    {
+                                        @context.Amount.ToString("N2")
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Filled">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    
+    [Parameter] public int LoanId { get; set; }
+    [Parameter] public ActiveLoanSummaryDTO LoanSummary { get; set; } = new();
+
+    private bool _isLoading = true;
+    private Disbursement? _disbursement;
+    private LoanApplication? _application;
+    private LoanProductSetting? _loanProductSetting;
+    private List<ScheduleRow> _schedule = new();
+    private List<TransactionHistoryDTO> _transactions = new();
+    
+    private int _paidCount = 0;
+    private int _totalInstallments = 1;
+    private bool _isRescheduled = false;
+    private bool _hasWaiver = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _isLoading = true;
+            _disbursement = await DisbursementService.GetDisbursementByLoanApplicationIdAsync(LoanId);
+            _transactions = await LoanApplicationService.GetTransactionHistoryAsync(LoanId);
+            _application = await LoanApplicationService.GetLoanApplicationById(LoanId);
+            
+            if (_application != null)
+            {
+                _loanProductSetting = await ProductSettingRepo.GetLoanProductSettingById(_application.LoanProductSettingId);
+            }
+
+            if (_transactions != null)
+            {
+                _isRescheduled = _transactions.Any(t => t.TransactionType?.ToLower().Contains("reschedule") == true);
+                _hasWaiver = _transactions.Any(t => t.TransactionType?.ToLower().Contains("waiver") == true);
+            }
+            
+            if (_disbursement != null)
+            {
+                _schedule = CalculateSchedule(_disbursement);
+                _paidCount = _schedule.Count(x => x.Status == "PAID");
+                _totalInstallments = _disbursement.TotalInstallments > 0 ? _disbursement.TotalInstallments : 1;
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private List<ScheduleRow> CalculateSchedule(Disbursement disbursement)
+    {
+        var rows = new List<ScheduleRow>();
+        if (disbursement.TotalInstallments <= 0) return rows;
+
+        decimal totalDuePerInstallment = disbursement.Amount / disbursement.TotalInstallments;
+        string mode = (disbursement.PaymentModality?.Mode ?? "monthly").ToLower();
+        decimal totalCollected = disbursement.Payments?.Where(p => p.IsActive).Sum(p => p.Amount) ?? 0;
+        decimal runningPaidAmount = totalCollected;
+
+        for (int i = 0; i < disbursement.TotalInstallments; i++)
+        {
+            DateTime dueDate = mode switch
+            {
+                "daily" => disbursement.StartDate.AddDays(i),
+                "weekly" => disbursement.StartDate.AddDays(i * 7),
+                "monthly" => disbursement.StartDate.AddMonths(i),
+                _ => disbursement.StartDate.AddMonths(i)
+            };
+
+            string currentStatus = "PENDING";
+            decimal remainingForThis = totalDuePerInstallment;
+
+            if (runningPaidAmount >= totalDuePerInstallment)
+            {
+                currentStatus = "PAID";
+                remainingForThis = 0;
+                runningPaidAmount -= totalDuePerInstallment;
+            }
+            else if (runningPaidAmount > 0)
+            {
+                currentStatus = "PARTIAL";
+                remainingForThis = totalDuePerInstallment - runningPaidAmount;
+                runningPaidAmount = 0; 
+            }
+            else
+            {
+                remainingForThis = totalDuePerInstallment;
+                if (DateTime.Today > dueDate.Date) currentStatus = "OVERDUE";
+            }
+
+            rows.Add(new ScheduleRow { 
+                No = i + 1, 
+                DueDate = dueDate, 
+                TotalAmount = totalDuePerInstallment,
+                RemainingAmount = remainingForThis,
+                Status = currentStatus 
+            });
+        }
+        return rows;
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "PAID" => Color.Success,
+        "PARTIAL" => Color.Warning,
+        "OVERDUE" => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetTransactionChipColor(string type)
+    {
+        return (type?.ToLower()) switch
+        {
+            "process fee" => Color.Warning,
+            "disbursement" => Color.Info,
+            "payment" => Color.Success,
+            "penalty" => Color.Error,
+            "waiver" => Color.Secondary,
+            "reschedule" => Color.Dark,
+            _ => Color.Primary
+        };
+    }
+
+    public class ScheduleRow { 
+        public int No { get; set; } 
+        public DateTime DueDate { get; set; } 
+        public decimal TotalAmount { get; set; } 
+        public decimal RemainingAmount { get; set; }
+        public string Status { get; set; } = "PENDING";
+    }
+}

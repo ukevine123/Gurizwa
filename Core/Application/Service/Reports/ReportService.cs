@@ -60,5 +60,7 @@ namespace Application.Service.Reports
         public async Task<List<CustomerPortfolioReportDTO>> GetCustomerPortfolioReportAsync() => await _reportRepository.GetCustomerPortfolioReportAsync();
         public async Task<List<ApplicationStatusReportDTO>> GetApplicationStatusReportAsync() => await _reportRepository.GetApplicationStatusReportAsync();
         public async Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync() => await _reportRepository.GetCustomerRiskProfileReportAsync();
+        
+        public async Task<List<LoanProductTrackerDTO>> GetLoanProductTrackerAsync() => await _reportRepository.GetLoanProductTrackerAsync();
     }
 }

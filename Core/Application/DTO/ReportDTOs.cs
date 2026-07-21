@@ -199,5 +199,78 @@ namespace Application.DTO
         
         // Net
         public decimal NetIncome => GrossIncome - TotalDeductions;
+
+        // Details
+        public List<InterestIncomeDetailDTO> InterestDetails { get; set; } = new();
+        public List<ProcessingFeeDetailDTO> ProcessingFeeDetails { get; set; } = new();
+        public List<PenaltyIncomeDetailDTO> PenaltyDetails { get; set; } = new();
+        public List<OperatingExpenseDetailDTO> OperatingExpenseDetails { get; set; } = new();
+        public List<WaiverDetailDTO> WaiverDetails { get; set; } = new();
+    }
+
+    public class InterestIncomeDetailDTO
+    {
+        public string NameOfInterest { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string AccountReceiver { get; set; } = string.Empty;
+        public DateTime DateOfInterest { get; set; }
+    }
+
+    public class ProcessingFeeDetailDTO
+    {
+        public string LoanApplicationCode { get; set; } = string.Empty;
+        public DateTime PaymentDate { get; set; }
+        public decimal Amount { get; set; }
+        public string AccountReceiver { get; set; } = string.Empty;
+    }
+
+    public class PenaltyIncomeDetailDTO
+    {
+        public string LoanApplicationCode { get; set; } = string.Empty;
+        public DateTime PaymentDate { get; set; }
+        public decimal Amount { get; set; }
+        public string Reason { get; set; } = string.Empty;
+    }
+
+    public class OperatingExpenseDetailDTO
+    {
+        public string ExpenseName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public DateTime ExpenseDate { get; set; }
+        public string AccountFunding { get; set; } = string.Empty;
+    }
+
+    public class WaiverDetailDTO
+    {
+        public string LoanApplicationCode { get; set; } = string.Empty;
+        public decimal AmountWaived { get; set; }
+        public string WaiverType { get; set; } = string.Empty;
+        public DateTime WaivingDate { get; set; }
+    }
+
+    public class LoanProductTrackerDTO
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public decimal InterestRate { get; set; }
+        public decimal ProcessingFee { get; set; }
+        public decimal PenaltyRate { get; set; }
+        public int NumberOfAppliedBorrowers { get; set; }
+        public decimal TotalInterestEarned { get; set; }
+        public decimal TotalLosses { get; set; }
+        public decimal TotalWaived { get; set; }
+        public int TotalRescheduled { get; set; }
+        public List<ProductBorrowerDTO> Borrowers { get; set; } = new();
+    }
+
+    public class ProductBorrowerDTO
+    {
+        public int BorrowerId { get; set; }
+        public int LoanId { get; set; }
+        public string BorrowerName { get; set; } = string.Empty;
+        public string ApplicationCode { get; set; } = string.Empty;
+        public string LoanStatus { get; set; } = string.Empty;
+        public decimal PrincipalBalance { get; set; }
+        public DateTime ApplicationDate { get; set; }
     }
 }

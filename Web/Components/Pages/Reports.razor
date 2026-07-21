@@ -9,6 +9,8 @@
 @inject IIdentity IdentityService
 @inject IExportService ExportService
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Reports and Analytics</PageTitle>
 
@@ -204,6 +206,18 @@
                 </div>
             </div>
         </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("LoanProductTracker")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-blue">
+                        <MudIcon Icon="@Icons.Material.Filled.Inventory" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                </div>
+                <div class="rc-title">Loan Product Tracker</div>
+                <div class="rc-desc">Track performance and losses per product</div>
+                <div class="rc-meta">Live updates</div>
+            </div>
+        </MudItem>
     </MudGrid>
 
     <style>
@@ -301,6 +315,11 @@
                 <PropertyColumn Property="x => x.TenureMonths" Title="Tenure (Months)" />
                 <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="yyyy-MM-dd" />
                 <PropertyColumn Property="x => x.EndDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenActiveLoanDetails(context.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
             <PagerContent>
                 <MudDataGridPager T="ActiveLoanSummaryDTO" />
@@ -337,6 +356,11 @@
                 <PropertyColumn Property="x => x.Branch" Title="Branch" />
                 <PropertyColumn Property="x => x.Officer" Title="Officer" />
                 <PropertyColumn Property="x => x.DisbursementDate" Title="Date" Format="yyyy-MM-dd" />
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(context.Item.LoanId, context.Item.BorrowerName, context.Item.AmountDisbursed, context.Item.ApplicationCode))" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
             <PagerContent>
                 <MudDataGridPager T="LoanDisbursementReportDTO" />
@@ -368,6 +392,11 @@
                 <TemplateColumn Title="Status">
                     <CellTemplate>
                         <MudChip T="string" Color="@(context.Item.Status == "Matured" ? MudBlazor.Color.Error : MudBlazor.Color.Info)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(context.Item.LoanId, context.Item.BorrowerName, context.Item.RemainingBalance, context.Item.ApplicationCode))" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -542,6 +571,11 @@
                 <PropertyColumn Property="x => x.DueDate" Title="Next Due" Format="yyyy-MM-dd" />
                 <PropertyColumn Property="x => x.InstallmentAmount" Title="Amount Due" Format="N2" />
                 <PropertyColumn Property="x => x.Balance" Title="Remaining Bal" Format="N2" />
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(context.Item.LoanId, context.Item.BorrowerName, context.Item.Balance, context.Item.ApplicationCode))" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
             <PagerContent>
                 <MudDataGridPager T="RepaymentScheduleReportDTO" />
@@ -562,6 +596,11 @@
                         <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
                         <PropertyColumn Property="x => x.DueDate" Title="Due Date" Format="yyyy-MM-dd" />
                         <PropertyColumn Property="x => x.InstallmentAmount" Title="Installment Amount" Format="N2" />
+                        <TemplateColumn Title="Action">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(context.Item.LoanId, context.Item.BorrowerName, context.Item.Balance, context.Item.ApplicationCode))" />
+                            </CellTemplate>
+                        </TemplateColumn>
                     </Columns>
                     <PagerContent>
                         <MudDataGridPager T="RepaymentScheduleReportDTO" />
@@ -579,6 +618,11 @@
                         <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
                         <PropertyColumn Property="x => x.DueDate" Title="Due Date" Format="yyyy-MM-dd" />
                         <PropertyColumn Property="x => x.InstallmentAmount" Title="Installment Amount" Format="N2" />
+                        <TemplateColumn Title="Action">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(context.Item.LoanId, context.Item.BorrowerName, context.Item.Balance, context.Item.ApplicationCode))" />
+                            </CellTemplate>
+                        </TemplateColumn>
                     </Columns>
                     <PagerContent>
                         <MudDataGridPager T="RepaymentScheduleReportDTO" />
@@ -601,6 +645,11 @@
                 <PropertyColumn Property="x => x.DaysPastDue" Title="Days Past Due" />
                 <PropertyColumn Property="x => x.OverdueAmount" Title="Overdue Amount" Format="N2" />
                 <PropertyColumn Property="x => x.RiskCategory" Title="Risk Level" />
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(context.Item.LoanId, context.Item.BorrowerName, context.Item.OutstandingBalance, context.Item.ApplicationCode))" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
             <PagerContent>
                 <MudDataGridPager T="OverdueReportDTO" />
@@ -621,6 +670,11 @@
                 <PropertyColumn Property="x => x.ClosedLoans" Title="Closed Loans" />
                 <PropertyColumn Property="x => x.TotalOutstanding" Title="Total Outstanding" Format="N2" />
                 <PropertyColumn Property="x => x.TotalPaid" Title="Total Paid" Format="N2" />
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenCustomerPortfolioDetails(context.Item.BorrowerId))" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
             <PagerContent>
                 <MudDataGridPager T="CustomerPortfolioReportDTO" />
@@ -643,6 +697,11 @@
                 <TemplateColumn Title="Status">
                     <CellTemplate>
                         <MudChip T="string" Color="@(context.Item.Status == "Approved" ? MudBlazor.Color.Success : context.Item.Status == "Rejected" ? MudBlazor.Color.Error : MudBlazor.Color.Warning)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Action">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => NavigateToApplication(context.Item.ApplicationId))" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -693,6 +752,11 @@
                                 <MudText Typo="Typo.subtitle1"><b>@_incomeStatement.GrossIncome.ToString("N2")</b></MudText>
                             </div>
                         </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick="@(() => _showIncomeStatementDetails = !_showIncomeStatementDetails)">
+                                @(_showIncomeStatementDetails ? "Hide Details" : "View Details")
+                            </MudButton>
+                        </MudCardActions>
                     </MudCard>
                 </MudItem>
                 
@@ -718,6 +782,11 @@
                                 <MudText Typo="Typo.subtitle1"><b>@_incomeStatement.TotalDeductions.ToString("N2")</b></MudText>
                             </div>
                         </MudCardContent>
+                        <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Error" OnClick="@(() => _showIncomeStatementDetails = !_showIncomeStatementDetails)">
+                                @(_showIncomeStatementDetails ? "Hide Details" : "View Details")
+                            </MudButton>
+                        </MudCardActions>
                     </MudCard>
                 </MudItem>
                 
@@ -729,8 +798,123 @@
                         <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">For the period @_incomeStatement.StartDate.ToString("yyyy-MM-dd") to @_incomeStatement.EndDate.ToString("yyyy-MM-dd")</MudText>
                     </MudPaper>
                 </MudItem>
+
+                @if (_showIncomeStatementDetails)
+                {
+                    <MudItem xs="12">
+                        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                            <MudTabPanel Text="Interest Income">
+                                <MudDataGrid Items="@_incomeStatement.InterestDetails" Dense="true" Hover="true">
+                                    <Columns>
+                                        <PropertyColumn Property="x => x.NameOfInterest" Title="Name of Interest" />
+                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                                        <PropertyColumn Property="x => x.AccountReceiver" Title="Account Receiver" />
+                                        <PropertyColumn Property="x => x.DateOfInterest" Title="Date" Format="yyyy-MM-dd" />
+                                    </Columns>
+                                </MudDataGrid>
+                            </MudTabPanel>
+                            <MudTabPanel Text="Processing Fees">
+                                <MudDataGrid Items="@_incomeStatement.ProcessingFeeDetails" Dense="true" Hover="true">
+                                    <Columns>
+                                        <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
+                                        <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="yyyy-MM-dd" />
+                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                                        <PropertyColumn Property="x => x.AccountReceiver" Title="Account Receiver" />
+                                    </Columns>
+                                </MudDataGrid>
+                            </MudTabPanel>
+                            <MudTabPanel Text="Penalty Income">
+                                <MudDataGrid Items="@_incomeStatement.PenaltyDetails" Dense="true" Hover="true">
+                                    <Columns>
+                                        <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
+                                        <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="yyyy-MM-dd" />
+                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                                        <PropertyColumn Property="x => x.Reason" Title="Reason" />
+                                    </Columns>
+                                </MudDataGrid>
+                            </MudTabPanel>
+                            <MudTabPanel Text="Operating Expenses">
+                                <MudDataGrid Items="@_incomeStatement.OperatingExpenseDetails" Dense="true" Hover="true">
+                                    <Columns>
+                                        <PropertyColumn Property="x => x.ExpenseName" Title="Expense Name" />
+                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                                        <PropertyColumn Property="x => x.ExpenseDate" Title="Expense Date" Format="yyyy-MM-dd" />
+                                        <PropertyColumn Property="x => x.AccountFunding" Title="Account Funding" />
+                                    </Columns>
+                                </MudDataGrid>
+                            </MudTabPanel>
+                            <MudTabPanel Text="Waivers & Write-Offs">
+                                <MudDataGrid Items="@_incomeStatement.WaiverDetails" Dense="true" Hover="true">
+                                    <Columns>
+                                        <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
+                                        <PropertyColumn Property="x => x.AmountWaived" Title="Amount Waived" Format="N2" />
+                                        <PropertyColumn Property="x => x.WaiverType" Title="Waiver Type" />
+                                        <PropertyColumn Property="x => x.WaivingDate" Title="Waiving Date" Format="yyyy-MM-dd" />
+                                    </Columns>
+                                </MudDataGrid>
+                            </MudTabPanel>
+                        </MudTabs>
+                    </MudItem>
+                }
             </MudGrid>
         }
+    }
+    else if (_activeReport == "LoanProductTracker")
+    {
+        <MudDataGrid Items="@_loanProductTrackers" Hover="true" Striped="true" Class="mt-4">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Loan Product Tracker</MudText>
+            </ToolBarContent>
+            <Columns>
+                <HierarchyColumn T="LoanProductTrackerDTO" />
+                <PropertyColumn Property="x => x.ProductName" Title="Product Name" />
+                <PropertyColumn Property="x => x.InterestRate" Title="Interest Rate (%)" Format="N2" />
+                <PropertyColumn Property="x => x.ProcessingFee" Title="Processing Fee" Format="N2" />
+                <PropertyColumn Property="x => x.PenaltyRate" Title="Penalty Rate (%)" Format="N2" />
+                <PropertyColumn Property="x => x.NumberOfAppliedBorrowers" Title="Applied Borrowers" />
+                <PropertyColumn Property="x => x.TotalInterestEarned" Title="Total Interest Earned" Format="N2" />
+                <PropertyColumn Property="x => x.TotalLosses" Title="Total Losses" Format="N2" />
+                <PropertyColumn Property="x => x.TotalWaived" Title="Total Waived" Format="N2" />
+                <PropertyColumn Property="x => x.TotalRescheduled" Title="Total Rescheduled" />
+            </Columns>
+            <ChildRowContent>
+                <MudCard Elevation="0" Class="pa-4 ml-6" Style="background-color: var(--mud-palette-background-grey);">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">Borrowers using @context.Item.ProductName</MudText>
+                    @if (context.Item.Borrowers.Any())
+                    {
+                        <MudTable Items="@context.Item.Borrowers" Dense="true" Hover="true" Elevation="1">
+                            <HeaderContent>
+                                <MudTh>Application Date</MudTh>
+                                <MudTh>Borrower Name</MudTh>
+                                <MudTh>Application Code</MudTh>
+                                <MudTh>Loan Status</MudTh>
+                                <MudTh>Principal Balance</MudTh>
+                                <MudTh>Action</MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="borrowerCtx">
+                                <MudTd DataLabel="Application Date">@borrowerCtx.ApplicationDate.ToString("yyyy-MM-dd")</MudTd>
+                                <MudTd DataLabel="Borrower Name">@borrowerCtx.BorrowerName</MudTd>
+                                <MudTd DataLabel="Application Code">@borrowerCtx.ApplicationCode</MudTd>
+                                <MudTd DataLabel="Loan Status">
+                                    <MudChip T="string" Color="@(borrowerCtx.LoanStatus == "Active" || borrowerCtx.LoanStatus == "Disbursed" ? MudBlazor.Color.Success : MudBlazor.Color.Warning)" Size="MudBlazor.Size.Small">@borrowerCtx.LoanStatus</MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Principal Balance">@borrowerCtx.PrincipalBalance.ToString("N2")</MudTd>
+                                <MudTd DataLabel="Action">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenLoanDetails(borrowerCtx.LoanId, borrowerCtx.BorrowerName, borrowerCtx.PrincipalBalance, borrowerCtx.ApplicationCode))" />
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">No borrowers have applied for this product yet.</MudText>
+                    }
+                </MudCard>
+            </ChildRowContent>
+            <PagerContent>
+                <MudDataGridPager T="LoanProductTrackerDTO" />
+            </PagerContent>
+        </MudDataGrid>
     }
 
 </MudContainer>
@@ -864,6 +1048,8 @@
     private List<OverdueReportDTO> _overdues = new();
     private List<CustomerPortfolioReportDTO> _customerPortfolios = new();
     private List<ApplicationStatusReportDTO> _applicationStatuses = new();
+    private List<LoanProductTrackerDTO> _loanProductTrackers = new();
+    private bool _showIncomeStatementDetails = false;
 
     private string _activeLoanSearch = "";
     private string _disbursementSearch = "";
@@ -911,12 +1097,59 @@
         try { _overdues = await ReportService.GetOverdueReportAsync(); } catch { }
         try { _customerPortfolios = await ReportService.GetCustomerPortfolioReportAsync(); } catch { }
         try { _applicationStatuses = await ReportService.GetApplicationStatusReportAsync(); } catch { }
+        try { _loanProductTrackers = await ReportService.GetLoanProductTrackerAsync(); } catch { }
     }
 
     private async Task LoadActiveLoans()
     {
-        try { _activeLoans = await ReportService.GetActiveLoansSummaryAsync(); }
+        try 
+        { 
+            var loans = await ReportService.GetActiveLoansSummaryAsync();
+            _activeLoans = loans.Where(l => l.PrincipalBalance > 0).ToList();
+        }
         catch (Exception ex) { Snackbar.Add($"Error loading active loans: {ex.Message}", Severity.Error); }
+    }
+
+    private async Task OpenActiveLoanDetails(ActiveLoanSummaryDTO loan)
+    {
+        var parameters = new DialogParameters
+        {
+            ["LoanId"] = loan.LoanId,
+            ["LoanSummary"] = loan
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<ActiveLoanDetailDialog>($"Loan Details - {loan.ApplicationCode}", parameters, options);
+    }
+
+    private async Task OpenLoanDetails(int loanId, string borrowerName, decimal principalBalance, string applicationCode)
+    {
+        var summary = new ActiveLoanSummaryDTO 
+        {
+            LoanId = loanId,
+            BorrowerName = borrowerName,
+            PrincipalBalance = principalBalance,
+            ApplicationCode = applicationCode
+        };
+
+        var parameters = new DialogParameters
+        {
+            ["LoanId"] = loanId,
+            ["LoanSummary"] = summary
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<ActiveLoanDetailDialog>($"Loan Details - {applicationCode}", parameters, options);
+    }
+
+    private async Task OpenCustomerPortfolioDetails(int borrowerId)
+    {
+        var parameters = new DialogParameters { ["BorrowerId"] = borrowerId };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<CustomerPortfolioDetailDialog>("Customer Portfolio Details", parameters, options);
+    }
+
+    private void NavigateToApplication(int applicationId)
+    {
+        NavigationManager.NavigateTo($"/loan-details/{applicationId}");
     }
 
     private async Task LoadDisbursementReport()

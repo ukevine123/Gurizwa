@@ -33,5 +33,8 @@ namespace Application.Interfaces
         Task<List<CustomerPortfolioReportDTO>> GetCustomerPortfolioReportAsync();
         Task<List<ApplicationStatusReportDTO>> GetApplicationStatusReportAsync();
         Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync();
+        
+        // Loan Products
+        Task<List<LoanProductTrackerDTO>> GetLoanProductTrackerAsync();
     }
 }
