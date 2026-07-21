@@ -475,6 +475,30 @@ namespace Infrastructure.Identity
             }
         }
 
+        public async Task ChangePasswordAsync(int userId, ChangePasswordDTO dto)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                    throw new InvalidOperationException("User not found.");
+
+                var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new InvalidOperationException($"Failed to change password: {errors}");
+                }
+
+                Console.WriteLine($"[ChangePassword] Password for user {userId} changed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ChangePassword] Error: {ex.Message}");
+                throw;
+            }
+        }
+
         // ═══════════════════════════════════════════════
         //  TENANT ACCOUNT SETUP
         // ═══════════════════════════════════════════════

@@ -34,7 +34,7 @@
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle1"
                              Style="color:white; font-weight:700; line-height:1.2;">
-                        Create LoanProductSetting
+                        Create Loan product setting
                     </MudText>
 
                     <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
@@ -84,7 +84,7 @@
                         </MudSelect>
                     </MudItem>
                 <MudItem  xs="6">
-                <MudTextField Label="InterestRate"
+                <MudTextField Label="Interest Rate (%)"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               AdornmentText="%"
@@ -92,7 +92,7 @@
                               For="@(() => Model.InterestRate)" />
                 </MudItem>
                 <MudItem  xs="6">
-                <MudTextField Label="ProcessingFee"
+                <MudTextField Label="Processing Fee (%)"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.ProcessingFee"
@@ -100,7 +100,7 @@
                
                 </MudItem>
                 <MudItem  xs="6">
-                <MudTextField Label="GracePeriodDays"
+                <MudTextField Label="Grace Period Days"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.GracePeriodDays"
@@ -108,7 +108,7 @@
                
                 </MudItem>
                  <MudItem  xs="6">
-                <MudTextField Label="PenalityRate"
+                <MudTextField Label="Penalty Rate (%)"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.PenalityRate"

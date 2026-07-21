@@ -38,14 +38,7 @@
         <ToolBarContent>
             <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight: bold;">Penalties List</MudText>
             <MudSpacer />
-            <MudMenu Label="Add Penalty" 
-                     Variant="Variant.Filled" 
-                     EndIcon="@Icons.Material.Filled.KeyboardArrowDown" 
-                     Color="Color.Primary"
-                     Class="rounded-lg">
-                <MudMenuItem Icon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreatePenality())">Add</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.ImportExport">Print</MudMenuItem>
-            </MudMenu>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => GoToCreatePenality())">Add Penalty</MudButton>
         </ToolBarContent>
 
         <Columns>

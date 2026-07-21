@@ -13,6 +13,7 @@ namespace Application.Interfaces
             Task<bool> LoginAsync(LoginDTO dto);
             Task LogoutAsync();
             Task ApproveUserAsync(int userId);
+            Task ChangePasswordAsync(int userId, ChangePasswordDTO dto);
             
             Task RegisterSubUser(RegisterUserDTO dto, int parentPersonId);
             Task<List<UserDetailDTO>> GetSubUsers(int parentPersonId);

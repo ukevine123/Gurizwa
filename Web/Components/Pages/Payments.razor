@@ -57,7 +57,16 @@
         <MudPaper Elevation="0" Class="pa-5 mb-6 rounded-xl border">
             <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559; margin-bottom: 16px;">
                 <MudIcon Icon="@Icons.Material.Filled.Schedule" Style="margin-right: 8px;" />
-                Loan Amortization Schedule (Searched)
+                Loan Amortization Schedule
+                @if (SearchedDisbursement?.LoanApplication != null)
+                {
+                    <span style="font-weight: 500; font-size: 0.85em; color: #6b7280; margin-left: 8px;">
+                        - @(!string.IsNullOrEmpty(SearchedDisbursement.LoanApplication.Borrower?.CompanyName) 
+                            ? SearchedDisbursement.LoanApplication.Borrower.CompanyName 
+                            : $"{SearchedDisbursement.LoanApplication.Borrower?.FirstName} {SearchedDisbursement.LoanApplication.Borrower?.LastName}") 
+                        (@SearchedDisbursement.LoanApplication.ApplicationCode)
+                    </span>
+                }
             </MudText>
 
             @if (SearchedDisbursement != null && _amortizationSchedule.Count > 0)

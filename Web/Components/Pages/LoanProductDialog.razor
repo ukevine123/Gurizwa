@@ -31,11 +31,11 @@
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.subtitle1"
                              Style="color:white; font-weight:700; line-height:1.2;">
-                        Create LoanProduct
+                        Create Loan Product
                     </MudText>
 
                     <MudText Typo="Typo.caption" Style="color:rgba(255,255,255,0.80);">
-                        Fill the form below to create a new LoanProduct
+                        Fill the form below to create a new Loan Product
                     </MudText>
                 </MudStack>
 
@@ -59,14 +59,14 @@
                 <MudGrid Spacing="1" Class="align-items-center">
                     
                 <MudItem  xs="6">
-                <MudTextField Label="ProductName"
+                <MudTextField Label="Product Name"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               @bind-Value="Model.ProductName"
                               For="@(() => Model.ProductName)" />
                 </MudItem>
                 @* <MudItem  xs="6">
-                <MudTextField Label="InterestRate"
+                <MudTextField Label="Interest Rate"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
                               AdornmentText="%"
@@ -77,6 +77,10 @@
                 <MudTextField Label="Description"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
+                              AutoGrow
+                              MaxLength="250"
+                              Counter="250"
+                              Immediate="true"
                               @bind-Value="Model.Description"
                               For="@(() => Model.Description)" />
                
@@ -89,7 +93,7 @@
                         FullWidth="true"
                         ButtonType="ButtonType.Submit"
                         Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px;">
-                    Add LoanProduct
+                    Add Loan product
                 </MudButton>
                 </MudItem>
 
