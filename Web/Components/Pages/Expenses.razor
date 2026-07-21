@@ -100,7 +100,7 @@
 
     private async Task LoadExpenses()
     {
-        _expenses = await ExpenseService.GetAllAsync();
+        _expenses = (await ExpenseService.GetAllAsync()).OrderByDescending(x => x.Id).ToList();
         StateHasChanged();
     }
 }

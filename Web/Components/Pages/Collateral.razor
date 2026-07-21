@@ -79,7 +79,7 @@
     private async Task LoadData()
     {
         // This calls your Repository.GetAllCollateralsAsync()
-        _collateralList = await CollateralService.GetAllCollateralsAsync();
+        _collateralList = (await CollateralService.GetAllCollateralsAsync()).OrderByDescending(x => x.Id).ToList();
         StateHasChanged();
     }
 

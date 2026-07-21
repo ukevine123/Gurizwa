@@ -541,6 +541,8 @@ namespace Infrastructure.Repositories
                 int closedLoans = 0;
                 decimal outstanding = 0;
                 decimal paid = 0;
+                int defaultedLoans = 0;
+                decimal defaultedAmount = 0;
 
                 foreach (var d in group)
                 {
@@ -552,6 +554,12 @@ namespace Infrastructure.Repositories
                         {
                             activeLoans++;
                             outstanding += balance;
+
+                            if (d.EndDate < DateTime.Now)
+                            {
+                                defaultedLoans++;
+                                defaultedAmount += balance;
+                            }
                         }
                         else
                         {
@@ -568,7 +576,9 @@ namespace Infrastructure.Repositories
                     ActiveLoans = activeLoans,
                     ClosedLoans = closedLoans,
                     TotalOutstanding = outstanding,
-                    TotalPaid = paid
+                    TotalPaid = paid,
+                    DefaultedLoans = defaultedLoans,
+                    DefaultedAmount = defaultedAmount
                 });
             }
             return portfolio;

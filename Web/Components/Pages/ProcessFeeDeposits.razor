@@ -95,7 +95,7 @@
     }
      private async Task LoadProcessFeeDeposits()
     {
-        _processFeeDeposits = await ProcessFeeDepositService.GetAllProcessFeeDepositsAsync();
+        _processFeeDeposits = (await ProcessFeeDepositService.GetAllProcessFeeDepositsAsync()).OrderByDescending(x => x.Id).ToList();
         StateHasChanged();
     }
         private Color GetStatusColor(LoanStatus status)

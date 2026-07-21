@@ -184,7 +184,7 @@
     }
      private async Task LoadGuarantor()
     {
-        _guarantor = await GuarantorService.GetAllGuarantorsAsync();
+        _guarantor = (await GuarantorService.GetAllGuarantorsAsync()).OrderByDescending(x => x.Id).ToList();
         
         // Calculate guarantor type counts
         _guarantorTypeCounts = _guarantor

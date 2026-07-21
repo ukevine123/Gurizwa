@@ -137,7 +137,7 @@
     }
      private async Task LoadAccount()
     {
-        _accounts = await AccountService.GetAllAccountsAsync();
+        _accounts = (await AccountService.GetAllAccountsAsync()).OrderByDescending(x => x.Id).ToList();
         
         // Calculate totals by account type
         _accountTypeTotals = _accounts

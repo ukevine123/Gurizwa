@@ -214,7 +214,7 @@
     }
      private async Task LoadLoanApplication()
     {
-        _loanApplication = await LoanApplicationService.GetAllLoanApplicationsAsync();
+        _loanApplication = (await LoanApplicationService.GetAllLoanApplicationsAsync()).OrderByDescending(x => x.Id).ToList();
         
         // Calculate status counts
         _statusCounts = _loanApplication

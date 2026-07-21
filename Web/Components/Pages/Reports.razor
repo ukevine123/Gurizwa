@@ -667,28 +667,58 @@
     }
     else if (_activeReport == "CustomerPortfolios")
     {
-        <MudDataGrid T="CustomerPortfolioReportDTO" Items="@_customerPortfolios" Hover="true" Striped="true" QuickFilter="@_customerFilter" Class="mt-4">
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">Customer Portfolios</MudText>
-                <MudSpacer />
-                <MudTextField @bind-Value="_customerSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
-            </ToolBarContent>
-            <Columns>
-                <PropertyColumn Property="x => x.BorrowerName" Title="Customer" />
-                <PropertyColumn Property="x => x.ActiveLoans" Title="Active Loans" />
-                <PropertyColumn Property="x => x.ClosedLoans" Title="Closed Loans" />
-                <PropertyColumn Property="x => x.TotalOutstanding" Title="Total Outstanding" Format="N2" />
-                <PropertyColumn Property="x => x.TotalPaid" Title="Total Paid" Format="N2" />
-                <TemplateColumn Title="Action">
-                    <CellTemplate>
-                        <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenCustomerPortfolioDetails(context.Item.BorrowerId))" />
-                    </CellTemplate>
-                </TemplateColumn>
-            </Columns>
-            <PagerContent>
-                <MudDataGridPager T="CustomerPortfolioReportDTO" />
-            </PagerContent>
-        </MudDataGrid>
+        <MudTabs Elevation="0" Rounded="true" Centered="true" Class="mt-4" Color="Color.Transparent" ActiveTabClass="mud-theme-primary">
+            <MudTabPanel Text="All Portfolios">
+                <MudDataGrid T="CustomerPortfolioReportDTO" Items="@_customerPortfolios" Hover="true" Striped="true" QuickFilter="@_customerFilter" Class="mt-4">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Customer Portfolios</MudText>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="_customerSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Property="x => x.BorrowerName" Title="Customer" />
+                        <PropertyColumn Property="x => x.ActiveLoans" Title="Active Loans" />
+                        <PropertyColumn Property="x => x.ClosedLoans" Title="Closed Loans" />
+                        <PropertyColumn Property="x => x.TotalOutstanding" Title="Total Outstanding" Format="N2" />
+                        <PropertyColumn Property="x => x.TotalPaid" Title="Total Paid" Format="N2" />
+                        <TemplateColumn Title="Action">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenCustomerPortfolioDetails(context.Item.BorrowerId))" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="CustomerPortfolioReportDTO" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+            <MudTabPanel Text="Defaulters">
+                <MudDataGrid T="CustomerPortfolioReportDTO" Items="@_customerPortfolios.Where(p => p.DefaultedLoans > 0)" Hover="true" Striped="true" QuickFilter="@_customerFilter" Class="mt-4">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Defaulters Details</MudText>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="_customerSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+                    </ToolBarContent>
+                    <Columns>
+                        <PropertyColumn Property="x => x.BorrowerName" Title="Customer" />
+                        <PropertyColumn Property="x => x.ActiveLoans" Title="Active Loans" />
+                        <PropertyColumn Property="x => x.ClosedLoans" Title="Closed Loans" />
+                        <PropertyColumn Property="x => x.TotalOutstanding" Title="Total Outstanding" Format="N2" />
+                        <PropertyColumn Property="x => x.TotalPaid" Title="Total Paid" Format="N2" />
+                        <PropertyColumn Property="x => x.DefaultedLoans" Title="Defaulted Loans" />
+                        <PropertyColumn Property="x => x.DefaultedAmount" Title="Defaulted Amount" Format="N2" />
+                        <TemplateColumn Title="Action">
+                            <CellTemplate>
+                                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OpenCustomerPortfolioDetails(context.Item.BorrowerId))" />
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="CustomerPortfolioReportDTO" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+        </MudTabs>
     }
     else if (_activeReport == "ApplicationStatuses")
     {

@@ -122,7 +122,7 @@
     private async Task LoadDisbursements()
     {
         // IMPORTANT: We use GetAllDisbursementsAsync so finished loans remain in the history grid.
-        _disbursements = await DisbursementService.GetAllDisbursementsAsync();
+        _disbursements = (await DisbursementService.GetAllDisbursementsAsync()).OrderByDescending(x => x.Id).ToList();
         StateHasChanged();
     }
 

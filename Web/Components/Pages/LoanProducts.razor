@@ -106,7 +106,7 @@
 
     private async Task LoadLoanProduct()
     {
-        _loanProducts = await LoanProductService.GetAllLoanProductsAsync();
+        _loanProducts = (await LoanProductService.GetAllLoanProductsAsync()).OrderByDescending(x => x.Id).ToList();
         StateHasChanged();
     }
 

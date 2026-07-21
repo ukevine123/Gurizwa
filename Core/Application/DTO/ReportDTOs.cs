@@ -160,6 +160,8 @@ namespace Application.DTO
         public int ClosedLoans { get; set; }
         public decimal TotalOutstanding { get; set; }
         public decimal TotalPaid { get; set; }
+        public int DefaultedLoans { get; set; }
+        public decimal DefaultedAmount { get; set; }
     }
 
     public class ApplicationStatusReportDTO

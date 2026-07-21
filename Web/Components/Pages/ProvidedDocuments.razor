@@ -174,7 +174,7 @@
 
     private async Task LoadDocument()
     {
-        var rawDocs = await ProvidedDocumentService.GetAllProvidedDocumentAsync();
+        var rawDocs = (await ProvidedDocumentService.GetAllProvidedDocumentAsync()).OrderByDescending(x => x.Id).ToList();
         
         _appGroups = rawDocs
             .GroupBy(d => d.LoanApplicationId)

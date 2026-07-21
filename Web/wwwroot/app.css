@@ -75,4 +75,20 @@ h1:focus {
 .app-main-body {
     flex: 1 1 auto;
     padding: 1.35rem 0.1rem 2.0rem;
+}
+
+/* --- GLOBAL TABLE SCROLLING --- */
+/* Restrict table height to viewport and enable vertical scrolling */
+.mud-table-container {
+    max-height: calc(100vh - 420px);
+    overflow-y: auto;
+}
+
+/* Ensure the table headers remain sticky at the top when scrolling down */
+.mud-table-container .mud-table-head th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--mud-palette-surface);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Adds a subtle shadow under the sticky header */
 }

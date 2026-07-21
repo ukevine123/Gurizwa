@@ -82,7 +82,7 @@
 
     private async Task LoadPenalties()
     {
-        _penalties = await PenalityService.GetAllPenalitiesAsync();
+        _penalties = (await PenalityService.GetAllPenalitiesAsync()).OrderByDescending(x => x.Id).ToList();
         StateHasChanged();
     }
 
