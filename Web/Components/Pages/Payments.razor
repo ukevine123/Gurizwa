@@ -8,138 +8,184 @@
 @inject IDialogService DialogService
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-<MudGrid Class="mb-4" Spacing="2">
-
-        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
-            <MudButton StartIcon="@Icons.Material.Filled.FilterList" Variant="Variant.Text">Filter</MudButton>
-            <MudButton StartIcon="@Icons.Material.Filled.Sort" Variant="Variant.Text">Sort by</MudButton>
-        </MudItem>
-    </MudGrid>
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
         <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Primary" Size="Size.Large" />
-        <MudText Typo="Typo.h5" Style="font-weight: 800;">Transaction History</MudText>
+        <MudText Typo="Typo.h5" Style="font-weight: 800;">Payments Dashboard</MudText>
         <MudSpacer />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="GoToCreatePayment" 
-                   StartIcon="@Icons.Material.Filled.Add" Class="rounded-lg">New Payment</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => _showFilters = !_showFilters)"
+                   StartIcon="@Icons.Material.Filled.FilterList" Class="rounded-lg mr-2">Filters</MudButton>
     </MudStack>
 
-    <!-- AMORTIZATION SCHEDULE SECTION -->
-    <MudPaper Elevation="0" Class="pa-5 mb-6 rounded-xl border">
+    <!-- SEARCH AND FILTERS -->
+    @if (_showFilters)
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-6 rounded-xl border">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField @bind-Value="SearchAppCode" Label="Application Code" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                  Clearable="true" Immediate="true" OnKeyUp="OnSearchChanged" 
+                                  AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudTextField @bind-Value="SearchBorrower" Label="Borrower / Business" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                  Clearable="true" Immediate="true" OnKeyUp="OnSearchChanged"
+                                  AdornmentIcon="@Icons.Material.Filled.PersonSearch" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudSelect T="string" Label="Payment Status" @bind-Value="SearchPaymentStatus"
+                               Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" SelectedValuesChanged="OnSearchChangedSelect">
+                        <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                        <MudSelectItem Value="@("Partial")">Partial</MudSelectItem>
+                        <MudSelectItem Value="@("Paid")">Paid</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudDateRangePicker @bind-DateRange="SearchDateRange" Label="Payment Date" Variant="Variant.Outlined" Margin="Margin.Dense" 
+                                        Clearable="true" PickerClosed="OnSearchChanged" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+
+    @{
+        bool isLoanSearched = !string.IsNullOrWhiteSpace(SearchAppCode) || !string.IsNullOrWhiteSpace(SearchBorrower);
+    }
+
+    <!-- AMORTIZATION SCHEDULE SECTION (Visible if loan is searched) -->
+    @if (isLoanSearched)
+    {
+        <MudPaper Elevation="0" Class="pa-5 mb-6 rounded-xl border">
+            <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559; margin-bottom: 16px;">
+                <MudIcon Icon="@Icons.Material.Filled.Schedule" Style="margin-right: 8px;" />
+                Loan Amortization Schedule (Searched)
+            </MudText>
+
+            @if (SearchedDisbursement != null && _amortizationSchedule.Count > 0)
+            {
+                <MudTable Items="@_amortizationSchedule" Hover="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Installment</MudTh>
+                        <MudTh>Due Date</MudTh>
+                        <MudTh>Principal</MudTh>
+                        <MudTh>Interest</MudTh>
+                        <MudTh>Penalty</MudTh>
+                        <MudTh>Scheduled Payment</MudTh>
+                        <MudTh>Amount Paid</MudTh>
+                        <MudTh>Remaining Balance</MudTh>
+                        <MudTh>Status</MudTh>
+                        @if (_amortizationSchedule.Any(x => x.StatusFlag != "PAID"))
+                        {
+                            <MudTh>Action</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            <MudText Typo="Typo.body2" Style="font-weight: 600;">
+                                @context.InstallmentNo
+                            </MudText>
+                        </MudTd>
+                        <MudTd>@context.DueDate.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd>@context.PrincipalScheduled.ToString("N2")</MudTd>
+                        <MudTd>@context.InterestScheduled.ToString("N2")</MudTd>
+                        <MudTd>@context.PenaltyScheduled.ToString("N2")</MudTd>
+                        <MudTd><b>@context.ScheduledPayment.ToString("N2")</b></MudTd>
+                        <MudTd>@context.AmountPaid.ToString("N2")</MudTd>
+                        <MudTd>@context.RemainingBalance.ToString("N2")</MudTd>
+                        <MudTd>
+                            <MudChip T="string" 
+                                     Color="@GetInstallmentStatusColor(context.StatusFlag)" 
+                                     Size="Size.Small" Variant="Variant.Filled">
+                                @context.StatusFlag
+                            </MudChip>
+                        </MudTd>
+                        @if (_amortizationSchedule.Any(x => x.StatusFlag != "PAID"))
+                        {
+                            <MudTd>
+                                @if (context.StatusFlag != "PAID")
+                                {
+                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                               OnClick="@(() => OpenInstallmentPaymentDialog(context))">
+                                        Pay
+                                    </MudButton>
+                                }
+                            </MudTd>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Info">No specific loan matched the search criteria or the loan has no schedule.</MudAlert>
+            }
+        </MudPaper>
+    }
+
+    <!-- PAYMENT HISTORY TABLE (Hidden if loan is searched) -->
+    @if (!isLoanSearched)
+    {
         <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559; margin-bottom: 16px;">
-            <MudIcon Icon="@Icons.Material.Filled.Schedule" Style="margin-right: 8px;" />
-            Loan Amortization Schedule
+            <MudIcon Icon="@Icons.Material.Filled.Receipt" Style="margin-right: 8px;" />
+            Payment Transactions
         </MudText>
 
-        <MudGrid Spacing="2">
-            <MudItem xs="12" sm="6">
-                <MudSelect T="int" Label="Select Loan Disbursement" Value="SelectedDisbursementId"
-                          ValueChanged="OnDisbursementSelected" Variant="Variant.Outlined" Margin="Margin.Dense">
-                    <MudSelectItem T="int" Value="0">-- Select a Loan --</MudSelectItem>
-                    @foreach (var disb in _disbursements)
-                    {
-                        <MudSelectItem T="int" Value="@disb.Id">
-                            @(disb.LoanApplication?.Borrower != null ? (!string.IsNullOrEmpty(disb.LoanApplication.Borrower.CompanyName) ? disb.LoanApplication.Borrower.CompanyName : $"{disb.LoanApplication.Borrower.FirstName} {disb.LoanApplication.Borrower.LastName}") : "") - 
-                            @disb.LoanApplication?.ApplicationCode (Principal: @disb.PrincipalOffered.ToString("N"))
-                        </MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-        </MudGrid>
-
-        @if (SelectedDisbursementId > 0 && _amortizationSchedule.Count > 0)
-        {
-            <MudTable Items="@_amortizationSchedule" Hover="true" Elevation="0" Class="mt-4">
-                <HeaderContent>
-                    <MudTh>Installment</MudTh>
-                    <MudTh>Due Date</MudTh>
-                    <MudTh>Principal</MudTh>
-                    <MudTh>Interest</MudTh>
-                    <MudTh>Penalty</MudTh>
-                    <MudTh>Scheduled Payment</MudTh>
-                    <MudTh>Amount Paid</MudTh>
-                    <MudTh>Remaining Balance</MudTh>
-                    <MudTh>Status</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd>
+        <MudDataGrid T="Payment" Items="@FilteredPayments" Elevation="0" Class="rounded-xl border shadow-sm">
+            <Columns>
+                <TemplateColumn Title="Borrower">
+                    <CellTemplate>
                         <MudText Typo="Typo.body2" Style="font-weight: 600;">
-                            @context.InstallmentNo
+                            @(context.Item.Disbursement?.LoanApplication?.Borrower != null ? (!string.IsNullOrEmpty(context.Item.Disbursement.LoanApplication.Borrower.CompanyName) ? context.Item.Disbursement.LoanApplication.Borrower.CompanyName : $"{context.Item.Disbursement.LoanApplication.Borrower.FirstName} {context.Item.Disbursement.LoanApplication.Borrower.LastName}") : "")
                         </MudText>
-                    </MudTd>
-                    <MudTd>@context.DueDate.ToString("yyyy-MM-dd")</MudTd>
-                    <MudTd>@context.PrincipalScheduled.ToString("N2")</MudTd>
-                    <MudTd>@context.InterestScheduled.ToString("N2")</MudTd>
-                    <MudTd>@context.PenaltyScheduled.ToString("N2")</MudTd>
-                    <MudTd><b>@context.ScheduledPayment.ToString("N2")</b></MudTd>
-                    <MudTd>@context.AmountPaid.ToString("N2")</MudTd>
-                    <MudTd>@context.RemainingBalance.ToString("N2")</MudTd>
-                    <MudTd>
-                        <MudChip T="string" 
-                                 Color="@GetInstallmentStatusColor(context.StatusFlag)" 
-                                 Size="Size.Small" Variant="Variant.Filled">
-                            @context.StatusFlag
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Loan ID">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2">
+                            @context.Item.Disbursement?.LoanApplication?.ApplicationCode
+                        </MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.Amount" Title="Total Amount Paid" Format="n" />
+                <TemplateColumn Title="Amount Remaining">
+                    <CellTemplate>
+                        <MudText Typo="Typo.body2" Style="font-weight: 600; color: #d32f2f;">
+                            @GetRemainingBalance(context.Item)
+                        </MudText>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="yyyy-MM-dd" />
+                <TemplateColumn Title="Account">
+                    <CellTemplate>
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Info">
+                            @context.Item.Account?.Name
                         </MudChip>
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        }
-    </MudPaper>
-
-    <!-- PAYMENT HISTORY TABLE -->
-    <MudText Typo="Typo.h6" Style="font-weight: 700; color: #1B2559; margin-top: 24px; margin-bottom: 16px;">
-        <MudIcon Icon="@Icons.Material.Filled.Receipt" Style="margin-right: 8px;" />
-        Payment Transactions
-    </MudText>
-
-    <MudDataGrid T="Payment" Items="@GetPaymentsWithRemainingBalance()" Elevation="0" Class="rounded-xl border shadow-sm">
-        <Columns>
-            <TemplateColumn Title="Borrower">
-                <CellTemplate>
-                    <MudText Typo="Typo.body2" Style="font-weight: 600;">
-                        @(context.Item.Disbursement?.LoanApplication?.Borrower != null ? (!string.IsNullOrEmpty(context.Item.Disbursement.LoanApplication.Borrower.CompanyName) ? context.Item.Disbursement.LoanApplication.Borrower.CompanyName : $"{context.Item.Disbursement.LoanApplication.Borrower.FirstName} {context.Item.Disbursement.LoanApplication.Borrower.LastName}") : "")
-                    </MudText>
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn Title="Loan ID">
-                <CellTemplate>
-                    <MudText Typo="Typo.body2">
-                        @context.Item.Disbursement?.LoanApplication?.ApplicationCode
-                    </MudText>
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.Amount" Title="Total Amount Paid" Format="n" />
-            <TemplateColumn Title="Amount Remaining">
-                <CellTemplate>
-                    <MudText Typo="Typo.body2" Style="font-weight: 600; color: #d32f2f;">
-                        @GetRemainingBalance(context.Item)
-                    </MudText>
-                </CellTemplate>
-            </TemplateColumn>
-            <PropertyColumn Property="x => x.PaymentDate" Title="Date" Format="yyyy-MM-dd" />
-            <TemplateColumn Title="Account">
-                <CellTemplate>
-                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Info">
-                        @context.Item.Account?.Name
-                    </MudChip>
-                </CellTemplate>
-            </TemplateColumn>
-            <TemplateColumn Title="Status">
-                <CellTemplate>
-                    <MudChip T="string" 
-                             Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
-                             Size="Size.Small" Variant="Variant.Filled">
-                        @(context.Item.IsActive ? "ACTIVE" : "VOID")
-                    </MudChip>
-                </CellTemplate>
-            </TemplateColumn>
-        </Columns>
-    </MudDataGrid>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="Status">
+                    <CellTemplate>
+                        <MudChip T="string" 
+                                 Color="@(context.Item.IsActive ? Color.Success : Color.Error)" 
+                                 Size="Size.Small" Variant="Variant.Filled">
+                            @(context.Item.IsActive ? "ACTIVE" : "VOID")
+                        </MudChip>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+    }
 </MudContainer>
 
 @code {
+    private bool _showFilters = false;
     private List<Payment> _payments = new();
     private List<Disbursement> _disbursements = new();
-    private int SelectedDisbursementId = 0;
+    
+    // Filters
+    private string SearchAppCode = "";
+    private string SearchBorrower = "";
+    private string SearchPaymentStatus = "";
+    private DateRange SearchDateRange = null;
+
+    private Disbursement SearchedDisbursement = null;
     private List<AmortizationRow> _amortizationSchedule = new();
 
     public class AmortizationRow
@@ -171,9 +217,75 @@
         StateHasChanged();
     }
 
-    private List<Payment> GetPaymentsWithRemainingBalance()
+    private void OnSearchChangedSelect(IEnumerable<string> values)
     {
-        return _payments.OrderByDescending(p => p.PaymentDate).ToList();
+        OnSearchChanged();
+    }
+
+    private void OnSearchChanged()
+    {
+        if (!string.IsNullOrWhiteSpace(SearchAppCode) || !string.IsNullOrWhiteSpace(SearchBorrower))
+        {
+            IEnumerable<Disbursement> matchingDisbursements = _disbursements;
+            
+            if (!string.IsNullOrWhiteSpace(SearchAppCode))
+            {
+                matchingDisbursements = matchingDisbursements.Where(d => 
+                    d.LoanApplication != null && d.LoanApplication.ApplicationCode != null && 
+                    d.LoanApplication.ApplicationCode.Contains(SearchAppCode, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrWhiteSpace(SearchBorrower))
+            {
+                matchingDisbursements = matchingDisbursements.Where(d => 
+                    d.LoanApplication != null && d.LoanApplication.Borrower != null && (
+                    (d.LoanApplication.Borrower.CompanyName != null && d.LoanApplication.Borrower.CompanyName.Contains(SearchBorrower, StringComparison.OrdinalIgnoreCase)) ||
+                    (d.LoanApplication.Borrower.FirstName != null && d.LoanApplication.Borrower.FirstName.Contains(SearchBorrower, StringComparison.OrdinalIgnoreCase)) ||
+                    (d.LoanApplication.Borrower.LastName != null && d.LoanApplication.Borrower.LastName.Contains(SearchBorrower, StringComparison.OrdinalIgnoreCase))
+                ));
+            }
+
+            SearchedDisbursement = matchingDisbursements.FirstOrDefault();
+            if (SearchedDisbursement != null)
+            {
+                _amortizationSchedule = GenerateAmortizationSchedule(SearchedDisbursement);
+            }
+            else
+            {
+                _amortizationSchedule.Clear();
+            }
+        }
+        else
+        {
+            SearchedDisbursement = null;
+            _amortizationSchedule.Clear();
+        }
+    }
+
+    private List<Payment> FilteredPayments
+    {
+        get
+        {
+            var filtered = _payments.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchPaymentStatus))
+            {
+                // Custom logic for "Pending", "Partial", "Paid" mapping to Payment records if applicable, 
+                // but Payment records are usually just complete payments. We can filter if they are active/void or if we want to infer.
+                // Assuming status applies if needed. For now, since Payment entity doesn't have these exact statuses natively:
+                // We will ignore if not applicable or if you want it to filter based on some calculated status.
+            }
+
+            if (SearchDateRange != null && SearchDateRange.Start.HasValue)
+            {
+                filtered = filtered.Where(p => p.PaymentDate.Date >= SearchDateRange.Start.Value.Date);
+                if (SearchDateRange.End.HasValue)
+                {
+                    filtered = filtered.Where(p => p.PaymentDate.Date <= SearchDateRange.End.Value.Date);
+                }
+            }
+
+            return filtered.OrderByDescending(p => p.PaymentDate).ToList();
+        }
     }
 
     private string GetRemainingBalance(Payment payment)
@@ -187,21 +299,6 @@
         
         decimal remaining = disbursement.Amount - totalPaid;
         return remaining.ToString("N2");
-    }
-
-    private async Task OnDisbursementSelected(int disbursementId)
-    {
-        SelectedDisbursementId = disbursementId;
-        _amortizationSchedule.Clear();
-
-        if (disbursementId <= 0) return;
-
-        var disbursement = _disbursements.FirstOrDefault(d => d.Id == disbursementId);
-        if (disbursement == null) return;
-
-        // Calculate amortization schedule
-        _amortizationSchedule = GenerateAmortizationSchedule(disbursement);
-        StateHasChanged();
     }
 
     private List<AmortizationRow> GenerateAmortizationSchedule(Disbursement disbursement)
@@ -274,6 +371,30 @@
         return _payments.Where(p => p.DisbursementId == disbursementId && p.IsActive).ToList();
     }
 
+    private async Task OpenInstallmentPaymentDialog(AmortizationRow row)
+    {
+        if (SearchedDisbursement == null) return;
+
+        var parameters = new DialogParameters
+        {
+            { "DisbursementId", SearchedDisbursement.Id },
+            { "InstallmentNo", row.InstallmentNo },
+            { "ScheduledAmount", row.ScheduledPayment },
+            { "DueDate", row.DueDate },
+            { "PenaltyRate", SearchedDisbursement.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0 }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };
+        var dialog = await DialogService.ShowAsync<InstallmentPaymentDialog>("Installment Payment", parameters, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled) 
+        {
+            await LoadPayments();
+            OnSearchChanged(); // Refresh the searched schedule
+        }
+    }
+
     private async Task GoToCreatePayment() {
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true, BackdropClick = false };
         var dialog = await DialogService.ShowAsync<CreatePayment>("Record Payment", options);
@@ -283,39 +404,8 @@
         {
             await LoadPayments();
             await LoadDisbursements();
-            
-            if (SelectedDisbursementId > 0)
-            {
-                var disbursement = _disbursements.FirstOrDefault(d => d.Id == SelectedDisbursementId);
-                if (disbursement != null)
-                {
-                    _amortizationSchedule = GenerateAmortizationSchedule(disbursement);
-                }
-            }
-            StateHasChanged();
+            OnSearchChanged();
         }
-    }
-
-    private string GetStatusDisplay(string status, bool isActive)
-    {
-        if (!isActive) return "VOID";
-        return status switch
-        {
-            "Completed" => "COMPLETED",
-            "Partial" => "PARTIAL",
-            _ => status?.ToUpper() ?? "UNKNOWN"
-        };
-    }
-
-    private Color GetStatusColor(string status, bool isActive)
-    {
-        if (!isActive) return Color.Error;
-        return status switch
-        {
-            "Completed" => Color.Success,
-            "Partial" => Color.Warning,
-            _ => Color.Default
-        };
     }
 
     private Color GetInstallmentStatusColor(string status)
