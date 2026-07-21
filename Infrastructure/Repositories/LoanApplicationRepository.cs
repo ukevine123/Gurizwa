@@ -50,7 +50,7 @@ namespace Infrastructure.Repositories
                 .Where(a => allowedPersonIds.Contains(a.PersonId))
                 .FirstOrDefaultAsync(a => a.Id == Id);
         }
-         public async Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)
+         public async Task<LoanApplication> CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)
         {
          if (_userContext.Id == null)
             {
@@ -114,6 +114,7 @@ namespace Infrastructure.Repositories
 
 
             await dbContext.SaveChangesAsync();
+            return _loanApplication;
         }
         public async Task UpdateLoanApplication(int Id, UpdateApplicationDTO loanApplicationDTO)
             {
@@ -127,6 +128,11 @@ namespace Infrastructure.Repositories
                 {
                     var oldStatus = _loanApplication.Status;
                     var oldAmount = _loanApplication.AmountRequested;
+
+                    if (loanApplicationDTO.Status == LoanStatus.Approved && oldStatus != LoanStatus.Approved)
+                    {
+                        await ValidateApprovalRequirementsAsync(dbContext, Id);
+                    }
 
                     // Update fields
                     _loanApplication.PaymentModalityId = loanApplicationDTO.PaymentModalityId;
@@ -180,6 +186,12 @@ public async Task UpdateStatusAsync(int id, LoanStatus newStatus)
     if (loan != null)
     {
         var oldStatus = loan.Status;
+
+        if (newStatus == LoanStatus.Approved && oldStatus != LoanStatus.Approved)
+        {
+            await ValidateApprovalRequirementsAsync(dbContext, id);
+        }
+
         loan.Status = newStatus;
 
         dbContext.ActivityLogs.Add(ActivityLogFactory.Create(
@@ -190,6 +202,35 @@ public async Task UpdateStatusAsync(int id, LoanStatus newStatus)
             $"Changed loan application {loan.ApplicationCode} status from {oldStatus} to {newStatus}."));
 
         await dbContext.SaveChangesAsync();
+    }
+}
+
+private async Task ValidateApprovalRequirementsAsync(ApplicationDbContext dbContext, int loanApplicationId)
+{
+    var loanApp = await dbContext.LoanApplications
+        .Include(a => a.LoanProductSetting)
+        .FirstOrDefaultAsync(a => a.Id == loanApplicationId);
+
+    if (loanApp?.LoanProductSetting == null) return;
+
+    var requiredDocuments = await dbContext.Requirements
+        .Include(r => r.RequiredDocument)
+        .Where(r => r.LoanProductId == loanApp.LoanProductSetting.LoanProductId && r.RequiredDocument != null)
+        .Select(r => r.RequiredDocument.DocumentName)
+        .ToListAsync();
+
+    var providedDocuments = await dbContext.ProvidedDocuments
+        .Where(pd => pd.LoanApplicationId == loanApplicationId)
+        .Select(pd => pd.DocumentName)
+        .ToListAsync();
+
+    var missingDocuments = requiredDocuments
+        .Where(rd => rd != null && !providedDocuments.Contains(rd))
+        .ToList();
+
+    if (missingDocuments.Any())
+    {
+        throw new InvalidOperationException($"Cannot approve application. The borrower has not provided all required documents. Missing: {string.Join(", ", missingDocuments)}");
     }
 }
 

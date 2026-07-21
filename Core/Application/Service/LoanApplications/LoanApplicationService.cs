@@ -22,9 +22,9 @@ namespace  Application.Services.LoanApplications
         {
             return await _loanApplication.GetLoanApplicationById(Id);
         }
-       public async Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)
+       public async Task<LoanApplication> CreateLoanApplication(CreateApplicationDTO loanApplicationDTO)
         {
-            await _loanApplication.CreateLoanApplication( loanApplicationDTO);
+            return await _loanApplication.CreateLoanApplication( loanApplicationDTO);
         }
       public async Task UpdateLoanApplication(int Id, UpdateApplicationDTO loanApplicationDTO)
         {

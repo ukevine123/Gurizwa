@@ -8,7 +8,7 @@ namespace Application.Services.LoanApplications
     {
         Task<List<LoanApplication>> GetAllLoanApplicationsAsync();
         Task<LoanApplication?> GetLoanApplicationById(int id);   
-        Task CreateLoanApplication(CreateApplicationDTO loanApplicationDTO);
+        Task<LoanApplication> CreateLoanApplication(CreateApplicationDTO loanApplicationDTO);
         Task UpdateLoanApplication(int id, UpdateApplicationDTO loanApplicationDTO);
         Task UpdateStatusAsync(int id, LoanStatus newStatus);
         Task<List<TransactionHistoryDTO>> GetTransactionHistoryAsync(int loanApplicationId);

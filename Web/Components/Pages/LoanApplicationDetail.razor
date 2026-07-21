@@ -289,7 +289,8 @@
             guarantors = allGuarantors.Where(g => g.LoanApplicationId == LoanId).ToList();
 
             // Depending on how your Documents are stored, you might need a similar filter:
-            documents = await DocumentRepo.GetAllProvidedDocumentAsync(); 
+            var allDocs = await DocumentRepo.GetAllProvidedDocumentAsync(); 
+            documents = allDocs.Where(d => d.LoanApplicationId == LoanId).ToList();
 
             var allCollaterals = await CollateralRepo.GetAllCollateralsAsync();
             collaterals = allCollaterals
@@ -409,10 +410,10 @@
             }
             else 
             {
-                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
+                byte[] buffer = new byte[possibleString.Length];
                 if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
                 {
-                    fileData = buffer.Slice(0, bytesParsed).ToArray();
+                    fileData = buffer[..bytesParsed];
                 }
             }
         } 
@@ -458,10 +459,10 @@
             }
             else 
             {
-                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
+                byte[] buffer = new byte[possibleString.Length];
                 if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
                 {
-                    fileData = buffer.Slice(0, bytesParsed).ToArray();
+                    fileData = buffer[..bytesParsed];
                 }
             }
         } 

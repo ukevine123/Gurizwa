@@ -224,9 +224,9 @@
 
         try
         {
-            await LoanApplicationService.CreateLoanApplication(Model);
+            var createdApplication = await LoanApplicationService.CreateLoanApplication(Model);
             Snackbar.Add("Loan Application created successfully!", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(Model));
+            MudDialog.Close(DialogResult.Ok(createdApplication));
             return;
         }
         catch(Exception ex)

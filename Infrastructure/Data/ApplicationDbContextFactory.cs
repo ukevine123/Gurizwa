@@ -54,7 +54,10 @@ namespace Infrastructure.Data
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly("Infrastructure"));
+            optionsBuilder.UseSqlServer(connectionString, sqlOptions => {
+                sqlOptions.MigrationsAssembly("Infrastructure");
+                sqlOptions.UseCompatibilityLevel(120);
+            });
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

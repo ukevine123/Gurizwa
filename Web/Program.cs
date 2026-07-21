@@ -43,7 +43,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Database Configuration
 var connectionString = builder.Configuration.GetConnectionString("LoanPlatformDBCONN");
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, x => x.MigrationsAssembly("Infrastructure")), ServiceLifetime.Scoped);
+    options.UseSqlServer(connectionString, x => {
+        x.MigrationsAssembly("Infrastructure");
+        x.UseCompatibilityLevel(120);
+    }), ServiceLifetime.Scoped);
 
 builder.Services.AddScoped(p => 
     p.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
@@ -123,7 +126,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 app.UseAntiforgery();
-app.MapStaticAssets();
+app.UseStaticFiles();
 
 app.UseAuthentication(); // Must be before Authorization
 app.UseAuthorization();

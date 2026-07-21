@@ -176,20 +176,22 @@
     }
     private async Task OpenDialog()
     {
-        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
 
         var dialog = await DialogService.ShowAsync<ApplicationCreateDialog>("Add Application", options);
         var result = await dialog.Result;
 
-        if (result != null && !result.Canceled)
+        if (result != null && !result.Canceled && result.Data is Domain.Entities.LoanApplication createdLoanApplication)
         {
              await LoadLoanApplication();
              
+             var followUpParams = new DialogParameters { ["PreselectedLoanApplicationId"] = createdLoanApplication.Id };
+
              // First Reminder: Guarantor
              var addGuarantor = await DialogService.ShowMessageBox("Reminder", "Do you want to add a Guarantor for this application?", yesText: "Yes", cancelText: "No");
              if (addGuarantor == true)
              {
-                 var guarantorDialog = await DialogService.ShowAsync<CreateGuarantorDialog>("Add Guarantor", options);
+                 var guarantorDialog = await DialogService.ShowAsync<CreateGuarantorDialog>("Add Guarantor", followUpParams, options);
                  await guarantorDialog.Result;
              }
 
@@ -197,7 +199,7 @@
              var addCollateral = await DialogService.ShowMessageBox("Reminder", "Do you want to add Collateral for this application?", yesText: "Yes", cancelText: "No");
              if (addCollateral == true)
              {
-                 var collateralDialog = await DialogService.ShowAsync<CollateralCreateDialog>("Add Collateral", options);
+                 var collateralDialog = await DialogService.ShowAsync<CollateralCreateDialog>("Add Collateral", followUpParams, options);
                  await collateralDialog.Result;
              }
 
@@ -205,7 +207,7 @@
              var addDocument = await DialogService.ShowMessageBox("Reminder", "Do you want to attach a Document for this application?", yesText: "Yes", cancelText: "No");
              if (addDocument == true)
              {
-                 var documentDialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Document", options);
+                 var documentDialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Document", followUpParams, options);
                  await documentDialog.Result;
              }
         }

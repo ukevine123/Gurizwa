@@ -58,7 +58,7 @@
                            Variant="Variant.Outlined"
                            Dense="true"
                            Margin="Margin.Dense"
-                          
+                           Disabled="@(PreselectedLoanApplicationId.HasValue)"
                           >
                     <MudSelectItem T="int" Value="0">--Select Loan Application--</MudSelectItem>
                     @if (_Loan != null)
@@ -97,6 +97,7 @@
                                                     <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
                                                     @state.FileName
                                                 </MudText>
+                                                <MudCheckBox @bind-Value="state.IsPhysicalDocument" Label="This is a physical document" Color="Color.Primary" Size="Size.Small" />
                                             }
                                         </MudStack>
 
@@ -154,6 +155,7 @@
                                             <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" />
                                             @_customDocFileName
                                         </MudText>
+                                        <MudCheckBox @bind-Value="_customDocIsPhysical" Label="This is a physical document" Color="Color.Primary" Size="Size.Small" />
                                     </MudStack>
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                                    Color="Color.Error" 
@@ -188,13 +190,6 @@
     </DialogContent>
     <DialogActions>
         <MudStack Row="true" Spacing="2" Style="width:100%;" Class="px-2 pb-2">
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Secondary"
-                       Size="Size.Small"
-                       OnClick="Cancel"
-                       Style="height: 40px; font-weight: bold; margin-top:5px; margin-bottom:5px; border-radius:8px;">
-                Cancel
-            </MudButton>
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        Size="Size.Small"
@@ -211,6 +206,7 @@
 
 @code{
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public int? PreselectedLoanApplicationId { get; set; }
     private void Cancel() => MudDialog.Cancel();
     private CreateProvidedDocumentDTO Model {get;set;} = new ();
     private string ErrorMessage { get; set; }
@@ -223,12 +219,14 @@
     private string _customDocName = "";
     private byte[] _customDocFile = null;
     private string _customDocFileName = "";
+    private bool _customDocIsPhysical = false;
 
     private class RequiredDocumentUploadState
     {
         public RequiredDocument RequiredDoc { get; set; }
         public byte[] FileBytes { get; set; }
         public string FileName { get; set; }
+        public bool IsPhysicalDocument { get; set; }
     }
 
     private void CancelUpload(RequiredDocumentUploadState state)
@@ -241,6 +239,7 @@
     {
         _customDocFile = null;
         _customDocFileName = null;
+        _customDocIsPhysical = false;
     }
 
     private async Task OnLoanApplicationChanged(int loanApplicationId)
@@ -302,7 +301,8 @@
                     {
                         LoanApplicationId = Model.LoanApplicationId,
                         DocumentName = state.RequiredDoc.DocumentName ?? "Required Document",
-                        DocumentFile = state.FileBytes
+                        DocumentFile = state.FileBytes,
+                        IsPhysicalDocument = state.IsPhysicalDocument
                     };
                     await ProvidedDocumentService.CreateProvidedDocument(dto);
                     uploadedAny = true;
@@ -322,7 +322,8 @@
                 {
                     LoanApplicationId = Model.LoanApplicationId,
                     DocumentName = _customDocName,
-                    DocumentFile = _customDocFile
+                    DocumentFile = _customDocFile,
+                    IsPhysicalDocument = _customDocIsPhysical
                 };
                 await ProvidedDocumentService.CreateProvidedDocument(dto);
                 uploadedAny = true;
@@ -352,6 +353,11 @@
             if (loanApp != null)
             {
                 _Loan = loanApp.ToList();
+            }
+
+            if (PreselectedLoanApplicationId.HasValue)
+            {
+                await OnLoanApplicationChanged(PreselectedLoanApplicationId.Value);
             }
         }
         catch (Exception ex)

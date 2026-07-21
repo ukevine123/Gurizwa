@@ -70,7 +70,7 @@
                                Variant="Variant.Outlined"
                                Dense="true"
                                Margin="Margin.Dense"
-                              
+                               Disabled="@(PreselectedLoanApplicationId.HasValue)"
                               >
                         <MudSelectItem Value="0">--Select Loan --</MudSelectItem>
                        @if (loanApplications != null)
@@ -271,6 +271,7 @@
     private string ErrorMessage { get; set; }
 
     [Parameter] public bool IsReadOnly { get; set; } = false;
+    [Parameter] public int? PreselectedLoanApplicationId { get; set; }
 
     public Sex sex { get; set; }
 
@@ -342,6 +343,12 @@
                     }
                 }
             }
+
+            if (PreselectedLoanApplicationId.HasValue)
+            {
+                Model.LoanApplicationId = PreselectedLoanApplicationId.Value;
+            }
+            
             StateHasChanged();
         }
         catch (Exception ex)

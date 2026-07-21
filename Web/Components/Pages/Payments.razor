@@ -37,6 +37,7 @@
                         <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
                         <MudSelectItem Value="@("Partial")">Partial</MudSelectItem>
                         <MudSelectItem Value="@("Paid")">Paid</MudSelectItem>
+                        <MudSelectItem Value="@("Overdue")">Overdue</MudSelectItem>
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="3">
@@ -256,7 +257,17 @@
             SearchedDisbursement = matchingDisbursements.FirstOrDefault();
             if (SearchedDisbursement != null)
             {
-                _amortizationSchedule = GenerateAmortizationSchedule(SearchedDisbursement);
+                var fullSchedule = GenerateAmortizationSchedule(SearchedDisbursement);
+                if (!string.IsNullOrWhiteSpace(SearchPaymentStatus))
+                {
+                    _amortizationSchedule = fullSchedule
+                        .Where(x => string.Equals(x.StatusFlag, SearchPaymentStatus, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+                else
+                {
+                    _amortizationSchedule = fullSchedule;
+                }
             }
             else
             {
@@ -278,10 +289,19 @@
 
             if (!string.IsNullOrWhiteSpace(SearchPaymentStatus))
             {
-                // Custom logic for "Pending", "Partial", "Paid" mapping to Payment records if applicable, 
-                // but Payment records are usually just complete payments. We can filter if they are active/void or if we want to infer.
-                // Assuming status applies if needed. For now, since Payment entity doesn't have these exact statuses natively:
-                // We will ignore if not applicable or if you want it to filter based on some calculated status.
+                if (SearchPaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                {
+                    filtered = filtered.Where(p => GetRemainingBalanceDecimal(p) <= 0);
+                }
+                else if (SearchPaymentStatus.Equals("Partial", StringComparison.OrdinalIgnoreCase))
+                {
+                    filtered = filtered.Where(p => GetRemainingBalanceDecimal(p) > 0);
+                }
+                else if (SearchPaymentStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase) || SearchPaymentStatus.Equals("Overdue", StringComparison.OrdinalIgnoreCase))
+                {
+                    // No payments exist if it's purely pending, and a single payment cannot be 'Overdue'
+                    filtered = filtered.Where(p => false);
+                }
             }
 
             if (SearchDateRange != null && SearchDateRange.Start.HasValue)
@@ -299,15 +319,19 @@
 
     private string GetRemainingBalance(Payment payment)
     {
-        if (payment?.Disbursement == null) return "0.00";
+        return GetRemainingBalanceDecimal(payment).ToString("N2");
+    }
+
+    private decimal GetRemainingBalanceDecimal(Payment payment)
+    {
+        if (payment?.Disbursement == null) return 0;
         
         var disbursement = payment.Disbursement;
         var totalPaid = _payments
             .Where(p => p.DisbursementId == disbursement.Id && p.IsActive)
             .Sum(p => p.Amount);
         
-        decimal remaining = disbursement.Amount - totalPaid;
-        return remaining.ToString("N2");
+        return disbursement.Amount - totalPaid;
     }
 
     private List<AmortizationRow> GenerateAmortizationSchedule(Disbursement disbursement)
@@ -390,7 +414,9 @@
             { "InstallmentNo", row.InstallmentNo },
             { "ScheduledAmount", row.ScheduledPayment },
             { "DueDate", row.DueDate },
-            { "PenaltyRate", SearchedDisbursement.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0 }
+            { "PenaltyRate", SearchedDisbursement.LoanApplication?.LoanProductSetting?.PenalityRate ?? 0 },
+            { "StatusFlag", row.StatusFlag },
+            { "AmountPaid", row.AmountPaid }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, BackdropClick = false };

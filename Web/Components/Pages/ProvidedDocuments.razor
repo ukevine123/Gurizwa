@@ -162,7 +162,7 @@
 
     private async Task OpenDialog()
     {
-        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+        DialogOptions options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         var dialog = await DialogService.ShowAsync<DocumentCreateDialog>("Add Document", options);
         var result = await dialog.Result;
 

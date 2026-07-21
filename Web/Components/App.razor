@@ -8,12 +8,11 @@
     <ResourcePreloader />
     @* bootstrap css *@
   
-    <link rel="stylesheet" href="@Assets["Web.styles.css"]" /> 
+    <link rel="stylesheet" href="Web.styles.css" />
     @* //mudblazor css *@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
-     <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
+     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
      <link rel="stylesheet" href="app.css" />
-    <ImportMap />
     <link rel="icon" type="image/png" href="Images/guriza_icon.png" />
     <HeadOutlet />
 </head>
@@ -21,10 +20,10 @@
 <body>
     <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="_framework/blazor.web.js"></script>
 
     @* mudblazor script *@
-    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     
     @* ApexCharts scripts *@
     <script src="_content/Blazor-ApexCharts/js/apex-charts.min.js"></script>

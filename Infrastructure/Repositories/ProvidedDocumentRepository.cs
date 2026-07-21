@@ -112,6 +112,7 @@ namespace Infrastructure.Repositories
             DocumentName = dto.DocumentName,
             PersonId = user.Person.Id,
             DocumentFile = dto.DocumentFile, 
+            IsPhysicalDocument = dto.IsPhysicalDocument,
             CreatedAt = DateTime.Now,
             CreatedBy = "Admin" 
         };

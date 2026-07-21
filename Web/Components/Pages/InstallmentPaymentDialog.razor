@@ -33,7 +33,14 @@
             <MudGrid Spacing="3">
                 <MudItem xs="12">
                     <MudText Typo="Typo.body2"><b>Scheduled Due Date:</b> @DueDate.ToString("yyyy-MM-dd")</MudText>
-                    <MudText Typo="Typo.body2"><b>Expected Amount:</b> @ScheduledAmount.ToString("N2")</MudText>
+                    @if (StatusFlag == "PARTIAL")
+                    {
+                        <MudText Typo="Typo.body2"><b>Remaining Balance:</b> @ExpectedAmountToPay.ToString("N2")</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2"><b>Expected Amount:</b> @ExpectedAmountToPay.ToString("N2")</MudText>
+                    }
                 </MudItem>
 
                 @* --- ACCOUNT SELECTION --- *@
@@ -114,6 +121,8 @@
     [Parameter] public decimal ScheduledAmount { get; set; }
     [Parameter] public DateTime DueDate { get; set; }
     [Parameter] public decimal PenaltyRate { get; set; }
+    [Parameter] public string StatusFlag { get; set; } = "PENDING";
+    [Parameter] public decimal AmountPaid { get; set; }
 
     private CreatePaymentDTO Model { get; set; } = new();
     private DateTime? PaymentDateProxy 
@@ -126,7 +135,9 @@
     private List<PaymentType> PaymentTypes = new(); 
     private bool _isProcessing;
 
-    private decimal Shortfall => (ScheduledAmount > Model.Amount) ? ScheduledAmount - Model.Amount : 0;
+    private decimal ExpectedAmountToPay => StatusFlag == "PARTIAL" ? (ScheduledAmount - AmountPaid) : ScheduledAmount;
+
+    private decimal Shortfall => (ExpectedAmountToPay > Model.Amount) ? ExpectedAmountToPay - Model.Amount : 0;
     
     private decimal CalculatedPenalty 
     {
@@ -143,7 +154,7 @@
     protected override async Task OnInitializedAsync()
     {
         Model.DisbursementId = DisbursementId;
-        Model.Amount = ScheduledAmount;
+        Model.Amount = ExpectedAmountToPay;
         Model.PaymentDate = DateTime.Today;
 
         var tTask = PaymentTypeService.GetAllPaymentTypesAsync();

@@ -131,10 +131,10 @@
             }
             else 
             {
-                Span<byte> buffer = new Span<byte>(new byte[possibleString.Length]);
+                byte[] buffer = new byte[possibleString.Length];
                 if (Convert.TryFromBase64String(possibleString.Trim(), buffer, out int bytesParsed))
                 {
-                    fileData = buffer.Slice(0, bytesParsed).ToArray();
+                    fileData = buffer[..bytesParsed];
                 }
             }
         } 

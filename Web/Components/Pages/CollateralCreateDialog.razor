@@ -45,7 +45,7 @@
                Variant="Variant.Outlined"
                Dense="true"
                Margin="Margin.Dense"
-              
+               Disabled="@(PreselectedLoanApplicationId.HasValue)"
               >
         
        <MudSelectItem T="int" Value="0">-- Select Loan --</MudSelectItem>
@@ -171,6 +171,8 @@
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
+    [Parameter] public int? PreselectedLoanApplicationId { get; set; }
+
     private CollateralCreateDTO Model { get; set; } = new() { ValuationDate = DateTime.Today };
 
     private List<LoanApplication> _loanApplications = new();
@@ -188,6 +190,11 @@
             if (apps != null) _loanApplications = apps;
 
             _provinces = await LocationService.GetAllLocationsAsync() ?? new();
+
+            if (PreselectedLoanApplicationId.HasValue)
+            {
+                Model.LoanApplicationId = PreselectedLoanApplicationId.Value;
+            }
         }
         catch (Exception ex)
         {
