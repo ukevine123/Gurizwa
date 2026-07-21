@@ -21,7 +21,7 @@
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
-@attribute [Authorize(Roles = "Manager")]
+@attribute [Authorize(Roles = "Manager,Tenant")]
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
   
@@ -29,26 +29,37 @@
 <div class="d-flex align-center justify-space-between pa-4 mb-4 mt-2 rounded shadow-sm bg-white">
     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight:bold">Loan Application Details</MudText>
 
-    <AuthorizeView Roles="Tenant,Manager">
+    @if (UserContext.PrimaryRole == "Manager" || UserContext.PrimaryRole == "Tenant")
+    {
         @if (application?.Status != LoanStatus.Paid && application?.Status != LoanStatus.Approved)
         {
-            <div class="d-flex gap-4">
+            <div class="d-flex gap-2 flex-wrap">
                 @* Reject Button *@
                 <MudButton Variant="Variant.Filled" 
                            Color="Color.Error" 
+                           StartIcon="@Icons.Material.Filled.Cancel"
                            OnClick="@(() => HandleStatusUpdate(LoanStatus.Rejected))">
                     Reject
+                </MudButton>
+
+                @* Reschedule Button *@
+                <MudButton Variant="Variant.Filled" 
+                           Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.EventRepeat"
+                           OnClick="@OpenRescheduleDialog">
+                    Reschedule
                 </MudButton>
                 
                 @* Approved Button *@
                 <MudButton Variant="Variant.Filled" 
                            Color="Color.Success" 
+                           StartIcon="@Icons.Material.Filled.CheckCircle"
                            OnClick="@(() => HandleStatusUpdate(LoanStatus.Approved))">
                     Approve
                 </MudButton>
             </div>
         }
-    </AuthorizeView>
+    }
 </div>
         @* <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Loan Application Details</MudText> *@
     
@@ -291,7 +302,7 @@
         }
     }
 
-    private async Task HandleStatusUpdate(LoanStatus newStatus)
+    private async Task HandleStatusUpdate(LoanStatus newStatus, DateTime? rescheduledDate = null)
     {
         if (application == null) return;
 
@@ -310,7 +321,7 @@
             Status = newStatus,
             AmountRequested = application.AmountRequested,
             ApprovedBy = UserContext.FullName ?? "Manager", 
-            PreferredDate = application.PreferredDate,
+            PreferredDate = rescheduledDate ?? application.PreferredDate,
             DateofApplication = application.DateofApplication,
             PaymentModalityId = application.PaymentModalityId
         };
@@ -327,6 +338,31 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    // ── Reschedule ──────────────────────────────────────────────────────────────
+    private DateTime? _rescheduleDate;
+
+    private async Task OpenRescheduleDialog()
+    {
+        if (application == null) return;
+
+        // Reset to the application's current preferred date as default
+        _rescheduleDate = application.PreferredDate;
+
+        var parameters = new DialogParameters<RescheduleDialog>
+        {
+            { x => x.CurrentDate, _rescheduleDate },
+            { x => x.ApplicationCode, application.ApplicationCode }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var dialog = await DialogService.ShowAsync<RescheduleDialog>("Reschedule Loan", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is DateTime newDate)
+        {
+            await HandleStatusUpdate(LoanStatus.Rescheduled, newDate);
         }
     }
 
