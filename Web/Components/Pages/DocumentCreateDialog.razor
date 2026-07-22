@@ -59,6 +59,7 @@
                            Dense="true"
                            Margin="Margin.Dense"
                            Disabled="@(PreselectedLoanApplicationId.HasValue)"
+                           ToStringFunc="@(id => id == 0 ? "--Select Loan Application--" : _Loan?.FirstOrDefault(l => l.Id == id)?.ApplicationCode ?? id.ToString())"
                           >
                     <MudSelectItem T="int" Value="0">--Select Loan Application--</MudSelectItem>
                     @if (_Loan != null)

@@ -88,13 +88,17 @@
 
                 @if (string.IsNullOrEmpty(_borrowers.CompanyName))
                 {
-                    <MudItem xs="6">
+                    <MudItem xs="4">
                         <MudText Typo="Typo.subtitle2" Color="Color.Primary">Next of Kin</MudText>
                         <MudText Typo="Typo.body1">@_borrowers.NextOfKin</MudText>
                     </MudItem>
-                    <MudItem xs="6">
+                    <MudItem xs="4">
                         <MudText Typo="Typo.subtitle2" Color="Color.Primary">Kin Phone Number</MudText>
                         <MudText Typo="Typo.body1">@_borrowers.KinPhoneNumber</MudText>
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Relationship</MudText>
+                        <MudText Typo="Typo.body1">@_borrowers.NextOfKinRelationship</MudText>
                     </MudItem>
 
                     @if (_borrowers.Maritalstatus == Domain.ValueObjects.Maritalstatus.Married)

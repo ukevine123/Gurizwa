@@ -1,4 +1,4 @@
-﻿@using Application.DTO
+@using Application.DTO
 @using Application.Interfaces
 @using MudBlazor
 @using Domain.Entities
@@ -53,7 +53,7 @@
                                ValueChanged="OnLoanSelected"
                                Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                Disabled="IsReschedule"
-                              
+                               ToStringFunc="@(id => id == 0 ? "Select Application" : (LoanApplications?.FirstOrDefault(l => l.Id == id) is var app && app != null ? $"{app.ApplicationCode} - {(!string.IsNullOrWhiteSpace(app.Borrower?.CompanyName) ? app.Borrower.CompanyName : $"{app.Borrower?.FirstName} {app.Borrower?.LastName}")}" : id.ToString()))"
                               >
                         <MudSelectItem T="int" Value="0">Select Application</MudSelectItem>
                         @foreach (var loan in LoanApplications.Where(l => l.Status == LoanStatus.Approved || l.Id == Model.LoanApplicationId))

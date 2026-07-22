@@ -71,6 +71,7 @@
                                Dense="true"
                                Margin="Margin.Dense"
                                Disabled="@(PreselectedLoanApplicationId.HasValue)"
+                               ToStringFunc="@(id => id == 0 ? "--Select Loan Application--" : (loanApplications?.FirstOrDefault(l => l.Id == id) is var app && app != null ? $"{app.ApplicationCode} - {(!string.IsNullOrWhiteSpace(app.Borrower?.CompanyName) ? app.Borrower.CompanyName : $"{app.Borrower?.FirstName} {app.Borrower?.LastName}")}" : id.ToString()))"
                               >
                         <MudSelectItem Value="0">--Select Loan --</MudSelectItem>
                        @if (loanApplications != null)

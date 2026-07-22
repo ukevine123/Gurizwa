@@ -21,6 +21,7 @@ namespace Application.DTO
         public string? SpouceName {get;set;}
         public string? NextOfKin {get;set;}
         public string? KinPhoneNumber{get;set;}
+        public string? NextOfKinRelationship {get;set;}
         public string Province {get;set;}
         public string District {get;set;}
         public string Sector {get;set;}

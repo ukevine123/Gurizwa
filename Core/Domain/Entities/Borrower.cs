@@ -21,6 +21,7 @@ namespace Domain.Entities
         public string? SpouceName {get;set;}
         public string? NextOfKin {get;set;}
         public string? KinPhoneNumber{get;set;}
+        public string? NextOfKinRelationship {get;set;}
 
         // Business specific fields
         public string? CompanyName {get;set;}
