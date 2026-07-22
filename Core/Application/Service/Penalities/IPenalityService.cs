@@ -14,5 +14,4 @@ namespace Application.Services.Penalities
       Task GenerateAutomaticPenalitiesAsync();
     }
    
-
 }
