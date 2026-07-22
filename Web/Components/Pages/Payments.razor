@@ -179,6 +179,11 @@
                         </MudChip>
                     </CellTemplate>
                 </TemplateColumn>
+                <TemplateColumn Title="Action" Sortable="false">
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" OnClick="@(() => PrintReceipt(context.Item))" Title="Download/Print Receipt" />
+                    </CellTemplate>
+                </TemplateColumn>
             </Columns>
         </MudDataGrid>
     }
@@ -428,6 +433,21 @@
             await LoadPayments();
             OnSearchChanged(); // Refresh the searched schedule
         }
+    }
+
+    private async Task PrintReceipt(Payment payment)
+    {
+        var totalPaid = _payments
+            .Where(p => p.DisbursementId == payment.DisbursementId && p.IsActive)
+            .Sum(p => p.Amount);
+
+        var parameters = new DialogParameters
+        {
+            { "Payment", payment },
+            { "TotalPaidPool", totalPaid }
+        };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        await DialogService.ShowAsync<PaymentReceiptPrintDialog>("Payment Receipt", parameters, options);
     }
 
     private async Task GoToCreatePayment() {

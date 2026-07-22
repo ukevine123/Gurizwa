@@ -78,7 +78,8 @@ namespace Infrastructure.Repositories
 
             if (!string.IsNullOrWhiteSpace(loanType))
             {
-                query = query.Where(d => d.LoanApplication.LoanProductSetting.LoanProduct.ProductName.Contains(loanType.Trim()));
+                var pattern = $"%{loanType.Trim()}%";
+                query = query.Where(d => EF.Functions.Like(d.LoanApplication.LoanProductSetting.LoanProduct.ProductName, pattern));
             }
 
             var disbursements = await query.ToListAsync();

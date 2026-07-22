@@ -37,7 +37,7 @@
         <MudTabPanel Text="All Waivers" Icon="@Icons.Material.Filled.ViewList">
             <MudDataGrid Items="@AllWaivers" Hover="true" Loading="@_isLoading" Dense="true">
                 <Columns>
-                    <PropertyColumn Property="x => x.DisbursementId" Title="Disbursement ID" />
+                    <PropertyColumn Property="x => x.ApplicationCode" Title="Loan Application" />
                     <PropertyColumn Property="x => x.WaiverType" Title="Type">
                         <CellTemplate>
                             <MudChip T="string"
@@ -96,7 +96,7 @@
         <MudTabPanel Text="Pending" Icon="@Icons.Material.Filled.HourglassBottom">
             <MudDataGrid Items="@PendingWaivers" Hover="true" Loading="@_isLoading" Dense="true">
                 <Columns>
-                    <PropertyColumn Property="x => x.DisbursementId" Title="Disbursement ID" />
+                    <PropertyColumn Property="x => x.ApplicationCode" Title="Loan Application" />
                     <PropertyColumn Property="x => x.WaiverType" Title="Type" />
                     <PropertyColumn Property="x => x.Amount" Title="Amount (Rwf)" Format="N2" />
                     <PropertyColumn Property="x => x.Reason" Title="Reason" />
@@ -127,7 +127,7 @@
         <MudTabPanel Text="Approved" Icon="@Icons.Material.Filled.CheckCircle">
             <MudDataGrid Items="@ApprovedWaivers" Hover="true" Loading="@_isLoading" Dense="true">
                 <Columns>
-                    <PropertyColumn Property="x => x.DisbursementId" Title="Disbursement ID" />
+                    <PropertyColumn Property="x => x.ApplicationCode" Title="Loan Application" />
                     <PropertyColumn Property="x => x.WaiverType" Title="Type" />
                     <PropertyColumn Property="x => x.Amount" Title="Amount (Rwf)" Format="N2" />
                     <PropertyColumn Property="x => x.ApprovedBy" Title="Approved By" />

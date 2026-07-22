@@ -8,6 +8,8 @@ namespace Application.DTO
         
         [Required(ErrorMessage = "Disbursement is required")]
         public int DisbursementId { get; set; }
+
+        public string ApplicationCode { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "Waiver type is required")]
         [RegularExpression("^(Penalty Waiver|Interest Waiver|Principal Waiver)$", ErrorMessage = "Waiver type must be Penalty Waiver, Interest Waiver, or Principal Waiver.")]

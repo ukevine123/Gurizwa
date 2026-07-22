@@ -44,6 +44,7 @@ namespace Infrastructure.Repositories
                 var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
+                        .ThenInclude(d => d.LoanApplication)
                     .Where(w => w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
@@ -64,6 +65,7 @@ namespace Infrastructure.Repositories
                 var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
+                        .ThenInclude(d => d.LoanApplication)
                     .Where(w => w.DisbursementId == disbursementId && w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
@@ -84,6 +86,7 @@ namespace Infrastructure.Repositories
                 var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
+                        .ThenInclude(d => d.LoanApplication)
                     .Where(w => w.Status == "Pending" && w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
@@ -104,6 +107,7 @@ namespace Infrastructure.Repositories
                 var allowedPersonIds = await _userContext.GetAllowedPersonIdsAsync();
                 return await context.Waivers
                     .Include(w => w.Disbursement)
+                        .ThenInclude(d => d.LoanApplication)
                     .Where(w => w.Status == "Approved" && w.IsActive && w.PersonId.HasValue && allowedPersonIds.Contains(w.PersonId.Value))
                     .OrderByDescending(w => w.ApprovedDate)
                     .ToListAsync();

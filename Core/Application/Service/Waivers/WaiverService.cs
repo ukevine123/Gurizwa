@@ -385,6 +385,7 @@ namespace Application.Services.Waivers
             {
                 Id = waiver.Id,
                 DisbursementId = waiver.DisbursementId,
+                ApplicationCode = waiver.Disbursement?.LoanApplication?.ApplicationCode ?? "N/A",
                 WaiverType = waiver.WaiverTypeName,
                 Component = waiver.Component,
                 Amount = waiver.Amount,

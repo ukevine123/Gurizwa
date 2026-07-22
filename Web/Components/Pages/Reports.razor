@@ -2,6 +2,7 @@
 @using Application.DTO
 @using Application.Interfaces
 @using MudBlazor
+@implements IDisposable
 
 @inject IReportService ReportService
 @inject ISnackbar Snackbar
@@ -334,7 +335,15 @@
                     <MudDateRangePicker Label="Disbursement Period" @bind-DateRange="_disbursementRange" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_loanTypeFilter" Label="Loan Type" Placeholder="e.g. Personal" />
+                    <MudTextField @bind-Value="_loanTypeFilter"
+                        Label="Loan Type"
+                        Placeholder="e.g. Personal"
+                        Immediate="true"
+                        DebounceInterval="800"
+                        TextChanged="OnLoanTypeTextChanged"
+                        Adornment="Adornment.Start"
+                        AdornmentIcon="@Icons.Material.Filled.Search"
+                        Clearable="true" />
                 </MudItem>
                 <MudItem xs="12" sm="4" Class="d-flex align-end">
                     <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadDisbursementReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
@@ -1028,6 +1037,7 @@
 
     private List<ActiveLoanSummaryDTO> _activeLoans = new();
     private List<LoanDisbursementReportDTO> _disbursements = new();
+    private CancellationTokenSource? _disbursementCts;
     private List<LoanMaturityReportDTO> _maturities = new();
     private List<UserActivityReportDTO> _activities = new();
     private List<UserDetailDTO> _subUsers = new();
@@ -1152,16 +1162,47 @@
         NavigationManager.NavigateTo($"/loan-details/{applicationId}");
     }
 
+    private async Task OnLoanTypeTextChanged(string? value)
+    {
+        _loanTypeFilter = value;
+        // Only search if empty (show all) or at least 2 characters
+        if (!string.IsNullOrEmpty(value) && value.Length < 2)
+            return;
+        await LoadDisbursementReport();
+    }
+
     private async Task LoadDisbursementReport()
     {
+        // Cancel any previous in-flight query to prevent connection pool exhaustion
+        _disbursementCts?.Cancel();
+        _disbursementCts?.Dispose();
+        _disbursementCts = new CancellationTokenSource();
+        var token = _disbursementCts.Token;
+
         try 
         { 
-            _disbursements = await ReportService.GetLoanDisbursementReportAsync(
+            var result = await ReportService.GetLoanDisbursementReportAsync(
                 _disbursementRange.Start ?? DateTime.MinValue, 
                 _disbursementRange.End ?? DateTime.MaxValue, 
-                _loanTypeFilter); 
+                _loanTypeFilter);
+
+            if (!token.IsCancellationRequested)
+            {
+                _disbursements = result;
+                StateHasChanged();
+            }
         }
-        catch (Exception ex) { Snackbar.Add($"Error loading disbursements: {ex.Message}", Severity.Error); }
+        catch (OperationCanceledException) { /* Intentionally cancelled — a newer search replaced this one */ }
+        catch (Exception ex) when (!token.IsCancellationRequested)
+        { 
+            Snackbar.Add($"Error loading disbursements: {ex.Message}", Severity.Error); 
+        }
+    }
+
+    public void Dispose()
+    {
+        _disbursementCts?.Cancel();
+        _disbursementCts?.Dispose();
     }
 
     private async Task LoadMaturityReport()

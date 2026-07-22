@@ -1,106 +1,86 @@
 @using Domain.Entities
-@using MudBlazor
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
 
-<MudDialog Style="border-radius:12px; max-width: 850px; overflow:hidden;">
+<MudDialog>
     <DialogContent>
-        <style>
-            .printable-document {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                color: #1B2559;
-                padding: 24px;
-                background-color: #fff;
-            }
-            .header-banner {
-                border-bottom: 2px solid #1B2559;
-                padding-bottom: 16px;
-                margin-bottom: 20px;
-            }
-            .summary-box {
-                background: #f8fafc;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                padding: 16px;
-                margin-bottom: 20px;
-            }
-            .schedule-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 15px;
-            }
-            .schedule-table th, .schedule-table td {
-                border: 1px solid #cbd5e1;
-                padding: 8px 12px;
-                font-size: 0.85rem;
-            }
-            .schedule-table th {
-                background-color: #f1f5f9;
-                font-weight: 700;
-                text-align: left;
-            }
-            .signature-section {
-                margin-top: 40px;
-                display: flex;
-                justify-content: space-between;
-            }
-            .signature-box {
-                width: 45%;
-                border-top: 1px dashed #64748b;
-                padding-top: 8px;
-                text-align: center;
-                font-size: 0.85rem;
-            }
-        </style>
-
-        <div class="printable-document">
+        <div class="printable-document pa-4" style="color: #1B2559; background: #fff;">
             @* --- HEADER --- *@
-            <div class="header-banner d-flex justify-space-between align-center">
+            <div class="header-banner">
                 <div class="d-flex align-center gap-3">
-                    <img src="Images/guriza_logo.png" alt="Guriza Logo" style="max-height: 46px; width: auto; object-fit: contain;" />
+                    <img src="Images/guriza_icon.png" alt="Logo" style="height: 46px;" />
                     <div>
-                        <h1 style="margin:0; font-size: 24px; font-weight: 800; color: #1B2559;">Guriza</h1>
-                        <p style="margin:2px 0 0 0; font-size: 12px; color: #64748b; font-weight:600; text-transform: uppercase;">OFFICIAL LOAN REPAYMENT SCHEDULE</p>
+                        <h2 style="color: #1B2559; font-weight: 900; margin: 0; font-size: 1.6rem;">Guriza</h2>
+                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; letter-spacing: 0.5px;">OFFICIAL PAYMENT RECEIPT / STATEMENT</div>
                     </div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 14px; font-weight: 700; color: #1B2559;">App Code: @AppCode</div>
-                    <div style="font-size: 12px; color: #64748b;">Date: @(Disbursement?.StartDate.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))</div>
+                    <div style="font-weight: 700; color: #1B2559;">App Code: @AppCode</div>
+                    <div style="font-size: 0.85rem; color: #64748b;">Receipt Date: @(Payment?.PaymentDate.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))</div>
+                    <div style="font-size: 0.85rem; color: #64748b;">Transaction #: @(Payment?.Id.ToString("D6") ?? "000000")</div>
                 </div>
             </div>
 
-            @* --- BORROWER & FINANCIAL SUMMARY --- *@
+            @* --- SUMMARY BOX --- *@
             <div class="summary-box">
-                <table style="width: 100%; border: none;">
+                <table style="width: 100%;">
                     <tr>
-                        <td style="padding: 4px 0; border: none;"><strong>Borrower / Business:</strong> @BorrowerName</td>
-                        <td style="padding: 4px 0; border: none; text-align: right;"><strong>Payment Frequency:</strong> @(Disbursement?.PaymentModality?.Mode ?? "Monthly")</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 0; border: none;"><strong>Approved Principal:</strong> @((Disbursement?.PrincipalOffered ?? 0).ToString("N2"))</td>
-                        <td style="padding: 4px 0; border: none; text-align: right;"><strong>Interest Rate:</strong> @((Disbursement?.InterestRate ?? 0).ToString("N1"))%</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 0; border: none;"><strong>Total Installments:</strong> @(Disbursement?.TotalInstallments ?? 0) Payment(s)</td>
-                        <td style="padding: 4px 0; border: none; text-align: right;"><strong>Total Repayable:</strong> <span style="font-weight: 800; color: #1B2559;">@((Disbursement?.Amount ?? 0).ToString("N2"))</span></td>
+                        <td style="width: 50%;">
+                            <div style="margin-bottom: 8px;">
+                                <span style="font-weight: 700;">Borrower / Business:</span> @BorrowerName
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <span style="font-weight: 700;">Approved Principal:</span> @(Payment?.Disbursement?.PrincipalOffered.ToString("N2") ?? "0.00")
+                            </div>
+                            <div>
+                                <span style="font-weight: 700;">Total Installments:</span> @(Payment?.Disbursement?.TotalInstallments ?? 0) Payment(s)
+                            </div>
+                        </td>
+                        <td style="width: 50%; text-align: right;">
+                            <div style="margin-bottom: 8px;">
+                                <span style="font-weight: 700;">Payment Frequency:</span> @(Payment?.Disbursement?.PaymentModality?.Mode ?? "Monthly")
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <span style="font-weight: 700;">Interest Rate:</span> @(Payment?.Disbursement?.InterestRate ?? 0)%
+                            </div>
+                            <div>
+                                <span style="font-weight: 700;">Total Repayable:</span> @(Payment?.Disbursement?.Amount.ToString("N2") ?? "0.00")
+                            </div>
+                        </td>
                     </tr>
                 </table>
             </div>
 
-            @* --- SCHEDULE TABLE --- *@
-            <h4 style="margin: 0 0 8px 0; color: #1B2559; font-weight: 700;">Repayment Schedule Breakdown</h4>
+            @* --- PAYMENT SUMMARY --- *@
+            <div style="margin-top: 30px; margin-bottom: 30px; background: #e0f2fe; padding: 20px; border-radius: 8px; border: 1px solid #bae6fd; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 0.85rem; color: #0284c7; font-weight: 700; text-transform: uppercase;">Amount Paid This Transaction</span>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #0369a1;">@((Payment?.Amount ?? 0).ToString("N2"))</div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.85rem; color: #0284c7; font-weight: 700; text-transform: uppercase;">Overall Outstanding Balance</span>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #dc2626;">@RemainingAmount.ToString("N2")</div>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 2px dashed #e2e8f0; margin-bottom: 24px;" />
+
+            @* --- AMORTIZATION TABLE (Remaining Only) --- *@
+            <h4 style="margin-top: 10px; font-weight: 700; color: #1B2559;">Remaining Installments Schedule</h4>
             <table class="schedule-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th>Due Date</th>
-                        <th style="text-align: right;">Principal Part</th>
-                        <th style="text-align: right;">Interest Part</th>
-                        <th style="text-align: right;">Total Installment</th>
-                        <th style="text-align: center;">Status</th>
+                        <th style="width: 5%;">No.</th>
+                        <th style="width: 15%;">Due Date</th>
+                        <th style="text-align: right; width: 15%;">Principal Part</th>
+                        <th style="text-align: right; width: 15%;">Interest Part</th>
+                        <th style="text-align: right; width: 15%;">Amount</th>
+                        <th style="text-align: right; width: 15%;">Remaining Balance</th>
+                        <th style="text-align: center; width: 20%;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var row in Rows)
+                    @foreach (var row in Rows.Where(r => r.Status != "PAID"))
                     {
                         <tr>
                             <td>#@row.No</td>
@@ -108,8 +88,17 @@
                             <td style="text-align: right;">@row.PrincipalPart.ToString("N2")</td>
                             <td style="text-align: right;">@row.InterestPart.ToString("N2")</td>
                             <td style="text-align: right; font-weight: 700;">@row.TotalAmount.ToString("N2")</td>
-                            <td style="text-align: center; font-weight: 700; color: @(row.Status == "PAID" ? "#16a34a" : "#ca8a04");">
+                            <td style="text-align: right; font-weight: 700; color: #dc2626;">@row.RemainingBalance.ToString("N2")</td>
+                            <td style="text-align: center; font-weight: 700; color: @(row.Status == "PAID" ? "#16a34a" : (row.Status == "PARTIAL" ? "#ca8a04" : "#eab308"));">
                                 @row.Status
+                            </td>
+                        </tr>
+                    }
+                    @if (!Rows.Any(r => r.Status != "PAID"))
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 20px; font-weight: 700; color: #16a34a;">
+                                Loan is fully paid! No remaining installments.
                             </td>
                         </tr>
                     }
@@ -117,7 +106,7 @@
             </table>
 
             @* --- SIGNATURE ACKNOWLEDGMENT --- *@
-            <div class="signature-section">
+            <div class="signature-section" style="margin-top: 60px;">
                 <div class="signature-box">
                     Prepared By (Officer Signature)
                 </div>
@@ -135,7 +124,7 @@
                        StartIcon="@Icons.Material.Filled.Print" 
                        OnClick="TriggerDownloadAndPrint"
                        Style="font-weight:700; border-radius:8px;">
-                Download & Print
+                Download & Print Receipt
             </MudButton>
         </div>
     </DialogActions>
@@ -143,7 +132,9 @@
 
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter] public Disbursement? Disbursement { get; set; }
+    
+    [Parameter] public Payment? Payment { get; set; }
+    [Parameter] public decimal TotalPaidPool { get; set; }
 
     public class SchedulePrintRow
     {
@@ -152,39 +143,43 @@
         public decimal PrincipalPart { get; set; }
         public decimal InterestPart { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal RemainingBalance { get; set; }
         public string Status { get; set; } = "PENDING";
     }
 
     private List<SchedulePrintRow> Rows = new();
 
-    private string BorrowerName => Disbursement?.LoanApplication?.Borrower != null
-        ? (!string.IsNullOrWhiteSpace(Disbursement.LoanApplication.Borrower.CompanyName)
-            ? Disbursement.LoanApplication.Borrower.CompanyName
-            : $"{Disbursement.LoanApplication.Borrower.FirstName} {Disbursement.LoanApplication.Borrower.LastName}".Trim())
-        : (Disbursement?.LoanApplication?.Person != null
-            ? (!string.IsNullOrWhiteSpace(Disbursement.LoanApplication.Person.CompanyName)
-                ? Disbursement.LoanApplication.Person.CompanyName
-                : $"{Disbursement.LoanApplication.Person.FirstName} {Disbursement.LoanApplication.Person.LastName}".Trim())
+    private string BorrowerName => Payment?.Disbursement?.LoanApplication?.Borrower != null
+        ? (!string.IsNullOrWhiteSpace(Payment.Disbursement.LoanApplication.Borrower.CompanyName)
+            ? Payment.Disbursement.LoanApplication.Borrower.CompanyName
+            : $"{Payment.Disbursement.LoanApplication.Borrower.FirstName} {Payment.Disbursement.LoanApplication.Borrower.LastName}".Trim())
+        : (Payment?.Disbursement?.LoanApplication?.Person != null
+            ? (!string.IsNullOrWhiteSpace(Payment.Disbursement.LoanApplication.Person.CompanyName)
+                ? Payment.Disbursement.LoanApplication.Person.CompanyName
+                : $"{Payment.Disbursement.LoanApplication.Person.FirstName} {Payment.Disbursement.LoanApplication.Person.LastName}".Trim())
             : "Valued Customer");
 
-    private string AppCode => Disbursement?.LoanApplication?.ApplicationCode ?? $"#APP-{Disbursement?.LoanApplicationId}";
+    private string AppCode => Payment?.Disbursement?.LoanApplication?.ApplicationCode ?? $"#APP-{Payment?.Disbursement?.LoanApplicationId}";
+
+    private decimal RemainingAmount => (Payment?.Disbursement != null) ? (Payment.Disbursement.Amount - TotalPaidPool) : 0;
 
     protected override void OnInitialized()
     {
-        if (Disbursement == null) return;
+        if (Payment?.Disbursement == null) return;
 
-        int n = Disbursement.TotalInstallments > 0 ? Disbursement.TotalInstallments : 1;
-        decimal principalPart = Disbursement.PrincipalOffered / n;
-        decimal totalInterest = Disbursement.Amount - Disbursement.PrincipalOffered;
+        var disbursement = Payment.Disbursement;
+        int n = disbursement.TotalInstallments > 0 ? disbursement.TotalInstallments : 1;
+        decimal principalPart = disbursement.PrincipalOffered / n;
+        decimal totalInterest = disbursement.Amount - disbursement.PrincipalOffered;
         decimal interestPart = totalInterest > 0 ? (totalInterest / n) : 0;
-        decimal totalInstallmentAmount = Disbursement.Amount / n;
+        decimal totalInstallmentAmount = disbursement.Amount / n;
 
-        decimal totalPaid = Disbursement.Payments?.Where(p => p.IsActive).Sum(p => p.Amount) ?? 0;
+        string mode = disbursement.PaymentModality?.Mode?.ToLower() ?? "monthly";
+        DateTime baseDate = disbursement.StartDate;
 
-        string mode = Disbursement.PaymentModality?.Mode?.ToLower() ?? "monthly";
-        DateTime baseDate = Disbursement.StartDate;
+        decimal currentPaidPool = TotalPaidPool;
+        decimal remainingBal = disbursement.Amount;
 
-        decimal accumulatedExpected = 0;
         for (int i = 1; i <= n; i++)
         {
             DateTime dueDate = mode switch
@@ -196,8 +191,22 @@
                 _ => baseDate.AddMonths(i)
             };
 
-            accumulatedExpected += totalInstallmentAmount;
-            string status = (totalPaid >= (accumulatedExpected - 0.05m)) ? "PAID" : "PENDING";
+            decimal amountPaidForInstallment = 0;
+            if (currentPaidPool >= totalInstallmentAmount)
+            {
+                amountPaidForInstallment = totalInstallmentAmount;
+                currentPaidPool -= totalInstallmentAmount;
+            }
+            else if (currentPaidPool > 0)
+            {
+                amountPaidForInstallment = currentPaidPool;
+                currentPaidPool = 0;
+            }
+
+            remainingBal -= amountPaidForInstallment;
+            
+            string status = amountPaidForInstallment >= totalInstallmentAmount ? "PAID" :
+                           amountPaidForInstallment > 0 ? "PARTIAL" : "PENDING";
 
             Rows.Add(new SchedulePrintRow
             {
@@ -206,6 +215,7 @@
                 PrincipalPart = principalPart,
                 InterestPart = interestPart,
                 TotalAmount = totalInstallmentAmount,
+                RemainingBalance = remainingBal > 0 ? remainingBal : 0,
                 Status = status
             });
         }
@@ -223,7 +233,7 @@
                     <html>
                     <head>
                         <meta charset='utf-8' />
-                        <title>Repayment Schedule</title>
+                        <title>Payment Receipt</title>
                         <style>
                             * { box-sizing: border-box; margin: 0; padding: 0; }
                             body {
@@ -291,10 +301,9 @@
                     </html>
                 `;
 
-                // 1. Trigger Download via html2pdf
                 var opt = {
                   margin:       10,
-                  filename:     'Repayment_Schedule.pdf',
+                  filename:     'Payment_Receipt_' + Date.now() + '.pdf',
                   image:        { type: 'jpeg', quality: 0.98 },
                   html2canvas:  { scale: 2, useCORS: true },
                   jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -302,11 +311,8 @@
                 
                 if (typeof html2pdf !== 'undefined') {
                     html2pdf().set(opt).from(htmlString).save();
-                } else {
-                    console.error('html2pdf is not loaded');
                 }
 
-                // 2. Trigger Print Dialog
                 var printWindow = window.open('', '_blank', 'width=900,height=700');
                 if (printWindow) {
                     printWindow.document.write(htmlString);
@@ -320,6 +326,4 @@
             })();
         ");
     }
-
-    private void Close() => MudDialog.Close(DialogResult.Ok(true));
 }

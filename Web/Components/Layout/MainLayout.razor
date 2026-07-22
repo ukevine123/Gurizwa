@@ -218,6 +218,14 @@
     .mud-snackbar .mud-alert-filled-normal .mud-icon-root {
         color: #FFFFFF !important;
     }
+    
+    /* Hide default dialog title text but keep the header space and close button */
+    .mud-dialog-title .mud-typography {
+        visibility: hidden !important;
+    }
+    .mud-dialog-title {
+        padding-bottom: 16px !important; /* Extra space so the X doesn't fuse with the blue banner */
+    }
 </style>
 
 <MudLayout Class="@(_isDarkMode ? "dark-mode-layout" : "")">
