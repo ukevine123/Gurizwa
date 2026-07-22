@@ -245,7 +245,9 @@ namespace Infrastructure.Repositories
                 decimal autoRate = disbursementDTO.InterestRate;
                 decimal netPrincipal = disbursementDTO.PrincipalOffered;
                 decimal procFeeAmount = disbursementDTO.ProcessingFeeAmount;
-                decimal totalInterest = netPrincipal * (autoRate / 100);
+                decimal totalInterest = disbursementDTO.IsInterestNegotiable 
+                    ? netPrincipal * (autoRate / 100)
+                    : disbursementDTO.ManualInterestAmount;
                 
                 decimal disbursedAmount = disbursementDTO.IsPrepayment 
                     ? (netPrincipal - procFeeAmount - totalInterest)
@@ -383,7 +385,7 @@ namespace Infrastructure.Repositories
             </tr>
             <tr style=""border-bottom: 1px solid #EDF2F7;"">
                 <td style=""padding: 10px 0; color: #718096;"">Interest Rate (%):</td>
-                <td style=""padding: 10px 0; color: #1B2559; font-weight: 600; text-align: right;"">{dto.InterestRate:N1}%</td>
+                <td style=""padding: 10px 0; color: #1B2559; font-weight: 600; text-align: right;"">{(dto.IsInterestNegotiable ? dto.InterestRate.ToString("N1") + "%" : "Fixed Total Amount")}</td>
             </tr>
             <tr style=""border-bottom: 1px solid #EDF2F7;"">
                 <td style=""padding: 10px 0; color: #718096;"">Interest Deduction Modality:</td>

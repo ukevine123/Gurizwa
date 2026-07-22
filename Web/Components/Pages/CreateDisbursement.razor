@@ -130,6 +130,20 @@
                     </MudPaper>
                 </MudItem>
 
+                <MudItem xs="12">
+                    <MudPaper Class="pa-3 rounded-lg" Elevation="0" Style="background: #f4f6fb; border: 1px solid #e0e4f0;">
+                        <span class="custom-label mb-1 d-block" style="font-weight:700; color:#1B2559;">Interest Negotiation Type</span>
+                        <MudRadioGroup T="bool" Value="Model.IsInterestNegotiable" ValueChanged="OnInterestNegotiationChanged" Class="d-flex flex-wrap gap-4">
+                            <MudRadio T="bool" Value="true" Color="Color.Primary">
+                                <b>Negotiable Interest</b> <span style="font-size:0.8rem; color:gray;">(Specify Interest Rate)</span>
+                            </MudRadio>
+                            <MudRadio T="bool" Value="false" Color="Color.Secondary">
+                                <b>Fixed Repayment (Not Negotiable)</b> <span style="font-size:0.8rem; color:gray;">(Specify Total Repayable Amount directly)</span>
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudPaper>
+                </MudItem>
+
                 @* 4. LOAN PARAMETERS ROW (4 + 4 + 4) *@
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Principal" @bind-Value="PrincipalWrapper"
@@ -140,10 +154,20 @@
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
-                    <MudNumericField T="decimal" Label="Interest Rate (%)" @bind-Value="RateWrapper"
-                                     Variant="Variant.Outlined" Margin="Margin.Dense"
-                                     AdornmentIcon="@Icons.Material.Filled.Percent"
-                                     AdornmentColor="Color.Primary" Immediate="true" />
+                    @if (Model.IsInterestNegotiable)
+                    {
+                        <MudNumericField T="decimal" Label="Interest Rate (%)" @bind-Value="RateWrapper"
+                                         Variant="Variant.Outlined" Margin="Margin.Dense"
+                                         AdornmentIcon="@Icons.Material.Filled.Percent"
+                                         AdornmentColor="Color.Primary" Immediate="true" />
+                    }
+                    else
+                    {
+                        <MudNumericField T="decimal" Label="Manual Interest Amount" @bind-Value="ManualInterestWrapper"
+                                         Variant="Variant.Outlined" Margin="Margin.Dense"
+                                         AdornmentIcon="@Icons.Material.Filled.Money"
+                                         AdornmentColor="Color.Primary" Immediate="true" />
+                    }
                 </MudItem>
 
                 <MudItem xs="12" sm="4">
@@ -177,12 +201,7 @@
                                      Immediate="true" />
                 </MudItem>
 
-                <MudItem xs="12" sm="4">
-                    <MudNumericField T="int" Label="No. of Installments" @bind-Value="InstallmentWrapper"
-                                     Variant="Variant.Outlined" Margin="Margin.Dense" Min="1"
-                                    
-                                     Immediate="true" />
-                </MudItem>
+
 
                 <MudItem xs="12" sm="4">
                     <MudNumericField T="decimal" Label="Disbursed Amount" Value="@(Model.PrincipalOffered - Model.ProcessingFeeAmount)"
@@ -272,8 +291,10 @@
     private DateTime? StartDateWrapper { get => Model.StartDate; set { Model.StartDate = value; StateHasChanged(); } }
 
     private decimal NetDisbursedAmount => Model.IsPrepayment
-        ? (Model.PrincipalOffered - Model.ProcessingFeeAmount - (Model.PrincipalOffered * (Model.InterestRate / 100)))
+        ? (Model.PrincipalOffered - Model.ProcessingFeeAmount - (Model.IsInterestNegotiable ? (Model.PrincipalOffered * (Model.InterestRate / 100)) : Model.ManualInterestAmount))
         : (Model.PrincipalOffered - Model.ProcessingFeeAmount);
+
+    private decimal ManualInterestWrapper { get => Model.ManualInterestAmount; set { Model.ManualInterestAmount = value; Calculate(); } }
 
     private void OnPrepaymentChanged(bool isPrepayment)
     {
@@ -281,22 +302,38 @@
         Calculate();
     }
 
+    private void OnInterestNegotiationChanged(bool isNegotiable)
+    {
+        Model.IsInterestNegotiable = isNegotiable;
+        Calculate();
+    }
+
     private void Calculate()
     {
         Model.ProcessingFeeAmount = Model.PrincipalOffered * (Model.ProcessingFeePercentage / 100);
-        decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
 
-        if (Model.IsPrepayment)
+        if (Model.IsInterestNegotiable)
         {
-            // Prepayment: Interest is deducted upfront at disbursement time.
-            // Total Repayable by borrower in installments is equal to the Principal Offered.
-            Model.Amount = Model.PrincipalOffered;
+            decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
+            if (Model.IsPrepayment)
+            {
+                Model.Amount = Model.PrincipalOffered;
+            }
+            else
+            {
+                Model.Amount = Model.PrincipalOffered + totalInterest;
+            }
         }
         else
         {
-            // Postpayment: Interest is collected in installments.
-            // Total Repayable by borrower = Principal + Total Interest.
-            Model.Amount = Model.PrincipalOffered + totalInterest;
+            if (Model.IsPrepayment)
+            {
+                Model.Amount = Model.PrincipalOffered;
+            }
+            else
+            {
+                Model.Amount = Model.PrincipalOffered + Model.ManualInterestAmount;
+            }
         }
         StateHasChanged();
     }
@@ -341,9 +378,20 @@
         if (Model.TotalInstallments <= 0 || Model.PrincipalOffered <= 0 || Model.StartDate == null) return rows;
 
         decimal principalPart = Model.PrincipalOffered / Model.TotalInstallments;
-        decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
-        decimal interestPart = Model.IsPrepayment ? 0 : (totalInterest / Model.TotalInstallments);
-        decimal totalInstallmentAmount = principalPart + interestPart;
+        decimal totalInstallmentAmount = 0;
+        decimal interestPart = 0;
+
+        if (Model.IsInterestNegotiable)
+        {
+            decimal totalInterest = Model.PrincipalOffered * (Model.InterestRate / 100);
+            interestPart = Model.IsPrepayment ? 0 : (totalInterest / Model.TotalInstallments);
+            totalInstallmentAmount = principalPart + interestPart;
+        }
+        else
+        {
+            interestPart = Model.IsPrepayment ? 0 : (Model.ManualInterestAmount / Model.TotalInstallments);
+            totalInstallmentAmount = principalPart + interestPart;
+        }
         
         var modalityObj = PaymentModalities.FirstOrDefault(m => m.Id == Model.PaymentModalityId);
         string mode = modalityObj?.Mode?.ToLower() ?? "monthly";

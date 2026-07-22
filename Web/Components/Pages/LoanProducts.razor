@@ -17,26 +17,23 @@
         
         @* --- TAB 1: LOAN PRODUCTS --- *@
         <MudTabPanel Text="Loan Products" Icon="@Icons.Material.Filled.Category">
-            <MudGrid Class="mb-4" Spacing="2">
-                <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
-                    @if (_selectedItems.Any())
-                    {
-                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                        <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" Disabled="@(!_selectedItems.Any())" OnClick="@(() => OpenDetailDialog(_selectedItems.First()))" />
-                        <AuthorizeView Roles="Tenant">
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
-                        </AuthorizeView>
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
-                        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-                    }
-                </MudItem>
-            </MudGrid>
-
             <MudDataGrid T="LoanProduct" Items="@_loanProducts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
-                         Hover="true" Elevation="0" Class="rounded-xl border-none shadow-sm">
+                         Hover="true" Elevation="0" Class="rounded-xl border-none shadow-sm mt-4">
                 <ToolBarContent>
                     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Loan Products List</MudText>
                     <MudSpacer />
+                    <div class="d-flex align-center gap-4 mr-4">
+                        @if (_selectedItems.Any())
+                        {
+                            <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" Disabled="@(!_selectedItems.Any())" OnClick="@(() => OpenDetailDialog(_selectedItems.First()))" />
+                            <AuthorizeView Roles="Tenant">
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" OnClick="@(() => OpenEditDialog(_selectedItems.First().Id))" />
+                            </AuthorizeView>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                            <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                        }
+                    </div>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Loan Product</MudButton>
                 </ToolBarContent>
                 <Columns>
@@ -53,27 +50,24 @@
 
         @* --- TAB 2: LOAN PRODUCT SETTINGS --- *@
         <MudTabPanel Text="Loan Product Settings" Icon="@Icons.Material.Filled.Settings">
-            <MudGrid Class="mb-4 px-4" Spacing="2">
-                <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
-                    @if (_selectedSettingItems.Any())
-                    {
-                        <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedSettingItems.Count Selected</MudText>
-                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
-                        <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-                    }
-                </MudItem>
-            </MudGrid>
-
             <MudDataGrid T="LoanProductSetting"
                          Items="@LoanProductSettings"
                          MultiSelection="true"
                          @bind-SelectedItems="_selectedSettingItems"
                          Hover="true"
                          Elevation="0"
-                         Class="rounded-xl border-none shadow-sm mx-4">
+                         Class="rounded-xl border-none shadow-sm mx-4 mt-4">
                 <ToolBarContent>
                     <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Loan Product Settings</MudText>
                     <MudSpacer />
+                    <div class="d-flex align-center gap-4 mr-4">
+                        @if (_selectedSettingItems.Any())
+                        {
+                            <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedSettingItems.Count Selected</MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" />
+                            <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                        }
+                    </div>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@GoToCreateLoanProductSetting">Add Loan product Setting</MudButton>
                 </ToolBarContent>
                 <Columns>

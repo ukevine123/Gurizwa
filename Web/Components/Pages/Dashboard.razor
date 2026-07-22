@@ -262,49 +262,41 @@
             <!-- Left Side: Performance & Stats -->
             <MudItem xs="12" lg="12" Style="height: 100%; display: flex; flex-direction: column;">
                 <div class="performance-card">
-                    <div class="d-flex justify-space-between align-center mb-3">
+                    <div class="d-flex justify-space-between align-center mb-3 gap-3">
                         <div style="font-size: 16px; font-weight: 700; color: #1B2559;">Performance</div>
-                        <MudSelect T="string" Dense="true" Margin="Margin.Dense" Value="@("Last Year")" Class="pa-0" Style="width: 100px; color: #1B2559; font-weight: 700; font-size: 12px;">
-                            <MudSelectItem Value="@("Last Year")" />
-                            <MudSelectItem Value="@("Last Month")" />
-                        </MudSelect>
                     </div>
 
                     <MudGrid Class="mb-3" Spacing="2">
-                        <MudItem xs="3">
+                        <MudItem xs="6" md="3">
                             <div class="stat-card" style="border-left: 4px solid #4318FF;">
                                 <div>
                                     <div class="stat-label">Applied</div>
                                     <div class="stat-value">@CountApplied</div>
                                 </div>
-
                             </div>
                         </MudItem>
-                        <MudItem xs="3">
+                        <MudItem xs="6" md="3">
                             <div class="stat-card" style="border-left: 4px solid #05CD99;">
                                 <div>
                                     <div class="stat-label">Approved</div>
                                     <div class="stat-value">@CountApproved</div>
                                 </div>
-
                             </div>
                         </MudItem>
-                        <MudItem xs="3">
+                        <MudItem xs="6" md="3">
                             <div class="stat-card" style="border-left: 4px solid #EE5D50;">
                                 <div>
                                     <div class="stat-label">Rejected</div>
                                     <div class="stat-value">@CountRejected</div>
                                 </div>
-
                             </div>
                         </MudItem>
-                        <MudItem xs="3">
+                        <MudItem xs="6" md="3">
                             <div class="stat-card" style="border-left: 4px solid #7047EB;">
                                 <div>
                                     <div class="stat-label">Disbursed</div>
                                     <div class="stat-value">@CountDisbursed</div>
                                 </div>
-
                             </div>
                         </MudItem>
                     </MudGrid>
@@ -313,7 +305,8 @@
                         @if (TrendData != null && TrendData.Any())
                         {
                             <ApexChart TItem="MonthlyApplicationData"
-                                       Height="250">
+                                       Height="250"
+                                       Options="chartOptions">
                                 <ApexPointSeries TItem="MonthlyApplicationData"
                                                  Items="TrendData"
                                                  Name="Applications"
@@ -392,6 +385,25 @@
     }
 
     private List<MonthlyApplicationData> TrendData = new();
+    
+    private ApexChartOptions<MonthlyApplicationData> chartOptions = new()
+    {
+        Chart = new Chart
+        {
+            Toolbar = new Toolbar { Show = false }
+        },
+        Xaxis = new XAxis
+        {
+            Labels = new XAxisLabels
+            {
+                Rotate = -45,
+                Style = new AxisLabelStyle
+                {
+                    FontSize = "10px"
+                }
+            }
+        }
+    };
 
 
     protected override async Task OnInitializedAsync()
@@ -418,13 +430,13 @@
         TotalDisbursed = disbursements.Sum(d => d.Amount);
         ActiveBorrowers = apps.Where(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled).Select(a => a.BorrowerId).Distinct().Count();
 
-        // Load chart data: Application Trend over the last 6 months
-        var last6Months = Enumerable.Range(0, 6)
+        // Load chart data: Application Trend over the last 12 months
+        var last12Months = Enumerable.Range(0, 12)
             .Select(i => DateTime.Now.AddMonths(-i))
             .OrderBy(d => d)
             .ToList();
 
-        TrendData = last6Months.Select((month, index) => new MonthlyApplicationData {
+        TrendData = last12Months.Select((month, index) => new MonthlyApplicationData {
             Month = month.ToString("MMM yyyy"),
             Count = apps.Count(a => a.DateofApplication.Month == month.Month && a.DateofApplication.Year == month.Year),
             SortOrder = index

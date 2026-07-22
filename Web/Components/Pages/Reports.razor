@@ -792,8 +792,8 @@
                             </div>
                         </MudCardContent>
                         <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick="@(() => _showIncomeStatementDetails = !_showIncomeStatementDetails)">
-                                @(_showIncomeStatementDetails ? "Hide Details" : "View Details")
+                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick="@(() => OpenStatementDetailsDialog("Income"))">
+                                View Details
                             </MudButton>
                         </MudCardActions>
                     </MudCard>
@@ -822,8 +822,8 @@
                             </div>
                         </MudCardContent>
                         <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Error" OnClick="@(() => _showIncomeStatementDetails = !_showIncomeStatementDetails)">
-                                @(_showIncomeStatementDetails ? "Hide Details" : "View Details")
+                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Error" OnClick="@(() => OpenStatementDetailsDialog("Expenses"))">
+                                View Details
                             </MudButton>
                         </MudCardActions>
                     </MudCard>
@@ -838,63 +838,7 @@
                     </MudPaper>
                 </MudItem>
 
-                @if (_showIncomeStatementDetails)
-                {
-                    <MudItem xs="12">
-                        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-                            <MudTabPanel Text="Interest Income">
-                                <MudDataGrid Items="@_incomeStatement.InterestDetails" Dense="true" Hover="true">
-                                    <Columns>
-                                        <PropertyColumn Property="x => x.NameOfInterest" Title="Name of Interest" />
-                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
-                                        <PropertyColumn Property="x => x.AccountReceiver" Title="Account Receiver" />
-                                        <PropertyColumn Property="x => x.DateOfInterest" Title="Date" Format="yyyy-MM-dd" />
-                                    </Columns>
-                                </MudDataGrid>
-                            </MudTabPanel>
-                            <MudTabPanel Text="Processing Fees">
-                                <MudDataGrid Items="@_incomeStatement.ProcessingFeeDetails" Dense="true" Hover="true">
-                                    <Columns>
-                                        <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
-                                        <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="yyyy-MM-dd" />
-                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
-                                        <PropertyColumn Property="x => x.AccountReceiver" Title="Account Receiver" />
-                                    </Columns>
-                                </MudDataGrid>
-                            </MudTabPanel>
-                            <MudTabPanel Text="Penalty Income">
-                                <MudDataGrid Items="@_incomeStatement.PenaltyDetails" Dense="true" Hover="true">
-                                    <Columns>
-                                        <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
-                                        <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="yyyy-MM-dd" />
-                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
-                                        <PropertyColumn Property="x => x.Reason" Title="Reason" />
-                                    </Columns>
-                                </MudDataGrid>
-                            </MudTabPanel>
-                            <MudTabPanel Text="Operating Expenses">
-                                <MudDataGrid Items="@_incomeStatement.OperatingExpenseDetails" Dense="true" Hover="true">
-                                    <Columns>
-                                        <PropertyColumn Property="x => x.ExpenseName" Title="Expense Name" />
-                                        <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
-                                        <PropertyColumn Property="x => x.ExpenseDate" Title="Expense Date" Format="yyyy-MM-dd" />
-                                        <PropertyColumn Property="x => x.AccountFunding" Title="Account Funding" />
-                                    </Columns>
-                                </MudDataGrid>
-                            </MudTabPanel>
-                            <MudTabPanel Text="Waivers & Write-Offs">
-                                <MudDataGrid Items="@_incomeStatement.WaiverDetails" Dense="true" Hover="true">
-                                    <Columns>
-                                        <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
-                                        <PropertyColumn Property="x => x.AmountWaived" Title="Amount Waived" Format="N2" />
-                                        <PropertyColumn Property="x => x.WaiverType" Title="Waiver Type" />
-                                        <PropertyColumn Property="x => x.WaivingDate" Title="Waiving Date" Format="yyyy-MM-dd" />
-                                    </Columns>
-                                </MudDataGrid>
-                            </MudTabPanel>
-                        </MudTabs>
-                    </MudItem>
-                }
+
             </MudGrid>
         }
     }
@@ -1089,7 +1033,19 @@
     private List<CustomerPortfolioReportDTO> _customerPortfolios = new();
     private List<ApplicationStatusReportDTO> _applicationStatuses = new();
     private List<LoanProductTrackerDTO> _loanProductTrackers = new();
-    private bool _showIncomeStatementDetails = false;
+
+    private async Task OpenStatementDetailsDialog(string type)
+    {
+        if (_incomeStatement == null) return;
+        var parameters = new DialogParameters
+        {
+            ["Statement"] = _incomeStatement,
+            ["Type"] = type
+        };
+        var title = type == "Income" ? "Income Details" : "Expenses & Deductions Details";
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        await DialogService.ShowAsync<IncomeStatementDetailDialog>(title, parameters, options);
+    }
 
     private string _activeLoanSearch = "";
     private string _disbursementSearch = "";

@@ -10,6 +10,39 @@
 
 <PageTitle>Expenses</PageTitle>
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Expenses</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => _showFilters = !_showFilters)"
+                   StartIcon="@Icons.Material.Filled.FilterList" Class="rounded-lg mr-2">Filters</MudButton>
+    </MudStack>
+
+    @if (_showFilters)
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-6 rounded-xl border" Style="border-color: #e0e0e0;">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_filterDescription" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Description" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect T="string" @bind-Value="_selectedCategory" Label="Category" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="false">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        @if (_expenses != null)
+                        {
+                            @foreach (var cat in _expenses.Select(c => c.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct())
+                            {
+                                <MudSelectItem Value="@cat">@cat</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+
     <MudGrid Class="mb-4" Spacing="2">
         <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
             @if (_selectedItems.Any())
@@ -24,7 +57,7 @@
         </MudItem>
     </MudGrid>
 
-    <MudDataGrid T="ExpenseDTO" Items="@_expenses" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+    <MudDataGrid T="ExpenseDTO" Items="@FilteredExpenses" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
         <ToolBarContent>
             <MudText Typo="Typo.h5" Color="Color.Primary">Expenses</MudText>
@@ -50,6 +83,15 @@
 </MudContainer>
 
 @code {
+    private bool _showFilters = false;
+    private string _filterDescription = "";
+    private string _selectedCategory = "All";
+
+    private IEnumerable<ExpenseDTO> FilteredExpenses => _expenses
+        .Where(x => string.IsNullOrWhiteSpace(_filterDescription) || 
+                    (x.Description != null && x.Description.Contains(_filterDescription, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => _selectedCategory == "All" || x.Category == _selectedCategory);
+
     private List<ExpenseDTO> _expenses = new();
     private HashSet<ExpenseDTO> _selectedItems = new();
 

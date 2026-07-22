@@ -1,0 +1,125 @@
+@using Application.DTO
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        @if (Type == "Income")
+        {
+            <div class="pa-6 rounded" style="background-color: #EBF8FF; border: 1px solid #BEE3F8; margin-bottom: 24px;">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.subtitle2" Style="color: #0284C7; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL GROSS INCOME</MudText>
+                        <MudText Typo="Typo.h4" Style="color: #0369A1; font-weight: 700; margin-top: 4px;">@Statement.GrossIncome.ToString("N2")</MudText>
+                    </div>
+                    <div class="text-right">
+                        <MudText Typo="Typo.subtitle2" Style="color: #0284C7; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">NET INCOME</MudText>
+                        <MudText Typo="Typo.h4" Style="color: #DC2626; font-weight: 700; margin-top: 4px;">@Statement.NetIncome.ToString("N2")</MudText>
+                    </div>
+                </div>
+            </div>
+            <MudDivider Style="border-style: dashed; border-color: #CBD5E1; border-width: 2px;" Class="mb-6" />
+
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                <MudTabPanel Text="Interest Income">
+                    <MudDataGrid Items="@Statement.InterestDetails" Dense="true" Hover="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.NameOfInterest" Title="Name of Interest" />
+                            <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.AccountReceiver" Title="Account Receiver" />
+                            <PropertyColumn Property="x => x.DateOfInterest" Title="Date" Format="yyyy-MM-dd" />
+                        </Columns>
+                    </MudDataGrid>
+                    <div class="d-flex justify-end mt-4">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Total: @((Statement.InterestDetails?.Sum(x => x.Amount) ?? 0).ToString("N2"))</MudText>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Processing Fees">
+                    <MudDataGrid Items="@Statement.ProcessingFeeDetails" Dense="true" Hover="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
+                            <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.AccountReceiver" Title="Account Receiver" />
+                        </Columns>
+                    </MudDataGrid>
+                    <div class="d-flex justify-end mt-4">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Total: @((Statement.ProcessingFeeDetails?.Sum(x => x.Amount) ?? 0).ToString("N2"))</MudText>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Penalty Income">
+                    <MudDataGrid Items="@Statement.PenaltyDetails" Dense="true" Hover="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
+                            <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.Reason" Title="Reason" />
+                        </Columns>
+                    </MudDataGrid>
+                    <div class="d-flex justify-end mt-4">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Total: @((Statement.PenaltyDetails?.Sum(x => x.Amount) ?? 0).ToString("N2"))</MudText>
+                    </div>
+                </MudTabPanel>
+            </MudTabs>
+        }
+        else if (Type == "Expenses")
+        {
+            <div class="pa-6 rounded" style="background-color: #EBF8FF; border: 1px solid #BEE3F8; margin-bottom: 24px;">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.subtitle2" Style="color: #0284C7; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL OPERATING EXPENSES</MudText>
+                        <MudText Typo="Typo.h4" Style="color: #0369A1; font-weight: 700; margin-top: 4px;">@Statement.TotalOperatingExpenses.ToString("N2")</MudText>
+                    </div>
+                    <div class="text-right">
+                        <MudText Typo="Typo.subtitle2" Style="color: #0284C7; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL DEDUCTIONS</MudText>
+                        <MudText Typo="Typo.h4" Style="color: #DC2626; font-weight: 700; margin-top: 4px;">@Statement.TotalDeductions.ToString("N2")</MudText>
+                    </div>
+                </div>
+            </div>
+            <MudDivider Style="border-style: dashed; border-color: #CBD5E1; border-width: 2px;" Class="mb-6" />
+
+            <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                <MudTabPanel Text="Operating Expenses">
+                    <MudDataGrid Items="@Statement.OperatingExpenseDetails" Dense="true" Hover="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.ExpenseName" Title="Expense Name" />
+                            <PropertyColumn Property="x => x.Amount" Title="Amount" Format="N2" />
+                            <PropertyColumn Property="x => x.ExpenseDate" Title="Expense Date" Format="yyyy-MM-dd" />
+                            <PropertyColumn Property="x => x.AccountFunding" Title="Account Funding" />
+                        </Columns>
+                    </MudDataGrid>
+                    <div class="d-flex justify-end mt-4">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Total: @((Statement.OperatingExpenseDetails?.Sum(x => x.Amount) ?? 0).ToString("N2"))</MudText>
+                    </div>
+                </MudTabPanel>
+                <MudTabPanel Text="Waivers & Write-Offs">
+                    <MudDataGrid Items="@Statement.WaiverDetails" Dense="true" Hover="true">
+                        <Columns>
+                            <PropertyColumn Property="x => x.LoanApplicationCode" Title="Loan App" />
+                            <PropertyColumn Property="x => x.AmountWaived" Title="Amount Waived" Format="N2" />
+                            <PropertyColumn Property="x => x.WaiverType" Title="Waiver Type" />
+                            <PropertyColumn Property="x => x.WaivingDate" Title="Waiving Date" Format="yyyy-MM-dd" />
+                        </Columns>
+                    </MudDataGrid>
+                    <div class="d-flex justify-end mt-4">
+                        <MudText Typo="Typo.h6" Style="font-weight: 700;">Total: @((Statement.WaiverDetails?.Sum(x => x.AmountWaived) ?? 0).ToString("N2"))</MudText>
+                    </div>
+                </MudTabPanel>
+            </MudTabs>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="MudBlazor.Color.Primary" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public IncomeStatementReportDTO Statement { get; set; }
+    
+    [Parameter]
+    public string Type { get; set; }
+
+    void Close() => MudDialog.Close(DialogResult.Ok(true));
+}

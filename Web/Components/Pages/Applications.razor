@@ -17,21 +17,42 @@
 <PageTitle>LoanApplication</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-   
-    <MudGrid Class="mb-4" Spacing="2">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => _showFilters = !_showFilters)"
+                   StartIcon="@Icons.Material.Filled.FilterList" Class="rounded-lg mr-2">Filters</MudButton>
+    </MudStack>
 
-        <MudItem xs="12"  Class="d-flex align-center justify-end gap-4">
-            @if (_selectedItems.Any())
-            {
-                <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
-                @* <MudIconButton Icon="@Icons.Material.Filled.Details" Size="Size.Small" /> *@
-               
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDeleteApplication(_selectedItems.First()))" />
-                <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
-            }
-        </MudItem>
-    </MudGrid>
+    @if (_showFilters)
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-6 rounded-xl border" Style="border-color: #e0e0e0;">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterCode" Label="Application Code" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Tag" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterBorrower" Label="Borrower Name" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.PersonSearch" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" @bind-Value="_selectedStatus" Label="Status" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="false">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        @if (_statusCounts != null)
+                        {
+                            @foreach (var st in _statusCounts.Select(c => c.Status).Distinct())
+                            {
+                                <MudSelectItem Value="@st">@st</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
 
     @* 3. STATUS SUMMARY CARDS *@
     <MudGrid Class="mb-4" Spacing="2">
@@ -55,19 +76,21 @@
     </MudGrid>
 
     @* 4. THE DATAGRID *@
-    <MudDataGrid T="LoanApplication" Items="@_loanApplication" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+    <MudDataGrid T="LoanApplication" Items="@FilteredApplications" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
-                  <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">Application</MudText>
+        <ToolBarContent>
+            <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Application</MudText>
             <MudSpacer />
-
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Loan application</MudButton>
-        </ToolBarContent>
-
-          <ToolBarContent>
-            @* <MudText Typo="Typo.h5" Color="Color.Primary">LoanApplication</MudText> *@
-            <MudSpacer />
+            <div class="d-flex align-center gap-4 mr-4">
+                @if (_selectedItems.Any())
+                {
+                    <MudText Color="Color.Primary" Typo="Typo.subtitle2">@_selectedItems.Count Selected</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small" OnClick="@(() => OpenDetailDialog(_selectedItems.First().Id))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => ConfirmDeleteApplication(_selectedItems.First()))" />
+                    <MudDivider Vertical="true" FlexItem="true" Class="mx-2" />
+                }
+            </div>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Loan Application</MudButton>
         </ToolBarContent>
 
@@ -149,15 +172,21 @@
 </MudContainer>
 
 @code {
-     private string _searchString = "";
+    private bool _showFilters = false;
+    private string _filterCode = "";
+    private string _filterBorrower = "";
+    private string _selectedStatus = "All";
 
-     private bool _isLoading = true;
+    private bool _isLoading = true;
 
-    private IEnumerable<LoanApplication> FilteredBorrowers => _loanApplication
-        .Where(x => string.IsNullOrWhiteSpace(_searchString) || 
-                    
-            x.ApprovedBy.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
-     //s
+    private IEnumerable<LoanApplication> FilteredApplications => _loanApplication
+        .Where(x => string.IsNullOrWhiteSpace(_filterCode) || 
+                    (x.ApplicationCode != null && x.ApplicationCode.Contains(_filterCode, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => string.IsNullOrWhiteSpace(_filterBorrower) ||
+                    (x.Borrower?.FirstName != null && x.Borrower.FirstName.Contains(_filterBorrower, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Borrower?.LastName != null && x.Borrower.LastName.Contains(_filterBorrower, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.Borrower?.CompanyName != null && x.Borrower.CompanyName.Contains(_filterBorrower, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => _selectedStatus == "All" || x.Status.ToString() == _selectedStatus);
        List<LoanApplication> _loanApplication = new();
     private HashSet<LoanApplication> _selectedItems = new();
 

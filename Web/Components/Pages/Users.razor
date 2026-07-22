@@ -23,6 +23,43 @@
 else
 {
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => _showFilters = !_showFilters)"
+                   StartIcon="@Icons.Material.Filled.FilterList" Class="rounded-lg mr-2">Filters</MudButton>
+    </MudStack>
+
+    @if (_showFilters)
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-6 rounded-xl border" Style="border-color: #e0e0e0;">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterName" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Person" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterEmail" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Email" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" @bind-Value="_selectedRole" Label="Role" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="false">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        @if (users != null)
+                        {
+                            @foreach (var role in users.Select(u => u.Role).Where(r => !string.IsNullOrEmpty(r)).Distinct())
+                            {
+                                <MudSelectItem Value="@role">@role</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+
     <MudCard>
         <MudCardHeader>
             <div class="d-flex justify-space-between align-center w-100">
@@ -78,14 +115,6 @@ else
                           Filter="new Func<UserDetailDTO, bool>(FilterFunc)">
                     <ToolBarContent>
                         <MudText Typo="Typo.h6">Users</MudText>
-                        <MudSpacer />
-                        <MudTextField @bind-Value="searchString" 
-                                      Placeholder="Search users..." 
-                                      
-                                      
-                                      IconSize="Size.Medium" 
-                                      Class="mt-0"
-                                      Immediate="true" />
                     </ToolBarContent>
                     <HeaderContent>
                         <MudTh>Name</MudTh>
@@ -168,7 +197,10 @@ else
     private List<UserDetailDTO>? users;
     private bool isLoading = true;
     private string? errorMessage;
-    private string searchString = "";
+    private bool _showFilters = false;
+    private string _filterName = "";
+    private string _filterEmail = "";
+    private string _selectedRole = "All";
 
     private bool IsDeveloper => 
         string.Equals(UserContext.Email, "guriza291@gmail.com", StringComparison.OrdinalIgnoreCase);
@@ -261,20 +293,19 @@ else
 
     private bool FilterFunc(UserDetailDTO user)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
-            return true;
+        if (!string.IsNullOrWhiteSpace(_filterName) && 
+            !((user.FirstName?.Contains(_filterName, StringComparison.OrdinalIgnoreCase) ?? false) || 
+              (user.LastName?.Contains(_filterName, StringComparison.OrdinalIgnoreCase) ?? false)))
+            return false;
 
-        var search = searchString.ToLower();
+        if (!string.IsNullOrWhiteSpace(_filterEmail) && 
+            !(user.Email?.Contains(_filterEmail, StringComparison.OrdinalIgnoreCase) ?? false))
+            return false;
+            
+        if (_selectedRole != "All" && 
+            user.Role != _selectedRole)
+            return false;
 
-        if (!string.IsNullOrEmpty(user.FirstName) && user.FirstName.ToLower().Contains(search))
-            return true;
-        if (!string.IsNullOrEmpty(user.LastName) && user.LastName.ToLower().Contains(search))
-            return true;
-        if (!string.IsNullOrEmpty(user.Email) && user.Email.ToLower().Contains(search))
-            return true;
-        if (user.PhoneNumber?.ToLower().Contains(search) == true)
-            return true;
-
-        return false;
+        return true;
     }
 }

@@ -12,13 +12,43 @@
 <PageTitle>Accounts</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
-    @* 1. TOP TITLE AND SEARCH BAR *@
-    <div class="d-flex align-center justify-space-between mb-6">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
         <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Accounts</MudText>
-        @* <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Style="text-transform:none;">
-            Add Account
-        </MudButton> *@
-    </div>
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => _showFilters = !_showFilters)"
+                   StartIcon="@Icons.Material.Filled.FilterList" Class="rounded-lg mr-2">Filters</MudButton>
+    </MudStack>
+
+    @if (_showFilters)
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-6 rounded-xl border" Style="border-color: #e0e0e0;">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterName" Label="Account Name" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Badge" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterNumber" Label="Account Number" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Numbers" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="string" @bind-Value="_selectedType" Label="Account Type" 
+                               Variant="Variant.Outlined" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter" Clearable="false">
+                        <MudSelectItem Value="@("All")">All</MudSelectItem>
+                        @if (_accountTypeTotals != null)
+                        {
+                            @foreach (var bt in _accountTypeTotals.Select(c => c.AccountTypeName).Distinct())
+                            {
+                                <MudSelectItem Value="@bt">@bt</MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
 
     @* 2. SEARCH AND FILTER ROW *@
     <MudGrid Class="mb-4" Spacing="2">
@@ -59,18 +89,11 @@
     </MudGrid>
 
     @* 4. THE DATAGRID *@
-    <MudDataGrid T="Account" Items="@_accounts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
+    <MudDataGrid T="Account" Items="@FilteredAccounts" MultiSelection="true" @bind-SelectedItems="_selectedItems"
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
-                  <ToolBarContent>
-            <!-- <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText> -->
-            <MudSpacer />
-
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenDialog">Add Account</MudButton>
-        </ToolBarContent>
-
           <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary">Account</MudText>
+            <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Account</MudText>
             <MudSpacer />
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenDialog())">Add Account</MudButton>
         </ToolBarContent>
@@ -102,7 +125,17 @@
 </MudContainer>
 
 @code {
-     private string _searchString = "";
+     private bool _showFilters = false;
+     private string _filterName = "";
+     private string _filterNumber = "";
+     private string _selectedType = "All";
+
+     private IEnumerable<Account> FilteredAccounts => _accounts
+         .Where(x => string.IsNullOrWhiteSpace(_filterName) || 
+                     (x.Name != null && x.Name.Contains(_filterName, StringComparison.OrdinalIgnoreCase)))
+         .Where(x => string.IsNullOrWhiteSpace(_filterNumber) ||
+                     (x.AccountNumber != null && x.AccountNumber.Contains(_filterNumber, StringComparison.OrdinalIgnoreCase)))
+         .Where(x => _selectedType == "All" || (x.AccountType != null && x.AccountType.AccountTypeName == _selectedType));
 
        List<Account> _accounts = new();
 

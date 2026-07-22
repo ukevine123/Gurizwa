@@ -95,7 +95,7 @@
                     <SelectColumn T="Reason" />
                     <PropertyColumn Property="x => x.Name" Title="Reason" Sortable="true" />
 
-                    <TemplateColumn Title="Status" HeaderStyle="white-space:nowrap" ItemStyle="white-space:nowrap">
+                    <TemplateColumn Title="Current Status" CellStyle="width:120px;">
                         <CellTemplate>
                             <MudChip T="string"
                                      Color="@(context.Item.IsActive ? Color.Success : Color.Error)"

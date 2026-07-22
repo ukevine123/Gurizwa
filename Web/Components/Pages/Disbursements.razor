@@ -8,6 +8,35 @@
 <PageTitle>Disbursements</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudText Typo="Typo.h5" Style="font-weight: 800; color: #1B2559;">Disbursements</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => _showFilters = !_showFilters)"
+                   StartIcon="@Icons.Material.Filled.FilterList" Class="rounded-lg mr-2">Filters</MudButton>
+    </MudStack>
+
+    @if (_showFilters)
+    {
+        <MudPaper Elevation="0" Class="pa-4 mb-6 rounded-xl border" Style="border-color: #e0e0e0;">
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterCode" Label="Application Code" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Tag" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_filterBorrower" Label="Borrower Name" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Clearable="true" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.PersonSearch" Adornment="Adornment.Start"/>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudDatePicker @bind-Date="_filterDate" Label="Disbursed Date" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                   Clearable="true" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+
     @* --- ACTION BAR --- *@
     <MudGrid Class="mb-4" Spacing="2">
         <MudItem xs="12" Class="d-flex align-center justify-end gap-4">
@@ -23,7 +52,7 @@
 
     @* --- DATA GRID --- *@
     <MudDataGrid T="Disbursement" 
-                 Items="@_disbursements" 
+                 Items="@FilteredDisbursements" 
                  Hover="true" 
                  Elevation="0" 
                  MultiSelection="true"
@@ -111,6 +140,20 @@
 </MudContainer>
 
 @code {
+    private bool _showFilters = false;
+    private string _filterCode = "";
+    private string _filterBorrower = "";
+    private DateTime? _filterDate = null;
+
+    private IEnumerable<Disbursement> FilteredDisbursements => _disbursements
+        .Where(x => string.IsNullOrWhiteSpace(_filterCode) || 
+                    (x.LoanApplication?.ApplicationCode != null && x.LoanApplication.ApplicationCode.Contains(_filterCode, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => string.IsNullOrWhiteSpace(_filterBorrower) ||
+                    (x.LoanApplication?.Borrower?.FirstName != null && x.LoanApplication.Borrower.FirstName.Contains(_filterBorrower, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.LoanApplication?.Borrower?.LastName != null && x.LoanApplication.Borrower.LastName.Contains(_filterBorrower, StringComparison.OrdinalIgnoreCase)) ||
+                    (x.LoanApplication?.Borrower?.CompanyName != null && x.LoanApplication.Borrower.CompanyName.Contains(_filterBorrower, StringComparison.OrdinalIgnoreCase)))
+        .Where(x => !_filterDate.HasValue || (x.StartDate.Date == _filterDate.Value.Date));
+
     private List<Disbursement> _disbursements = new();
     private HashSet<Disbursement> _selectedItems = new(); 
     

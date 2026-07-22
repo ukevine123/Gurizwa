@@ -41,31 +41,37 @@ namespace Infrastructure.Repositories
 
         var borrowerIds = borrowers.Select(b => b.Id).ToList();
         
-        var disbursements = new List<Disbursement>();
-        var payments = new List<Payment>();
-        
         if (borrowerIds.Any())
         {
-            disbursements = await dbContext.Disbursements
-                .Include(d => d.LoanApplication)
+            // Use projection to aggregate debt values in the database instead of loading everything into memory
+            var debtData = await dbContext.Disbursements
                 .Where(d => borrowerIds.Contains(d.LoanApplication.BorrowerId) && d.IsActive)
+                .Select(d => new 
+                {
+                    BorrowerId = d.LoanApplication.BorrowerId,
+                    DisbursedAmount = d.Amount,
+                    PaidAmount = d.Payments.Where(p => p.IsActive).Sum(p => (decimal?)p.Amount) ?? 0m
+                })
                 .ToListAsync();
 
-            payments = await dbContext.Payments
-                .Include(p => p.Disbursement).ThenInclude(d => d.LoanApplication)
-                .Where(p => borrowerIds.Contains(p.Disbursement.LoanApplication.BorrowerId) && p.IsActive)
-                .ToListAsync();
-        }
+            var debtByBorrower = debtData
+                .GroupBy(d => d.BorrowerId)
+                .ToDictionary(
+                    g => g.Key, 
+                    g => g.Sum(x => x.DisbursedAmount) - g.Sum(x => x.PaidAmount)
+                );
 
-        foreach (var borrower in borrowers)
-        {
-            var bDisb = disbursements.Where(d => d.LoanApplication.BorrowerId == borrower.Id);
-            var bPayments = payments.Where(p => p.Disbursement.LoanApplication.BorrowerId == borrower.Id);
-            
-            decimal totalAmount = bDisb.Sum(d => d.Amount);
-            decimal totalPaid = bPayments.Sum(p => p.Amount);
-            
-            borrower.TotalDebt = Math.Max(0, totalAmount - totalPaid);
+            foreach (var borrower in borrowers)
+            {
+                if (debtByBorrower.TryGetValue(borrower.Id, out decimal debt))
+                {
+                    borrower.TotalDebt = Math.Max(0, debt);
+                }
+                else
+                {
+                    borrower.TotalDebt = 0;
+                }
+            }
         }
 
         return borrowers;
