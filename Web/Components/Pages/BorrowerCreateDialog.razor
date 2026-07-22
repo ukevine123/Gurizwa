@@ -1,4 +1,4 @@
-﻿@using  Application.DTO
+@using  Application.DTO
 @using System.ComponentModel.DataAnnotations
 @using Application.Interfaces
 @using Application.Services.BorrowerTypes
@@ -199,7 +199,7 @@
 
                   @if (!isOrganization)
                   {
-                      <MudItem xs="6">
+                      <MudItem xs="4">
                           <MudTextField Label="Next Of Kin"
                                         Variant="Variant.Outlined"
                                         Margin="Margin.Dense"
@@ -207,12 +207,20 @@
                                         For="@(() => Model.NextOfKin)" />
                       </MudItem>
 
-                      <MudItem xs="6">
+                      <MudItem xs="4">
                           <MudTextField Label="Kin Phone Number"
                                         Variant="Variant.Outlined"
                                         Margin="Margin.Dense"
                                         @bind-Value="Model.KinPhoneNumber"
                                         For="@(() => Model.KinPhoneNumber)" />
+                      </MudItem>
+
+                      <MudItem xs="4">
+                          <MudTextField Label="Relationship"
+                                        Variant="Variant.Outlined"
+                                        Margin="Margin.Dense"
+                                        @bind-Value="Model.NextOfKinRelationship"
+                                        For="@(() => Model.NextOfKinRelationship)" />
                       </MudItem>
                   }
                   else

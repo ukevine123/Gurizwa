@@ -137,6 +137,7 @@ namespace Infrastructure.Repositories
                 SpouceIdNumber = borrowerDTO.SpouceIdNumber,
                 NextOfKin = borrowerDTO.NextOfKin,
                 KinPhoneNumber = borrowerDTO.KinPhoneNumber,
+                NextOfKinRelationship = borrowerDTO.NextOfKinRelationship,
                 SpouceName = borrowerDTO.SpouceName,
                 Province = borrowerDTO.Province ?? string.Empty,
                 District = borrowerDTO.District ?? string.Empty,
