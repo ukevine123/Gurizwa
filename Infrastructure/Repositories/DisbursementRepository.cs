@@ -12,15 +12,18 @@ namespace Infrastructure.Repositories
         private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
         private readonly IUserContext _userContext;
         private readonly IEmailService _emailService;
+        private readonly IQRCodeService _qrCodeService;
 
         public DisbursementRepository(
             IDbContextFactory<ApplicationDbContext> contextFactory, 
             IUserContext userContext,
-            IEmailService emailService)
+            IEmailService emailService,
+            IQRCodeService qrCodeService)
         {
             _contextFactory = contextFactory;
             _userContext = userContext;
             _emailService = emailService;
+            _qrCodeService = qrCodeService;
         }
 
         public async Task<List<Disbursement>> GetAllDisbursementsAsync()
@@ -426,7 +429,10 @@ namespace Infrastructure.Repositories
         </div>
     </div>
 
-    <div style=""background-color: #1B2559; padding: 15px 20px; text-align: center; font-size: 12px; color: #ffffff; opacity: 0.9;"">
+    <div style=""background-color: #1B2559; padding: 15px 20px; text-align: left; font-size: 12px; color: #ffffff; opacity: 0.9;"">
+        <p style=""margin-bottom: 10px;"">Scan to Verify</p>
+        <img src=""data:image/png;base64,{_qrCodeService.GenerateQRCodeBase64($"https://app.guriza.com/verify?loan={appCode}")}"" width=""80"" height=""80"" style=""border-radius: 5px;""/>
+        <br/><br/>
         &copy; {DateTime.UtcNow.Year} Guriza. All rights reserved.
     </div>
 </div>";

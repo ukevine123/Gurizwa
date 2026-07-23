@@ -967,8 +967,9 @@
 
     private byte[] ExportData<T>(IEnumerable<T> data, string format, string title)
     {
-        if (format == "pdf") return ExportService.ExportToPdf(data, title);
-        if (format == "doc") return ExportService.ExportToWordHtml(data, title);
+        string qrCodeUrl = $"https://app.guriza.com/verify?doc={Uri.EscapeDataString(title)}";
+        if (format == "pdf") return ExportService.ExportToPdf(data, title, qrCodeUrl);
+        if (format == "doc") return ExportService.ExportToWordHtml(data, title, qrCodeUrl);
         return ExportService.ExportToExcel(data, title);
     }
 

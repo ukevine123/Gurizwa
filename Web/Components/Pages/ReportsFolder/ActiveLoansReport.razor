@@ -1,0 +1,49 @@
+@using Application.DTO
+
+<MudDataGrid T="ActiveLoanSummaryDTO" Items="@ActiveLoans" Hover="true" Bordered="false" Striped="true" QuickFilter="@_activeLoanFilter">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField @bind-Value="_activeLoanSearch" Placeholder="Search Borrower or Code..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+        <PropertyColumn Property="x => x.PrincipalBalance" Title="Balance" Format="N2" />
+        <PropertyColumn Property="x => x.InterestRate" Title="Rate (%)" />
+        <PropertyColumn Property="x => x.TenureMonths" Title="Tenure (Months)" />
+        <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="x => x.EndDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(context.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="ActiveLoanSummaryDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter]
+    public List<ActiveLoanSummaryDTO> ActiveLoans { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<ActiveLoanSummaryDTO> OnViewDetails { get; set; }
+
+    private string _activeLoanSearch = "";
+
+    private Func<ActiveLoanSummaryDTO, bool> _activeLoanFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_activeLoanSearch))
+            return true;
+
+        if (x.BorrowerName?.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+            
+        if (x.ApplicationCode?.Contains(_activeLoanSearch, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        return false;
+    };
+}

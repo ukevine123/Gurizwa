@@ -80,7 +80,7 @@
                  Hover="true" Elevation="0" Class="rounded-xl border-none">
 
         <ToolBarContent>
-            <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Application</MudText>
+            <MudText Typo="Typo.h5" Color="Color.Primary" Style="font-weight: bold;">Applications</MudText>
             <MudSpacer />
             <div class="d-flex align-center gap-4 mr-4">
                 @if (_selectedItems.Any())
@@ -96,7 +96,6 @@
 
         <Columns>
             <SelectColumn T="LoanApplication" />
-            <HierarchyColumn T="LoanApplication" />
             @* <PropertyColumn Property="x => x.Id" Title="ID" /> *@
             <TemplateColumn Title="Product" SortBy="x => x.LoanProductSetting.LoanProduct.ProductName">
                 <CellTemplate>

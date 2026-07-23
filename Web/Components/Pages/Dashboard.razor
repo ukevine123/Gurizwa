@@ -221,14 +221,11 @@
         padding: 10px 0;
     }
 
-    .export-btn {
-        background: linear-gradient(135deg, #05CD99 0%, #04b688 100%) !important;
-        color: white !important;
+    .apply-btn {
         border-radius: 14px;
         text-transform: none;
         font-weight: 700;
         padding: 10px 24px !important;
-        box-shadow: 0 10px 20px -5px rgba(5, 205, 153, 0.4);
     }
 
     .main-grid {
@@ -254,7 +251,16 @@
         <div class="d-flex align-center">
             <div class="overview-title">Overview</div>
         </div>
-       
+        <div class="d-flex align-center gap-3">
+            <MudDateRangePicker @bind-DateRange="_dateRange" 
+                                Margin="Margin.Dense" 
+                                Variant="Variant.Outlined" 
+                                Color="MudBlazor.Color.Primary" 
+                                Clearable="true" 
+                                PlaceholderStart="Start Date" 
+                                PlaceholderEnd="End Date" />
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="ApplyFilter" Class="apply-btn">Apply Filter</MudButton>
+        </div>
     </div>
 
     <div class="main-grid">
@@ -263,7 +269,7 @@
             <MudItem xs="12" lg="12" Style="height: 100%; display: flex; flex-direction: column;">
                 <div class="performance-card">
                     <div class="d-flex justify-space-between align-center mb-3 gap-3">
-                        <div style="font-size: 16px; font-weight: 700; color: #1B2559;">Performance</div>
+                        <div style="font-size: 16px; font-weight: 700; color: #1B2559;"></div>
                     </div>
 
                     <MudGrid Class="mb-3" Spacing="2">
@@ -406,29 +412,48 @@
     };
 
 
+    private MudBlazor.DateRange _dateRange;
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task ApplyFilter()
     {
         await LoadDashboardData();
     }
 
     private async Task LoadDashboardData()
     {
-        var apps = await LoanApplicationService.GetAllLoanApplicationsAsync() ?? new List<LoanApplication>();
-        CountApplied = apps.Count(a => a.Status == LoanStatus.Applied);
-        CountApproved = apps.Count(a => a.Status == LoanStatus.Approved);
-        CountRejected = apps.Count(a => a.Status == LoanStatus.Rejected);
-        CountDisbursed = apps.Count(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled);
+        var appsAll = await LoanApplicationService.GetAllLoanApplicationsAsync() ?? new List<LoanApplication>();
+        var disbursementsAll = await DisbursementService.GetAllDisbursementsAsync() ?? new List<Disbursement>();
 
-        var disbursements = await DisbursementService.GetAllDisbursementsAsync() ?? new List<Disbursement>();
-        
-        var disbursementWithOutstanding = disbursements.Select(d => new {
+        var filteredApps = appsAll;
+        var filteredDisbursements = disbursementsAll;
+
+        if (_dateRange?.Start != null && _dateRange?.End != null)
+        {
+            var start = _dateRange.Start.Value.Date;
+            var end = _dateRange.End.Value.Date.AddDays(1).AddTicks(-1);
+            
+            filteredApps = appsAll.Where(a => a.DateofApplication >= start && a.DateofApplication <= end).ToList();
+            filteredDisbursements = disbursementsAll.Where(d => d.StartDate >= start && d.StartDate <= end).ToList();
+        }
+
+        CountApplied = filteredApps.Count(a => a.Status == LoanStatus.Applied);
+        CountApproved = filteredApps.Count(a => a.Status == LoanStatus.Approved);
+        CountRejected = filteredApps.Count(a => a.Status == LoanStatus.Rejected);
+        CountDisbursed = filteredApps.Count(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled);
+
+        var disbursementWithOutstanding = filteredDisbursements.Select(d => new {
             Disbursement = d,
             Outstanding = d.Amount - d.Payments.Sum(p => p.Amount)
         }).ToList();
 
         TotalBalance = disbursementWithOutstanding.Sum(x => x.Outstanding);
-        TotalDisbursed = disbursements.Sum(d => d.Amount);
-        ActiveBorrowers = apps.Where(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled).Select(a => a.BorrowerId).Distinct().Count();
+        TotalDisbursed = filteredDisbursements.Sum(d => d.Amount);
+        ActiveBorrowers = filteredApps.Where(a => a.Status == LoanStatus.Disbursed || a.Status == LoanStatus.Rescheduled).Select(a => a.BorrowerId).Distinct().Count();
 
         // Load chart data: Application Trend over the last 12 months
         var last12Months = Enumerable.Range(0, 12)
@@ -438,7 +463,7 @@
 
         TrendData = last12Months.Select((month, index) => new MonthlyApplicationData {
             Month = month.ToString("MMM yyyy"),
-            Count = apps.Count(a => a.DateofApplication.Month == month.Month && a.DateofApplication.Year == month.Year),
+            Count = appsAll.Count(a => a.DateofApplication.Month == month.Month && a.DateofApplication.Year == month.Year),
             SortOrder = index
         }).ToList();
 

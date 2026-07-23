@@ -1,0 +1,71 @@
+@using Application.DTO
+
+<MudPaper Class="pa-4 mb-4" Elevation="0">
+    <MudGrid AlignItems="AlignItems.Center">
+        <MudItem xs="12" sm="6" md="7">
+            <MudSelect T="string" Value="@SelectedApplicationCode" ValueChanged="OnApplicationCodeChanged" Label="Select Loan Application" Placeholder="All Applications" Clearable="true">
+                <MudSelectItem T="string" Value="@((string)null)">All Applications</MudSelectItem>
+                @foreach (var app in RepaymentSchedules.GroupBy(x => x.ApplicationCode).Select(g => g.First()))
+                {
+                    <MudSelectItem T="string" Value="@app.ApplicationCode">@app.ApplicationCode - @app.BorrowerName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="5" Class="d-flex justify-end gap-2 align-center">
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Error" StartIcon="@Icons.Material.Filled.PictureAsPdf" OnClick='() => OnExportFiltered.InvokeAsync("pdf")'>PDF</MudButton>
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Success" StartIcon="@Icons.Material.Filled.TableChart" OnClick='() => OnExportFiltered.InvokeAsync("xlsx")'>Excel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Info" StartIcon="@Icons.Material.Filled.Article" OnClick='() => OnExportFiltered.InvokeAsync("doc")'>Word</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudDataGrid T="RepaymentScheduleReportDTO" Items="@TargetSchedules" Hover="true" Striped="true" QuickFilter="@_repaymentFilter" Class="mt-4">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField @bind-Value="_repaymentSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+        <PropertyColumn Property="x => x.DueDate" Title="Next Due" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="x => x.InstallmentAmount" Title="Amount Due" Format="N2" />
+        <PropertyColumn Property="x => x.Balance" Title="Remaining Bal" Format="N2" />
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(context.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="RepaymentScheduleReportDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter] public List<RepaymentScheduleReportDTO> RepaymentSchedules { get; set; } = new();
+    [Parameter] public string? SelectedApplicationCode { get; set; }
+    [Parameter] public EventCallback<string?> SelectedApplicationCodeChanged { get; set; }
+    [Parameter] public EventCallback<string> OnExportFiltered { get; set; }
+    [Parameter] public EventCallback<RepaymentScheduleReportDTO> OnViewDetails { get; set; }
+
+    private string _repaymentSearch = "";
+
+    private IEnumerable<RepaymentScheduleReportDTO> TargetSchedules =>
+        string.IsNullOrEmpty(SelectedApplicationCode)
+            ? RepaymentSchedules
+            : RepaymentSchedules.Where(s => s.ApplicationCode == SelectedApplicationCode).ToList();
+
+    private async Task OnApplicationCodeChanged(string? value)
+    {
+        SelectedApplicationCode = value;
+        await SelectedApplicationCodeChanged.InvokeAsync(value);
+    }
+
+    private Func<RepaymentScheduleReportDTO, bool> _repaymentFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_repaymentSearch)) return true;
+        if (x.ApplicationCode?.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.BorrowerName?.Contains(_repaymentSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+}

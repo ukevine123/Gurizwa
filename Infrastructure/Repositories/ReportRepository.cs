@@ -685,6 +685,93 @@ namespace Infrastructure.Repositories
             return trackerReports;
         }
 
+        public async Task<List<AccountHistoryReportDTO>> GetAccountHistoryReportAsync(DateTime startDate, DateTime endDate)
+        {
+            using var dbContext = await _contextFactory.CreateDbContextAsync();
+            var currentPersonId = await GetCurrentPersonIdAsync(dbContext);
+            if (!currentPersonId.HasValue) return new List<AccountHistoryReportDTO>();
+
+            var start = startDate.Date;
+            var endExclusive = endDate.Date.AddDays(1);
+
+            var accounts = await dbContext.Accounts
+                .Where(a => a.PersonId == currentPersonId.Value)
+                .ToListAsync();
+
+            var payments = await dbContext.Payments
+                .Where(p => p.PersonId == currentPersonId.Value && p.IsActive && p.PaymentDate >= start && p.PaymentDate < endExclusive)
+                .ToListAsync();
+
+            var feeDeposits = await dbContext.ProcessFeeDeposits
+                .Where(f => f.PersonId == currentPersonId.Value && f.DepositDate >= start && f.DepositDate < endExclusive)
+                .ToListAsync();
+
+            var disbursements = await dbContext.Disbursements
+                .Where(d => d.PersonId == currentPersonId.Value && d.IsActive && d.CreatedAt >= start && d.CreatedAt < endExclusive)
+                .ToListAsync();
+
+            var reports = new List<AccountHistoryReportDTO>();
+            foreach(var account in accounts)
+            {
+                var transactions = new List<TransactionHistoryDTO>();
+                
+                // Payments IN
+                var accPayments = payments.Where(p => p.AccountId == account.Id).ToList();
+                foreach(var p in accPayments)
+                {
+                    string desc = "Installment paid";
+                    if (p.PenaltyPaid > 0 && p.PrincipalPaid == 0 && p.InterestPaid == 0)
+                        desc = "Penalty paid";
+                    else if (p.PenaltyPaid > 0)
+                        desc = "Installment & Penalty paid";
+
+                    transactions.Add(new TransactionHistoryDTO {
+                        TransactionDate = p.PaymentDate,
+                        TransactionType = "Payment Received",
+                        Amount = p.Amount,
+                        Description = desc
+                    });
+                }
+
+                // Application Process Fee
+                var accFees = feeDeposits.Where(f => f.AccountId == account.Id).ToList();
+                foreach(var f in accFees)
+                {
+                    transactions.Add(new TransactionHistoryDTO {
+                        TransactionDate = f.DepositDate,
+                        TransactionType = "Fee Deposit",
+                        Amount = f.Amount,
+                        Description = "Application Pay that process fee"
+                    });
+                }
+
+                // Disbursements OUT
+                var accDisbursements = disbursements.Where(d => d.AccountId == account.Id).ToList();
+                foreach(var d in accDisbursements)
+                {
+                    transactions.Add(new TransactionHistoryDTO {
+                        TransactionDate = d.CreatedAt,
+                        TransactionType = "Disbursement",
+                        Amount = -d.Amount, // Outflow
+                        Description = "Loan Disbursed"
+                    });
+                }
+
+                transactions = transactions.OrderBy(t => t.TransactionDate).ToList();
+
+                reports.Add(new AccountHistoryReportDTO {
+                    AccountId = account.Id,
+                    AccountName = account.Name ?? "N/A",
+                    Provider = account.Provider ?? "N/A",
+                    AccountNumber = account.AccountNumber ?? "N/A",
+                    CurrentBalance = account.Balance,
+                    Transactions = transactions
+                });
+            }
+
+            return reports;
+        }
+
         private async Task<int?> GetCurrentPersonIdAsync(ApplicationDbContext dbContext)
         {
             if (!_userContext.Id.HasValue)

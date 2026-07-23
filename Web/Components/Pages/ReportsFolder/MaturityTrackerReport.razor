@@ -1,0 +1,51 @@
+@using Application.DTO
+@using MudBlazor
+
+<MudPaper Class="pa-4 mb-4" Elevation="0">
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudDateRangePicker Label="Maturity Period" DateRange="MaturityRange" DateRangeChanged="OnMaturityRangeChanged" />
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="OnGenerateReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudDataGrid T="LoanMaturityReportDTO" Items="@Maturities" Hover="true" Striped="true">
+    <ToolBarContent>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+        <PropertyColumn Property="x => x.MaturityDate" Title="Maturity Date" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="x => x.RemainingBalance" Title="Remaining Balance" Format="N2" />
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                <MudChip T="string" Color="@(context.Item.Status == "Matured" ? MudBlazor.Color.Error : MudBlazor.Color.Info)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(context.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="LoanMaturityReportDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter] public List<LoanMaturityReportDTO> Maturities { get; set; } = new();
+    [Parameter] public DateRange MaturityRange { get; set; }
+    [Parameter] public EventCallback<DateRange> MaturityRangeChanged { get; set; }
+    [Parameter] public EventCallback OnGenerateReport { get; set; }
+    [Parameter] public EventCallback<LoanMaturityReportDTO> OnViewDetails { get; set; }
+
+    private async Task OnMaturityRangeChanged(DateRange range)
+    {
+        MaturityRange = range;
+        await MaturityRangeChanged.InvokeAsync(range);
+    }
+}

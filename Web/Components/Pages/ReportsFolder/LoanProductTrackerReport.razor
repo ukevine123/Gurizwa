@@ -1,0 +1,60 @@
+@using Application.DTO
+
+<MudDataGrid Items="@LoanProductTrackers" Hover="true" Striped="true" Class="mt-4">
+    <ToolBarContent>
+    </ToolBarContent>
+    <Columns>
+        <HierarchyColumn T="LoanProductTrackerDTO" />
+        <PropertyColumn Property="x => x.ProductName" Title="Product Name" />
+        <PropertyColumn Property="x => x.InterestRate" Title="Interest Rate (%)" Format="N2" />
+        <PropertyColumn Property="x => x.ProcessingFee" Title="Processing Fee" Format="N2" />
+        <PropertyColumn Property="x => x.PenaltyRate" Title="Penalty Rate (%)" Format="N2" />
+        <PropertyColumn Property="x => x.NumberOfAppliedBorrowers" Title="Applied Borrowers" />
+        <PropertyColumn Property="x => x.TotalInterestEarned" Title="Total Interest Earned" Format="N2" />
+        <PropertyColumn Property="x => x.TotalLosses" Title="Total Losses" Format="N2" />
+        <PropertyColumn Property="x => x.TotalWaived" Title="Total Waived" Format="N2" />
+        <PropertyColumn Property="x => x.TotalRescheduled" Title="Total Rescheduled" />
+    </Columns>
+    <ChildRowContent>
+        <MudCard Elevation="0" Class="pa-4 ml-6" Style="background-color: var(--mud-palette-background-grey);">
+            <MudText Typo="Typo.subtitle1" Class="mb-2">Borrowers using @context.Item.ProductName</MudText>
+            @if (context.Item.Borrowers.Any())
+            {
+                <MudTable Items="@context.Item.Borrowers" Dense="true" Hover="true" Elevation="1">
+                    <HeaderContent>
+                        <MudTh>Application Date</MudTh>
+                        <MudTh>Borrower Name</MudTh>
+                        <MudTh>Application Code</MudTh>
+                        <MudTh>Loan Status</MudTh>
+                        <MudTh>Principal Balance</MudTh>
+                        <MudTh>Action</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="borrowerCtx">
+                        <MudTd DataLabel="Application Date">@borrowerCtx.ApplicationDate.ToString("yyyy-MM-dd")</MudTd>
+                        <MudTd DataLabel="Borrower Name">@borrowerCtx.BorrowerName</MudTd>
+                        <MudTd DataLabel="Application Code">@borrowerCtx.ApplicationCode</MudTd>
+                        <MudTd DataLabel="Loan Status">
+                            <MudChip T="string" Color="@(borrowerCtx.LoanStatus == "Active" || borrowerCtx.LoanStatus == "Disbursed" ? MudBlazor.Color.Success : MudBlazor.Color.Warning)" Size="MudBlazor.Size.Small">@borrowerCtx.LoanStatus</MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Principal Balance">@borrowerCtx.PrincipalBalance.ToString("N2")</MudTd>
+                        <MudTd DataLabel="Action">
+                            <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(new Tuple<int, string, decimal, string>(borrowerCtx.LoanId, borrowerCtx.BorrowerName, borrowerCtx.PrincipalBalance, borrowerCtx.ApplicationCode)))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2">No borrowers have applied for this product yet.</MudText>
+            }
+        </MudCard>
+    </ChildRowContent>
+    <PagerContent>
+        <MudDataGridPager T="LoanProductTrackerDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter] public List<LoanProductTrackerDTO> LoanProductTrackers { get; set; } = new();
+    [Parameter] public EventCallback<Tuple<int, string, decimal, string>> OnViewDetails { get; set; }
+}

@@ -42,14 +42,6 @@
                            OnClick="@(() => HandleStatusUpdate(LoanStatus.Rejected))">
                     Reject
                 </MudButton>
-
-                @* Reschedule Button *@
-                <MudButton Variant="Variant.Filled" 
-                           Color="Color.Warning"
-                           StartIcon="@Icons.Material.Filled.EventRepeat"
-                           OnClick="@OpenRescheduleDialog">
-                    Reschedule
-                </MudButton>
                 
                 @* Approved Button *@
                 <MudButton Variant="Variant.Filled" 
@@ -373,31 +365,6 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-        }
-    }
-
-    // ── Reschedule ──────────────────────────────────────────────────────────────
-    private DateTime? _rescheduleDate;
-
-    private async Task OpenRescheduleDialog()
-    {
-        if (application == null) return;
-
-        // Reset to the application's current preferred date as default
-        _rescheduleDate = application.PreferredDate;
-
-        var parameters = new DialogParameters<RescheduleDialog>
-        {
-            { x => x.CurrentDate, _rescheduleDate },
-            { x => x.ApplicationCode, application.ApplicationCode }
-        };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var dialog = await DialogService.ShowAsync<RescheduleDialog>("Reschedule Loan", parameters, options);
-        var result = await dialog.Result;
-
-        if (result != null && !result.Canceled && result.Data is DateTime newDate)
-        {
-            await HandleStatusUpdate(LoanStatus.Rescheduled, newDate);
         }
     }
 

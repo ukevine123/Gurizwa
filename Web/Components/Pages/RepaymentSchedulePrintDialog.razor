@@ -1,6 +1,7 @@
 @using Domain.Entities
 @using MudBlazor
 @inject IJSRuntime JSRuntime
+@inject Application.Interfaces.IQRCodeService QRCodeService
 
 <MudDialog Style="border-radius:12px; max-width: 850px; overflow:hidden;">
     <DialogContent>
@@ -125,6 +126,15 @@
                     Customer Acknowledgment Signature
                 </div>
             </div>
+
+            @* --- QR CODE VERIFICATION --- *@
+            <div style="text-align: left; margin-top: 30px;">
+                <p style="margin-bottom: 5px; font-size: 12px; color: #64748B;">Scan to Verify</p>
+                @if (!string.IsNullOrEmpty(_qrCodeBase64))
+                {
+                    <img src="data:image/png;base64,@_qrCodeBase64" width="80" height="80" style="border-radius: 5px; border: 1px solid #e2e8f0; padding: 4px;" />
+                }
+            </div>
         </div>
     </DialogContent>
     <DialogActions>
@@ -169,9 +179,16 @@
 
     private string AppCode => Disbursement?.LoanApplication?.ApplicationCode ?? $"#APP-{Disbursement?.LoanApplicationId}";
 
+    private string _qrCodeBase64 = "";
+
     protected override void OnInitialized()
     {
         if (Disbursement == null) return;
+
+        if (Disbursement.LoanApplication != null)
+        {
+            _qrCodeBase64 = QRCodeService.GenerateQRCodeBase64($"https://app.guriza.com/verify?loan={Disbursement.LoanApplication.ApplicationCode}");
+        }
 
         int n = Disbursement.TotalInstallments > 0 ? Disbursement.TotalInstallments : 1;
         decimal principalPart = Disbursement.PrincipalOffered / n;

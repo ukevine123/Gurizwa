@@ -62,5 +62,7 @@ namespace Application.Service.Reports
         public async Task<List<CustomerRiskProfileReportDTO>> GetCustomerRiskProfileReportAsync() => await _reportRepository.GetCustomerRiskProfileReportAsync();
         
         public async Task<List<LoanProductTrackerDTO>> GetLoanProductTrackerAsync() => await _reportRepository.GetLoanProductTrackerAsync();
+
+        public async Task<List<AccountHistoryReportDTO>> GetAccountHistoryReportAsync(DateTime startDate, DateTime endDate) => await _reportRepository.GetAccountHistoryReportAsync(startDate, endDate);
     }
 }

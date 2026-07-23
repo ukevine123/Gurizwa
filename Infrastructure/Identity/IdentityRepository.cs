@@ -349,6 +349,11 @@ namespace Infrastructure.Identity
                 var roles = await _userManager.GetRolesAsync(user);
                 var cleanRoles = roles.Select(r => r.Contains("_") ? r.Substring(r.IndexOf("_") + 1) : r).ToList();
                 var rolesString = string.Join(",", cleanRoles);
+                
+                if (string.IsNullOrEmpty(rolesString) && user.ParentUserId == null)
+                {
+                    rolesString = "Tenant";
+                }
 
                 return new UserDetailDTO
                 {
@@ -360,6 +365,7 @@ namespace Infrastructure.Identity
                     EmailConfirmed = user.EmailConfirmed,
                     IsApproved = user.IsApproved,
                     Role = rolesString,
+                    ParentUserId = user.ParentUserId,
                     CreatedAt = user.CreatedAt,
                     UpdatedAt = user.UpdatedAt
                 };

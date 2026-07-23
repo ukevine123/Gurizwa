@@ -1,0 +1,90 @@
+@using Application.DTO
+@using MudBlazor
+
+<MudPaper Class="pa-4 mb-4" Elevation="0">
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudDateRangePicker Label="Disbursement Period" DateRange="DisbursementRange" DateRangeChanged="OnDisbursementRangeChanged" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudTextField Value="@LoanTypeFilter"
+                          Label="Loan Type"
+                          Placeholder="e.g. Personal"
+                          Immediate="true"
+                          DebounceInterval="800"
+                          ValueChanged="OnLoanTypeChanged"
+                          T="string?"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Clearable="true" />
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="OnGenerateReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudDataGrid T="LoanDisbursementReportDTO" Items="@Disbursements" Hover="true" Striped="true" QuickFilter="@_disbursementFilter">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField @bind-Value="_disbursementSearch" Placeholder="Search type, branch, officer..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+        <PropertyColumn Property="x => x.AmountDisbursed" Title="Amount" Format="N2" />
+        <PropertyColumn Property="x => x.LoanType" Title="Type" />
+        <PropertyColumn Property="x => x.Branch" Title="Branch" />
+        <PropertyColumn Property="x => x.Officer" Title="Officer" />
+        <PropertyColumn Property="x => x.DisbursementDate" Title="Date" Format="yyyy-MM-dd" />
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(context.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="LoanDisbursementReportDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter] public List<LoanDisbursementReportDTO> Disbursements { get; set; } = new();
+    [Parameter] public DateRange DisbursementRange { get; set; }
+    [Parameter] public EventCallback<DateRange> DisbursementRangeChanged { get; set; }
+    [Parameter] public string? LoanTypeFilter { get; set; }
+    [Parameter] public EventCallback<string?> LoanTypeFilterChanged { get; set; }
+    [Parameter] public EventCallback OnGenerateReport { get; set; }
+    [Parameter] public EventCallback<LoanDisbursementReportDTO> OnViewDetails { get; set; }
+
+    private string _disbursementSearch = "";
+
+    private async Task OnDisbursementRangeChanged(DateRange range)
+    {
+        DisbursementRange = range;
+        await DisbursementRangeChanged.InvokeAsync(range);
+    }
+
+    private async Task OnLoanTypeChanged(string? value)
+    {
+        LoanTypeFilter = value;
+        await LoanTypeFilterChanged.InvokeAsync(value);
+    }
+
+    private Func<LoanDisbursementReportDTO, bool> _disbursementFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_disbursementSearch))
+            return true;
+
+        if (x.LoanType?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+            
+        if (x.Branch?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        if (x.Officer?.Contains(_disbursementSearch, StringComparison.OrdinalIgnoreCase) == true)
+            return true;
+
+        return false;
+    };
+}

@@ -21,9 +21,6 @@
         <MudAlert Severity="Severity.Error" Class="mb-4">
             @errorMessage
         </MudAlert>
-        <MudButton Href="/Users" Variant="Variant.Filled" Color="Color.Primary">
-            Back to Users List
-        </MudButton>
     }
     else if (user != null)
     {
@@ -31,20 +28,6 @@
             <MudCardHeader>
                     <div class="d-flex justify-space-between align-center">
                         <MudText Typo="Typo.h5">User Details</MudText>
-                        <MudButtonGroup Variant="Variant.Outlined">
-                            <MudButton Href="/Users" 
-                                       StartIcon="@Icons.Material.Filled.ArrowBack"
-                                       Color="Color.Primary">
-                                Back to List
-                            </MudButton>
-                            <AuthorizeView Roles="Tenant">
-                                <MudButton OnClick="OpenEditDialog" 
-                                           StartIcon="@Icons.Material.Filled.Edit"
-                                           Color="Color.Primary">
-                                    Edit User
-                                </MudButton>
-                            </AuthorizeView>
-                        </MudButtonGroup>
                     </div>
             </MudCardHeader>
 
@@ -153,7 +136,8 @@
                 <MudButton Href="/Users" 
                            Variant="Variant.Text" 
                            Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.ArrowBack">
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           Class="mr-2">
                     Back to List
                 </MudButton>
                 <AuthorizeView Roles="Tenant">

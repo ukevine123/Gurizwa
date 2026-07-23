@@ -1,0 +1,42 @@
+@using Application.DTO
+
+<MudDataGrid T="ApplicationStatusReportDTO" Items="@ApplicationStatuses" Hover="true" Striped="true" QuickFilter="@_applicationFilter" Class="mt-4">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField @bind-Value="_applicationSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+        <PropertyColumn Property="x => x.BorrowerName" Title="Applicant" />
+        <PropertyColumn Property="x => x.ApplicationDate" Title="Applied On" Format="yyyy-MM-dd" />
+        <PropertyColumn Property="x => x.ProcessingDays" Title="Days in System" />
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                <MudChip T="string" Color="@(context.Item.Status == "Approved" ? MudBlazor.Color.Success : context.Item.Status == "Rejected" ? MudBlazor.Color.Error : MudBlazor.Color.Warning)" Size="MudBlazor.Size.Small">@context.Item.Status</MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(context.Item.ApplicationId))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="ApplicationStatusReportDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter] public List<ApplicationStatusReportDTO> ApplicationStatuses { get; set; } = new();
+    [Parameter] public EventCallback<int> OnViewDetails { get; set; }
+
+    private string _applicationSearch = "";
+
+    private Func<ApplicationStatusReportDTO, bool> _applicationFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_applicationSearch)) return true;
+        if (x.BorrowerName?.Contains(_applicationSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.ApplicationCode?.Contains(_applicationSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+}

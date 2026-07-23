@@ -37,5 +37,8 @@ namespace Application.Interfaces
         
         // Loan Products
         Task<List<LoanProductTrackerDTO>> GetLoanProductTrackerAsync();
+
+        // Account History
+        Task<List<AccountHistoryReportDTO>> GetAccountHistoryReportAsync(DateTime startDate, DateTime endDate);
     }
 }

@@ -26,20 +26,13 @@
         {
             <MudGrid Spacing="2">
                 <MudItem xs="6">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Borrower ID</MudText>
-                    <MudText Typo="Typo.body1">@_borrowers.Id</MudText>
+                    <MudText Typo="Typo.subtitle2" Color="Color.Primary">Borrower Name</MudText>
+                    <MudText Typo="Typo.body1">@(string.IsNullOrEmpty(_borrowers.CompanyName) ? $"{_borrowers.FirstName} {_borrowers.LastName}" : _borrowers.CompanyName)</MudText>
                 </MudItem>
                 
                 @if (string.IsNullOrEmpty(_borrowers.CompanyName))
                 {
-                    <MudItem xs="6">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">First Name</MudText>
-                        <MudText Typo="Typo.body1">@_borrowers.FirstName</MudText>
-                    </MudItem>
-                    <MudItem xs="6">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Last Name</MudText>
-                        <MudText Typo="Typo.body1">@_borrowers.LastName</MudText>
-                    </MudItem>
+
                     <MudItem xs="6">
                         <MudText Typo="Typo.subtitle2" Color="Color.Primary">Gender</MudText>
                         <MudText Typo="Typo.body1">@_borrowers.sex</MudText>
@@ -50,7 +43,7 @@
                     </MudItem>
                     <MudItem xs="6">
                         <MudText Typo="Typo.subtitle2" Color="Color.Primary">Date of Birth</MudText>
-                        <MudText Typo="Typo.body1">@_borrowers.DateOfBirth</MudText>
+                        <MudText Typo="Typo.body1">@(_borrowers.DateOfBirth?.ToString("yyyy-MM-dd"))</MudText>
                     </MudItem>
                     <MudItem xs="6">
                         <MudText Typo="Typo.subtitle2" Color="Color.Primary">Identification Number</MudText>
@@ -59,10 +52,7 @@
                 }
                 else
                 {
-                    <MudItem xs="6">
-                        <MudText Typo="Typo.subtitle2" Color="Color.Primary">Company Name</MudText>
-                        <MudText Typo="Typo.body1">@_borrowers.CompanyName</MudText>
-                    </MudItem>
+
                     <MudItem xs="6">
                         <MudText Typo="Typo.subtitle2" Color="Color.Primary">TIN / Registration No</MudText>
                         <MudText Typo="Typo.body1">@_borrowers.TIN</MudText>

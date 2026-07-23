@@ -1,0 +1,213 @@
+@using Application.DTO
+@using MudBlazor
+
+<MudPaper Class="pa-6 mb-6 rounded-xl" Elevation="0" Style="background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);">
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudDateRangePicker Label="Activity Period" DateRange="ActivityRange" DateRangeChanged="OnActivityRangeChanged" Class="rounded-lg" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudSelect T="string" Value="@ActivityUserSearch" ValueChanged="OnActivityUserSearchChanged" Label="Select Sub-User" Placeholder="Select a user">
+                <MudSelectItem T="string" Value="@("")">All Users</MudSelectItem>
+                @foreach (var user in SubUsers)
+                {
+                    <MudSelectItem T="string" Value="@user.FullName">@user.FullName</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="OnGenerateReport" StartIcon="@Icons.Material.Filled.Refresh" Class="rounded-lg px-6 py-3" Style="text-transform: none; font-weight: 600;">Generate Report</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<MudGrid Class="mb-6" Spacing="3">
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
+            <div class="pa-3 rounded-lg" style="background: var(--mud-palette-primary-hover); color: var(--mud-palette-primary);">
+                <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="MudBlazor.Size.Medium" />
+            </div>
+            <div>
+                <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Loan Applications</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight: 700;">@AppsCount</MudText>
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
+            <div class="pa-3 rounded-lg" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
+                <MudIcon Icon="@Icons.Material.Filled.Payments" Size="MudBlazor.Size.Medium" />
+            </div>
+            <div>
+                <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Disbursements</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight: 700;">@DisbCount</MudText>
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 rounded-xl d-flex align-center gap-4" Elevation="1">
+            <div class="pa-3 rounded-lg" style="background: rgba(241, 196, 15, 0.15); color: #f1c40f;">
+                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="MudBlazor.Size.Medium" />
+            </div>
+            <div>
+                <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">Payments</MudText>
+                <MudText Typo="Typo.h6" Style="font-weight: 700;">@PayCount</MudText>
+            </div>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<div class="d-flex justify-space-between align-center mt-6 mb-4">
+    <MudText Typo="Typo.h6" Style="font-weight: 700;">Activity Log</MudText>
+    <MudButton Variant="Variant.Text" OnClick="@(() => _showActivityLog = !_showActivityLog)" EndIcon="@(_showActivityLog ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.NorthEast)" Color="MudBlazor.Color.Primary" Style="text-transform: none; font-weight: 700; font-size: 14px;">View All</MudButton>
+</div>
+
+@if (_showActivityLog)
+{
+    <MudDataGrid T="UserActivityReportDTO" Items="@TargetActivities" Hover="true" Striped="true" Elevation="1" QuickFilter="@_activityFilter" Class="rounded-xl">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField @bind-Value="_activitySearch" Placeholder="Search activities..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="MudBlazor.Size.Medium" Class="mt-0" Style="max-width: 300px;"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Item.Action</MudText>
+                <MudText Typo="Typo.caption" Color="MudBlazor.Color.Secondary">@context.Item.EntityName</MudText>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="People">
+            <CellTemplate>
+                <div class="d-flex align-center gap-3">
+                    <MudAvatar Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" Variant="Variant.Filled" Style="font-weight: 700; font-size: 11px;">
+                        @GetUserInitials(context.Item.UserName)
+                    </MudAvatar>
+                    <MudText Typo="Typo.body2" Style="color: #6B7280; font-weight: 500;">@context.Item.UserName</MudText>
+                </div>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Priority">
+            <CellTemplate>
+                @{
+                    var priority = GetActivityPriority(context.Item);
+                    var color = GetActivityPriorityColor(priority);
+                }
+                <MudChip T="string" Color="@color" Size="MudBlazor.Size.Small" Variant="Variant.Text" Style="font-weight: 600;">@priority</MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Date and Time">
+            <CellTemplate>
+                <div class="d-flex align-center gap-2" style="color: #6B7280;">
+                    <MudIcon Icon="@Icons.Material.Filled.Event" Size="MudBlazor.Size.Small" />
+                    <MudText Typo="Typo.body2">@context.Item.Timestamp.ToString("dd-MM-yyyy")</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="MudBlazor.Size.Small" />
+                    <MudText Typo="Typo.body2">@context.Item.Timestamp.ToString("h:mm tt")</MudText>
+                </div>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Status">
+            <CellTemplate>
+                @{
+                    var status = GetActivityStatus(context.Item);
+                    var color = GetActivityStatusColor(status);
+                }
+                <MudChip T="string" Color="@color" Size="MudBlazor.Size.Small" Variant="Variant.Filled" Style="font-weight: 600;">@status</MudChip>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="UserActivityReportDTO" />
+    </PagerContent>
+</MudDataGrid>
+}
+
+@code {
+    [Parameter] public List<UserActivityReportDTO> TargetActivities { get; set; } = new();
+    [Parameter] public List<UserDetailDTO> SubUsers { get; set; } = new();
+    [Parameter] public DateRange ActivityRange { get; set; }
+    [Parameter] public EventCallback<DateRange> ActivityRangeChanged { get; set; }
+    [Parameter] public string? ActivityUserSearch { get; set; }
+    [Parameter] public EventCallback<string?> ActivityUserSearchChanged { get; set; }
+    [Parameter] public EventCallback OnGenerateReport { get; set; }
+    [Parameter] public int AppsCount { get; set; }
+    [Parameter] public int DisbCount { get; set; }
+    [Parameter] public int PayCount { get; set; }
+
+    private bool _showActivityLog = false;
+    private string _activitySearch = "";
+
+    private async Task OnActivityRangeChanged(DateRange range)
+    {
+        ActivityRange = range;
+        await ActivityRangeChanged.InvokeAsync(range);
+    }
+
+    private async Task OnActivityUserSearchChanged(string? value)
+    {
+        ActivityUserSearch = value;
+        await ActivityUserSearchChanged.InvokeAsync(value);
+    }
+
+    private Func<UserActivityReportDTO, bool> _activityFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_activitySearch)) return true;
+        if (x.Action?.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.EntityName?.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.UserName?.Contains(_activitySearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+
+    private string GetUserInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "U";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpper();
+        return (parts[0].Substring(0, 1) + parts[1].Substring(0, 1)).ToUpper();
+    }
+
+    private string GetActivityPriority(UserActivityReportDTO activity)
+    {
+        var action = activity.Action?.ToLower() ?? "";
+        var entity = activity.EntityName?.ToLower() ?? "";
+        
+        if (action.Contains("approve") || entity.Contains("disbursement") || action.Contains("reject"))
+            return "Urgent";
+        if (entity.Contains("application") || entity.Contains("payment"))
+            return "Medium";
+        return "Low";
+    }
+
+    private MudBlazor.Color GetActivityPriorityColor(string priority)
+    {
+        return priority switch
+        {
+            "Urgent" => MudBlazor.Color.Error,
+            "Medium" => MudBlazor.Color.Warning,
+            _ => MudBlazor.Color.Default
+        };
+    }
+
+    private string GetActivityStatus(UserActivityReportDTO activity)
+    {
+        var action = activity.Action?.ToLower() ?? "";
+        if (action.Contains("create") || action.Contains("add") || action.Contains("submit"))
+            return "Done";
+        if (action.Contains("update") || action.Contains("edit"))
+            return "In progress";
+        if (action.Contains("delete") || action.Contains("remove") || action.Contains("reject"))
+            return "Failed";
+        
+        return "Done";
+    }
+
+    private MudBlazor.Color GetActivityStatusColor(string status)
+    {
+        return status switch
+        {
+            "Done" => MudBlazor.Color.Success,
+            "In progress" => MudBlazor.Color.Primary,
+            "Failed" => MudBlazor.Color.Error,
+            _ => MudBlazor.Color.Default
+        };
+    }
+}

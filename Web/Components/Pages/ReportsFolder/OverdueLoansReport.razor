@@ -1,0 +1,39 @@
+@using Application.DTO
+
+<MudDataGrid T="OverdueReportDTO" Items="@Overdues" Hover="true" Striped="true" QuickFilter="@_overdueFilter" Class="mt-4">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField @bind-Value="_overdueSearch" Placeholder="Search..." IconSize="MudBlazor.Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.ApplicationCode" Title="Code" />
+        <PropertyColumn Property="x => x.BorrowerName" Title="Borrower" />
+        <PropertyColumn Property="x => x.DaysPastDue" Title="Days Past Due" />
+        <PropertyColumn Property="x => x.OverdueAmount" Title="Overdue Amount" Format="N2" />
+        <PropertyColumn Property="x => x.RiskCategory" Title="Risk Level" />
+        <TemplateColumn Title="Action">
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.ReadMore" Color="MudBlazor.Color.Primary" Size="MudBlazor.Size.Small" OnClick="@(() => OnViewDetails.InvokeAsync(context.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="OverdueReportDTO" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    [Parameter] public List<OverdueReportDTO> Overdues { get; set; } = new();
+    [Parameter] public EventCallback<OverdueReportDTO> OnViewDetails { get; set; }
+
+    private string _overdueSearch = "";
+
+    private Func<OverdueReportDTO, bool> _overdueFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_overdueSearch)) return true;
+        if (x.ApplicationCode?.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.BorrowerName?.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        if (x.RiskCategory?.Contains(_overdueSearch, StringComparison.OrdinalIgnoreCase) == true) return true;
+        return false;
+    };
+}

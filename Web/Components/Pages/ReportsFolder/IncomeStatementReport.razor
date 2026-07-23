@@ -1,0 +1,101 @@
+@using Application.DTO
+
+<MudPaper Class="pa-4 mb-4" Elevation="0">
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudDateRangePicker Label="Reporting Period" DateRange="IncomeStatementRange" DateRangeChanged="OnIncomeStatementRangeChanged" />
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-end">
+            <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="OnGenerateReport" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (IncomeStatement != null)
+{
+    <MudPaper Class="pa-6 mx-auto mb-6 rounded-lg" Elevation="1" Style="max-width: 900px; background-color: #ffffff;">
+        <div class="d-flex justify-space-between align-end mb-4">
+            <div>
+                <MudText Typo="Typo.h5" Style="font-weight: bold; color: #1e3a8a;">Income Statement</MudText>
+                <MudText Typo="Typo.body2" Style="color: #6b7280;">Generated on: @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")</MudText>
+            </div>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px;">
+            <thead>
+                <tr style="background-color: var(--mud-palette-primary); color: white;">
+                    <th style="padding: 12px 16px; text-align: left; width: 70%; font-weight: normal;"></th>
+                    <th style="padding: 12px 16px; text-align: right; width: 30%; font-weight: bold; font-size: 16px;">
+                        Selected Period<br/>
+                        <span style="font-size: 12px; font-weight: normal;">@IncomeStatement.StartDate.ToString("yyyy-MM-dd") to @IncomeStatement.EndDate.ToString("yyyy-MM-dd")</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Revenue Section -->
+                <tr style="background-color: #fdfcf9;">
+                    <td style="padding: 12px 16px; font-weight: 800; font-size: 15px; color: #000;">Revenue</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 16px; color: #000;">Interest Income</td>
+                    <td style="padding: 8px 16px; text-align: right; color: #000;">@IncomeStatement.TotalInterestIncome.ToString("N2")</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 16px; color: #000;">Processing Fee Income</td>
+                    <td style="padding: 8px 16px; text-align: right; color: #000;">@IncomeStatement.TotalProcessingFeeIncome.ToString("N2")</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 16px; color: #000;">Penalty Income</td>
+                    <td style="padding: 8px 16px; text-align: right; color: #000;">@IncomeStatement.TotalPenaltyIncome.ToString("N2")</td>
+                </tr>
+                <tr style="background-color: #f7f5ef; font-weight: bold; color: #000;">
+                    <td style="padding: 12px 16px;">Total Revenue & Gains</td>
+                    <td style="padding: 12px 16px; text-align: right;">@IncomeStatement.GrossIncome.ToString("N2")</td>
+                </tr>
+
+                <!-- Expenses Section -->
+                <tr style="background-color: #fdfcf9;">
+                    <td style="padding: 12px 16px; font-weight: 800; font-size: 15px; color: #000; border-top: 4px solid #fff;">Expenses</td>
+                    <td style="border-top: 4px solid #fff;"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 16px; color: #000;">Operating Expenses</td>
+                    <td style="padding: 8px 16px; text-align: right; color: #000;">@IncomeStatement.TotalOperatingExpenses.ToString("N2")</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 16px; color: #000;">Waivers and Write-Offs</td>
+                    <td style="padding: 8px 16px; text-align: right; color: #000;">@IncomeStatement.TotalWaiversAndWriteOffs.ToString("N2")</td>
+                </tr>
+                <tr style="background-color: #f7f5ef; font-weight: bold; color: #000;">
+                    <td style="padding: 12px 16px;">Total Expenses</td>
+                    <td style="padding: 12px 16px; text-align: right;">@IncomeStatement.TotalDeductions.ToString("N2")</td>
+                </tr>
+
+                <!-- Net Income Section -->
+                <tr style="background-color: #fdfcf9;">
+                    <td style="padding: 16px 16px; font-weight: 800; font-size: 16px; color: #000; border-top: 4px solid #fff;">Net Profit (Loss)</td>
+                    <td style="padding: 16px 16px; text-align: right; font-weight: 800; font-size: 16px; color: #000; border-top: 4px solid #fff;">@IncomeStatement.NetIncome.ToString("N2")</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-end mt-4">
+            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Primary" OnClick='@(() => OnViewDetails.InvokeAsync("Income"))' Class="mr-2">View Income Details</MudButton>
+            <MudButton Variant="Variant.Outlined" Color="MudBlazor.Color.Error" OnClick='@(() => OnViewDetails.InvokeAsync("Expenses"))'>View Expense Details</MudButton>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public IncomeStatementReportDTO? IncomeStatement { get; set; }
+    [Parameter] public DateRange IncomeStatementRange { get; set; }
+    [Parameter] public EventCallback<DateRange> IncomeStatementRangeChanged { get; set; }
+    [Parameter] public EventCallback OnGenerateReport { get; set; }
+    [Parameter] public EventCallback<string> OnViewDetails { get; set; }
+
+    private async Task OnIncomeStatementRangeChanged(DateRange range)
+    {
+        IncomeStatementRange = range;
+        await IncomeStatementRangeChanged.InvokeAsync(range);
+    }
+}

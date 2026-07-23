@@ -62,12 +62,12 @@ else
 
     <MudCard>
         <MudCardHeader>
-            <div class="d-flex justify-space-between align-center w-100">
-                <div>
-                    <MudText Typo="Typo.h5">Users Management</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Primary">View and manage all users</MudText>
-                </div>
-                <div>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">Users Management</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Primary">View and manage all users</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <div class="d-flex mt-2">
                     <MudButton OnClick="OpenRoleManagementDialog" 
                                Variant="Variant.Outlined" 
                                Color="Color.Primary" 
@@ -82,7 +82,7 @@ else
                         Create User
                     </MudButton>
                 </div>
-            </div>
+            </CardHeaderActions>
         </MudCardHeader>
 
         <MudCardContent>

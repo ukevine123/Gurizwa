@@ -275,4 +275,14 @@ namespace Application.DTO
         public decimal PrincipalBalance { get; set; }
         public DateTime ApplicationDate { get; set; }
     }
+
+    public class AccountHistoryReportDTO
+    {
+        public int AccountId { get; set; }
+        public string AccountName { get; set; } = string.Empty;
+        public string Provider { get; set; } = string.Empty;
+        public string AccountNumber { get; set; } = string.Empty;
+        public decimal CurrentBalance { get; set; }
+        public List<TransactionHistoryDTO> Transactions { get; set; } = new();
+    }
 }

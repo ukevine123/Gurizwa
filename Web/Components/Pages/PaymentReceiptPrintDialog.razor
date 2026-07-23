@@ -1,5 +1,7 @@
 @using Domain.Entities
+@using MudBlazor
 @inject IJSRuntime JSRuntime
+@inject Application.Interfaces.IQRCodeService QRCodeService
 @inject IDialogService DialogService
 
 <MudDialog>
@@ -106,13 +108,22 @@
             </table>
 
             @* --- SIGNATURE ACKNOWLEDGMENT --- *@
-            <div class="signature-section" style="margin-top: 60px;">
+            <div class="signature-section">
                 <div class="signature-box">
                     Prepared By (Officer Signature)
                 </div>
                 <div class="signature-box">
                     Customer Acknowledgment Signature
                 </div>
+            </div>
+
+            @* --- QR CODE VERIFICATION --- *@
+            <div style="text-align: left; margin-top: 30px;">
+                <p style="margin-bottom: 5px; font-size: 12px; color: #64748B;">Scan to Verify</p>
+                @if (!string.IsNullOrEmpty(_qrCodeBase64))
+                {
+                    <img src="data:image/png;base64,@_qrCodeBase64" width="80" height="80" style="border-radius: 5px; border: 1px solid #e2e8f0; padding: 4px;" />
+                }
             </div>
         </div>
     </DialogContent>
@@ -163,9 +174,16 @@
 
     private decimal RemainingAmount => (Payment?.Disbursement != null) ? (Payment.Disbursement.Amount - TotalPaidPool) : 0;
 
+    private string _qrCodeBase64 = "";
+
     protected override void OnInitialized()
     {
         if (Payment?.Disbursement == null) return;
+
+        if (Payment.Disbursement.LoanApplication != null)
+        {
+            _qrCodeBase64 = QRCodeService.GenerateQRCodeBase64($"https://app.guriza.com/verify?loan={Payment.Disbursement.LoanApplication.ApplicationCode}");
+        }
 
         var disbursement = Payment.Disbursement;
         int n = disbursement.TotalInstallments > 0 ? disbursement.TotalInstallments : 1;

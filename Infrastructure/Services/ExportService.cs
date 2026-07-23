@@ -16,10 +16,12 @@ namespace Infrastructure.Services
     public class ExportService : IExportService
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IQRCodeService _qrCodeService;
 
-        public ExportService(IWebHostEnvironment webHostEnvironment)
+        public ExportService(IWebHostEnvironment webHostEnvironment, IQRCodeService qrCodeService)
         {
             _webHostEnvironment = webHostEnvironment;
+            _qrCodeService = qrCodeService;
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
@@ -64,7 +66,8 @@ namespace Infrastructure.Services
             
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => !p.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) && 
-                            !p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase))
+                            !p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase) &&
+                            !(p.PropertyType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(p.PropertyType)))
                 .ToArray();
             
             for (int i = 0; i < properties.Length; i++)
@@ -102,11 +105,58 @@ namespace Infrastructure.Services
             return stream.ToArray();
         }
 
-        public byte[] ExportToPdf<T>(IEnumerable<T> data, string title)
+        private void ComposeHeader(IContainer container, string title, string webRootPath)
         {
+            string displayTitle = FormatDisplayName(title);
+            string appCode = "";
+            if (title.Contains("_")) 
+            {
+                var parts = title.Split('_', 2);
+                displayTitle = FormatDisplayName(parts[0]);
+                appCode = parts[1];
+            }
+
+            container.Column(headerCol => 
+            {
+                headerCol.Item().Row(row =>
+                {
+                    var logoPath = Path.Combine(webRootPath, "Images", "guriza_logo.png");
+                    if (File.Exists(logoPath))
+                    {
+                        row.ConstantItem(40).Image(logoPath);
+                    }
+
+                    row.RelativeItem().PaddingLeft(10).AlignMiddle().Column(col =>
+                    {
+                        col.Item().Text("Guriza").SemiBold().FontSize(22).FontColor("#1e1b4b");
+                        col.Item().Text($"OFFICIAL {displayTitle.ToUpper()}").SemiBold().FontSize(10).FontColor(Colors.BlueGrey.Medium);
+                    });
+
+                    row.RelativeItem().AlignRight().AlignMiddle().Column(col =>
+                    {
+                        if (!string.IsNullOrEmpty(appCode))
+                        {
+                            col.Item().AlignRight().Text($"App Code: {appCode}").SemiBold().FontSize(11).FontColor("#1e1b4b");
+                        }
+                        col.Item().AlignRight().Text($"Date: {DateTime.Now:yyyy-MM-dd}").FontSize(10).FontColor(Colors.BlueGrey.Medium);
+                    });
+                });
+                
+                headerCol.Item().PaddingTop(8).PaddingBottom(12).LineHorizontal(1.5f).LineColor("#1e1b4b");
+            });
+        }
+
+        public byte[] ExportToPdf<T>(IEnumerable<T> data, string title, string qrCodeUrl = null)
+        {
+            if (typeof(T) == typeof(Application.DTO.IncomeStatementReportDTO))
+            {
+                return GenerateIncomeStatementPdf(data.Cast<Application.DTO.IncomeStatementReportDTO>(), title, qrCodeUrl);
+            }
+
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => !p.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) && 
-                            !p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase))
+                            !p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase) &&
+                            !(p.PropertyType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(p.PropertyType)))
                 .ToArray();
 
             var document = Document.Create(container =>
@@ -118,20 +168,7 @@ namespace Infrastructure.Services
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
 
-                    page.Header().Row(row =>
-                    {
-                        row.RelativeItem().Column(col =>
-                        {
-                            col.Item().Text(FormatDisplayName(title)).SemiBold().FontSize(22).FontColor(Colors.Blue.Darken3);
-                            col.Item().Text($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}").FontSize(8).FontColor(Colors.Grey.Medium);
-                        });
-
-                        var logoPath = Path.Combine(_webHostEnvironment.WebRootPath, "Images", "guriza_logo.png");
-                        if (File.Exists(logoPath))
-                        {
-                            row.ConstantItem(120).Image(logoPath);
-                        }
-                    });
+                    page.Header().Element(c => ComposeHeader(c, title, _webHostEnvironment.WebRootPath));
 
                     page.Content().Element(compose => 
                     {
@@ -173,12 +210,29 @@ namespace Infrastructure.Services
                         });
                     });
 
-                    page.Footer().AlignCenter().Text(x =>
+                    page.Footer().Column(footer =>
                     {
-                        x.Span("Page ");
-                        x.CurrentPageNumber();
-                        x.Span(" of ");
-                        x.TotalPages();
+                        if (!string.IsNullOrEmpty(qrCodeUrl))
+                        {
+                            try
+                            {
+                                var qrBase64 = _qrCodeService.GenerateQRCodeBase64(qrCodeUrl);
+                                if (!string.IsNullOrEmpty(qrBase64))
+                                {
+                                    var qrBytes = Convert.FromBase64String(qrBase64);
+                                    footer.Item().PaddingBottom(10).AlignLeft().Width(60).Height(60).Image(qrBytes);
+                                }
+                            }
+                            catch { }
+                        }
+                        
+                        footer.Item().AlignCenter().Text(x =>
+                        {
+                            x.Span("Page ");
+                            x.CurrentPageNumber();
+                            x.Span(" of ");
+                            x.TotalPages();
+                        });
                     });
                 });
             });
@@ -186,11 +240,109 @@ namespace Infrastructure.Services
             return document.GeneratePdf();
         }
 
-        public byte[] ExportToWordHtml<T>(IEnumerable<T> data, string title)
+        private byte[] GenerateIncomeStatementPdf(IEnumerable<Application.DTO.IncomeStatementReportDTO> data, string title, string qrCodeUrl = null)
+        {
+            var statement = data.FirstOrDefault();
+            if (statement == null) return new byte[0];
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(1, Unit.Centimetre);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Arial"));
+
+                    page.Header().Element(c => ComposeHeader(c, title, _webHostEnvironment.WebRootPath));
+
+                    page.Content().Element(compose =>
+                    {
+                        compose.PaddingVertical(1, Unit.Centimetre).Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(7);
+                                columns.RelativeColumn(3);
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Background(Colors.Blue.Darken3).Padding(6).Text("");
+                                header.Cell().Background(Colors.Blue.Darken3).Padding(6).Text($"Selected Period\n{statement.StartDate:yyyy-MM-dd} to {statement.EndDate:yyyy-MM-dd}").SemiBold().FontColor(Colors.White).FontSize(10).AlignRight();
+                            });
+
+                            // Revenue
+                            table.Cell().Background(Colors.Grey.Lighten4).Padding(6).Text("Revenue").SemiBold().FontSize(12).FontColor(Colors.Black);
+                            table.Cell().Background(Colors.Grey.Lighten4);
+                            
+                            table.Cell().Padding(4).PaddingLeft(12).Text("Interest Income");
+                            table.Cell().Padding(4).Text(statement.TotalInterestIncome.ToString("N2")).AlignRight();
+                            
+                            table.Cell().Padding(4).PaddingLeft(12).Text("Processing Fee Income");
+                            table.Cell().Padding(4).Text(statement.TotalProcessingFeeIncome.ToString("N2")).AlignRight();
+
+                            table.Cell().Padding(4).PaddingLeft(12).Text("Penalty Income");
+                            table.Cell().Padding(4).Text(statement.TotalPenaltyIncome.ToString("N2")).AlignRight();
+
+                            table.Cell().Background(Colors.Grey.Lighten3).Padding(6).Text("Total Revenue & Gains").SemiBold();
+                            table.Cell().Background(Colors.Grey.Lighten3).Padding(6).Text(statement.GrossIncome.ToString("N2")).SemiBold().AlignRight();
+
+                            // Expenses
+                            table.Cell().Background(Colors.Grey.Lighten4).Padding(6).Text("Expenses").SemiBold().FontSize(12).FontColor(Colors.Black);
+                            table.Cell().Background(Colors.Grey.Lighten4);
+                            
+                            table.Cell().Padding(4).PaddingLeft(12).Text("Operating Expenses");
+                            table.Cell().Padding(4).Text(statement.TotalOperatingExpenses.ToString("N2")).AlignRight();
+
+                            table.Cell().Padding(4).PaddingLeft(12).Text("Waivers and Write-Offs");
+                            table.Cell().Padding(4).Text(statement.TotalWaiversAndWriteOffs.ToString("N2")).AlignRight();
+
+                            table.Cell().Background(Colors.Grey.Lighten3).Padding(6).Text("Total Expenses").SemiBold();
+                            table.Cell().Background(Colors.Grey.Lighten3).Padding(6).Text(statement.TotalDeductions.ToString("N2")).SemiBold().AlignRight();
+
+                            // Net Income
+                            table.Cell().Background(Colors.Grey.Lighten4).Padding(6).Text("Net Profit (Loss)").SemiBold().FontSize(12).FontColor(Colors.Black);
+                            table.Cell().Background(Colors.Grey.Lighten4).Padding(6).Text(statement.NetIncome.ToString("N2")).SemiBold().FontSize(12).FontColor(Colors.Black).AlignRight();
+                        });
+                    });
+
+                    page.Footer().Column(footer =>
+                    {
+                        if (!string.IsNullOrEmpty(qrCodeUrl))
+                        {
+                            try
+                            {
+                                var qrBase64 = _qrCodeService.GenerateQRCodeBase64(qrCodeUrl);
+                                if (!string.IsNullOrEmpty(qrBase64))
+                                {
+                                    var qrBytes = Convert.FromBase64String(qrBase64);
+                                    footer.Item().PaddingBottom(10).AlignLeft().Width(60).Height(60).Image(qrBytes);
+                                }
+                            }
+                            catch { }
+                        }
+                        
+                        footer.Item().AlignCenter().Text(x =>
+                        {
+                            x.Span("Page ");
+                            x.CurrentPageNumber();
+                            x.Span(" of ");
+                            x.TotalPages();
+                        });
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
+        public byte[] ExportToWordHtml<T>(IEnumerable<T> data, string title, string qrCodeUrl = null)
         {
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => !p.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) && 
-                            !p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase))
+                            !p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase) &&
+                            !(p.PropertyType != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(p.PropertyType)))
                 .ToArray();
             
             var sb = new StringBuilder();
@@ -218,6 +370,19 @@ namespace Infrastructure.Services
                     sb.AppendLine($"<td>{textVal}</td>");
                 }
                 sb.AppendLine("</tr>");
+            }
+
+            if (!string.IsNullOrEmpty(qrCodeUrl))
+            {
+                try
+                {
+                    var qrBase64 = _qrCodeService.GenerateQRCodeBase64(qrCodeUrl);
+                    if (!string.IsNullOrEmpty(qrBase64))
+                    {
+                        sb.AppendLine($"<div style='text-align: left; margin-top: 30px;'><img src='data:image/png;base64,{qrBase64}' width='100' height='100' /><br/><small>Scan to Verify</small></div>");
+                    }
+                }
+                catch { }
             }
 
             sb.AppendLine("</table></body></html>");

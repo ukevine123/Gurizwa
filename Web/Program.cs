@@ -104,6 +104,7 @@ builder.Services.AddScoped<ILoanProductSettingService, LoanProductSettingService
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IWaiverService, WaiverService>();
 builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 // File/Location Services
 builder.Services.AddSingleton<IFileProvider>(builder.Environment.WebRootFileProvider);
