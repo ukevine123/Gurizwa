@@ -3,10 +3,11 @@
 @using Application.Services.Users
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
+@implements IDisposable
 
 @using Application.Interfaces
 @inject IUserContext UserContext
-@inject IIdentityService IdentityService
+@inject IServiceScopeFactory ScopeFactory
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
 
@@ -202,12 +203,26 @@ else
     private string _filterEmail = "";
     private string _selectedRole = "All";
 
+    private IServiceScope _componentScope;
+    private IIdentityService IdentityService;
+
     private bool IsDeveloper => 
         string.Equals(UserContext.Email, "guriza291@gmail.com", StringComparison.OrdinalIgnoreCase);
+
+    protected override void OnInitialized()
+    {
+        _componentScope = ScopeFactory.CreateScope();
+        IdentityService = _componentScope.ServiceProvider.GetRequiredService<IIdentityService>();
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
+    }
+
+    public void Dispose()
+    {
+        _componentScope?.Dispose();
     }
 
     private async Task OpenRoleManagementDialog()

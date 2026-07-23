@@ -4,10 +4,9 @@
 @using MudBlazor
 @implements IDisposable
 
-@inject IReportService ReportService
+@inject IServiceScopeFactory ScopeFactory
 @inject ISnackbar Snackbar
 @inject IUserContext UserContext
-@inject IIdentity IdentityService
 @inject IExportService ExportService
 @inject IJSRuntime JSRuntime
 @inject IDialogService DialogService
@@ -219,6 +218,24 @@
                 <div class="rc-meta">Live updates</div>
             </div>
         </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <div class="report-card cursor-pointer" @onclick='() => SetActiveReport("AccountHistory")'>
+                <div class="rc-header">
+                    <div class="rc-icon-box bg-warning">
+                        <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="MudBlazor.Size.Small" Style="color: white;" />
+                    </div>
+                </div>
+                <div class="rc-title">Account History</div>
+                <div class="rc-desc">View history of transactions and entries across all accounts</div>
+                <div class="rc-footer">
+                    <div class="rc-exports">
+                        <span class="export-btn text-pdf" @onclick:stopPropagation="true" @onclick='() => Export("AccountHistory", "pdf")'><MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="MudBlazor.Size.Small" Class="mr-1" /> PDF</span>
+                        <span class="export-btn text-xlsx" @onclick:stopPropagation="true" @onclick='() => Export("AccountHistory", "xlsx")'><MudIcon Icon="@Icons.Material.Filled.TableChart" Size="MudBlazor.Size.Small" Class="mr-1" /> XLSX</span>
+                        <span class="export-btn text-word" style="color:#2B579A" @onclick:stopPropagation="true" @onclick='() => Export("AccountHistory", "doc")'><MudIcon Icon="@Icons.Material.Filled.Article" Size="MudBlazor.Size.Small" Class="mr-1" /> WORD</span>
+                    </div>
+                </div>
+            </div>
+        </MudItem>
     </MudGrid>
 
     <style>
@@ -300,7 +317,41 @@
         .bg-lightgreen { background-color: #84CC16; }
     </style>
 
-    @if (_activeReport == "ActiveLoans")
+    <MudDialog @bind-Visible="_isReportDialogOpen" Options="_dialogOptions">
+        <TitleContent>
+            <div class="d-flex align-center" style="gap: 12px; margin-left: 8px; margin-top: 8px;">
+                <MudIcon Icon="@(_activeReport == "ActiveLoans" ? Icons.Material.Filled.Assignment :
+                               _activeReport == "Disbursements" ? Icons.Material.Filled.Payments :
+                               _activeReport == "MaturityTracker" ? Icons.Material.Filled.Event :
+                               _activeReport == "UserActivities" ? Icons.Material.Filled.History :
+                               _activeReport == "RepaymentSchedules" ? Icons.Material.Filled.Schedule :
+                               _activeReport == "UpcomingDues" ? Icons.Material.Filled.NotificationsActive :
+                               _activeReport == "OverdueLoans" ? Icons.Material.Filled.Warning :
+                               _activeReport == "CustomerPortfolios" ? Icons.Material.Filled.ContactPage :
+                               _activeReport == "ApplicationStatuses" ? Icons.Material.Filled.PendingActions :
+                               _activeReport == "IncomeStatement" ? Icons.Material.Filled.AccountBalanceWallet :
+                               _activeReport == "LoanProductTracker" ? Icons.Material.Filled.Inventory : 
+                               _activeReport == "AccountHistory" ? Icons.Material.Filled.AccountBalance : Icons.Material.Filled.Assessment)" 
+                          Color="Color.Primary" Size="Size.Large" />
+                <h3 style="color: var(--mud-palette-primary); font-size: 1.5rem; font-weight: bold; margin: 0; padding: 0;">
+                    @(_activeReport == "ActiveLoans" ? "Active Loans Summary" :
+                      _activeReport == "Disbursements" ? "Disbursement Report" :
+                      _activeReport == "MaturityTracker" ? "Maturity Tracker" :
+                      _activeReport == "UserActivities" ? "User Activities" :
+                      _activeReport == "RepaymentSchedules" ? "Repayment Schedules" :
+                      _activeReport == "UpcomingDues" ? "Upcoming Dues" :
+                      _activeReport == "OverdueLoans" ? "Overdue Loans" :
+                      _activeReport == "CustomerPortfolios" ? "Customer Portfolios" :
+                      _activeReport == "ApplicationStatuses" ? "Application Statuses" :
+                      _activeReport == "IncomeStatement" ? "Income Statement" :
+                      _activeReport == "LoanProductTracker" ? "Loan Product Tracker" : 
+                      _activeReport == "AccountHistory" ? "Account History" : "Report")
+                </h3>
+            </div>
+        </TitleContent>
+        <DialogContent>
+            <div style="padding: 16px;">
+                @if (_activeReport == "ActiveLoans")
     {
         <MudDataGrid T="ActiveLoanSummaryDTO" Items="@_activeLoans" Hover="true" Bordered="false" Striped="true" QuickFilter="@_activeLoanFilter">
             <ToolBarContent>
@@ -751,96 +802,20 @@
     }
     else if (_activeReport == "IncomeStatement")
     {
-        <MudPaper Class="pa-4 mb-4" Elevation="0">
-            <MudGrid>
-                <MudItem xs="12" sm="4">
-                    <MudDateRangePicker Label="Reporting Period" @bind-DateRange="_incomeStatementRange" />
-                </MudItem>
-                <MudItem xs="12" sm="4" Class="d-flex align-end">
-                    <MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Primary" OnClick="LoadIncomeStatement" StartIcon="@Icons.Material.Filled.Refresh">Generate Report</MudButton>
-                </MudItem>
-            </MudGrid>
-        </MudPaper>
-
-        @if (_incomeStatement != null)
-        {
-            <MudGrid Class="mb-6">
-                <MudItem xs="12" md="6">
-                    <MudCard>
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.h6">Revenues (Income)</MudText>
-                            </CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText>Interest Income</MudText>
-                                <MudText><b>@_incomeStatement.TotalInterestIncome.ToString("N2")</b></MudText>
-                            </div>
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText>Processing Fees</MudText>
-                                <MudText><b>@_incomeStatement.TotalProcessingFeeIncome.ToString("N2")</b></MudText>
-                            </div>
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText>Penalty Income</MudText>
-                                <MudText><b>@_incomeStatement.TotalPenaltyIncome.ToString("N2")</b></MudText>
-                            </div>
-                            <MudDivider Class="my-2" />
-                            <div class="d-flex justify-space-between text-success">
-                                <MudText Typo="Typo.subtitle1"><b>Total Gross Income</b></MudText>
-                                <MudText Typo="Typo.subtitle1"><b>@_incomeStatement.GrossIncome.ToString("N2")</b></MudText>
-                            </div>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Primary" OnClick="@(() => OpenStatementDetailsDialog("Income"))">
-                                View Details
-                            </MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                
-                <MudItem xs="12" md="6">
-                    <MudCard>
-                        <MudCardHeader>
-                            <CardHeaderContent>
-                                <MudText Typo="Typo.h6">Expenses & Deductions</MudText>
-                            </CardHeaderContent>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText>Operating Expenses</MudText>
-                                <MudText><b>@_incomeStatement.TotalOperatingExpenses.ToString("N2")</b></MudText>
-                            </div>
-                            <div class="d-flex justify-space-between mb-2">
-                                <MudText>Waivers & Write-Offs</MudText>
-                                <MudText><b>@_incomeStatement.TotalWaiversAndWriteOffs.ToString("N2")</b></MudText>
-                            </div>
-                            <MudDivider Class="my-2" />
-                            <div class="d-flex justify-space-between text-error">
-                                <MudText Typo="Typo.subtitle1"><b>Total Deductions</b></MudText>
-                                <MudText Typo="Typo.subtitle1"><b>@_incomeStatement.TotalDeductions.ToString("N2")</b></MudText>
-                            </div>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudButton Variant="Variant.Text" Color="MudBlazor.Color.Error" OnClick="@(() => OpenStatementDetailsDialog("Expenses"))">
-                                View Details
-                            </MudButton>
-                        </MudCardActions>
-                    </MudCard>
-                </MudItem>
-                
-                <MudItem xs="12">
-                    <MudPaper Class="pa-6 rounded-xl text-center" Elevation="1" Style="background: var(--mud-palette-surface);">
-                        <MudText Typo="Typo.h5" Color="@(_incomeStatement.NetIncome >= 0 ? MudBlazor.Color.Success : MudBlazor.Color.Error)">
-                            <b>Net Income: @_incomeStatement.NetIncome.ToString("N2")</b>
-                        </MudText>
-                        <MudText Typo="Typo.body2" Color="MudBlazor.Color.Secondary">For the period @_incomeStatement.StartDate.ToString("yyyy-MM-dd") to @_incomeStatement.EndDate.ToString("yyyy-MM-dd")</MudText>
-                    </MudPaper>
-                </MudItem>
-
-
-            </MudGrid>
-        }
+        <Web.Components.Pages.ReportsFolder.IncomeStatementReport 
+            IncomeStatement="_incomeStatement"
+            IncomeStatementRange="_incomeStatementRange"
+            IncomeStatementRangeChanged="(r => _incomeStatementRange = r)"
+            OnGenerateReport="LoadIncomeStatement"
+            OnViewDetails="(type => OpenStatementDetailsDialog(type))" />
+    }
+    else if (_activeReport == "AccountHistory")
+    {
+        <Web.Components.Pages.ReportsFolder.AccountHistoryReport 
+            AccountHistories="_accountHistories"
+            AccountHistoryRange="_accountHistoryRange"
+            AccountHistoryRangeChanged="(r => _accountHistoryRange = r)"
+            OnGenerateReport="LoadAccountHistoryReport" />
     }
     else if (_activeReport == "LoanProductTracker")
     {
@@ -899,6 +874,9 @@
             </PagerContent>
         </MudDataGrid>
     }
+            </div>
+        </DialogContent>
+    </MudDialog>
 
 </MudContainer>
 
@@ -907,6 +885,19 @@
     public string? Active { get; set; }
 
     private string _activeReport = "";
+    private bool _isReportDialogOpen = false;
+    private DialogOptions _dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Large, CloseButton = true };
+
+    private IServiceScope _componentScope;
+    private IReportService ReportService;
+    private IIdentity IdentityService;
+
+    protected override void OnInitialized()
+    {
+        _componentScope = ScopeFactory.CreateScope();
+        ReportService = _componentScope.ServiceProvider.GetRequiredService<IReportService>();
+        IdentityService = _componentScope.ServiceProvider.GetRequiredService<IIdentity>();
+    }
 
     protected override void OnParametersSet()
     {
@@ -919,6 +910,7 @@
     private void SetActiveReport(string reportName)
     {
         _activeReport = reportName;
+        _isReportDialogOpen = true;
         StateHasChanged();
     }
 
@@ -950,6 +942,8 @@
                     if (_incomeStatement != null)
                         fileBytes = ExportData(new List<IncomeStatementReportDTO> { _incomeStatement }, format, reportName); 
                     break;
+                case "LoanProductTracker": fileBytes = ExportData(_loanProductTrackers, format, reportName); break;
+                case "AccountHistory": fileBytes = ExportData(_accountHistories, format, reportName); break;
             }
 
             if (fileBytes != null)
@@ -1035,6 +1029,15 @@
     private List<ApplicationStatusReportDTO> _applicationStatuses = new();
     private List<LoanProductTrackerDTO> _loanProductTrackers = new();
 
+    private DateRange _accountHistoryRange = new DateRange(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1), DateTime.Now);
+    private List<AccountHistoryReportDTO> _accountHistories = new();
+    private async Task LoadAccountHistoryReport()
+    {
+        if (_accountHistoryRange.Start.HasValue && _accountHistoryRange.End.HasValue)
+        {
+            _accountHistories = await ReportService.GetAccountHistoryReportAsync(_accountHistoryRange.Start.Value, _accountHistoryRange.End.Value);
+        }
+    }
     private async Task OpenStatementDetailsDialog(string type)
     {
         if (_incomeStatement == null) return;
@@ -1044,8 +1047,8 @@
             ["Type"] = type
         };
         var title = type == "Income" ? "Income Details" : "Expenses & Deductions Details";
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
-        await DialogService.ShowAsync<IncomeStatementDetailDialog>(title, parameters, options);
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, CloseButton = true };
+        await DialogService.ShowAsync<Web.Components.Pages.IncomeStatementDetailDialog>(title, parameters, options);
     }
 
     private string _activeLoanSearch = "";
@@ -1114,7 +1117,7 @@
             ["LoanId"] = loan.LoanId,
             ["LoanSummary"] = loan
         };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, CloseButton = true };
         await DialogService.ShowAsync<ActiveLoanDetailDialog>($"Loan Details - {loan.ApplicationCode}", parameters, options);
     }
 
@@ -1133,14 +1136,14 @@
             ["LoanId"] = loanId,
             ["LoanSummary"] = summary
         };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, CloseButton = true };
         await DialogService.ShowAsync<ActiveLoanDetailDialog>($"Loan Details - {applicationCode}", parameters, options);
     }
 
     private async Task OpenCustomerPortfolioDetails(int borrowerId)
     {
         var parameters = new DialogParameters { ["BorrowerId"] = borrowerId };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true, CloseButton = true };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, CloseButton = true };
         await DialogService.ShowAsync<CustomerPortfolioDetailDialog>("Customer Portfolio Details", parameters, options);
     }
 
@@ -1188,7 +1191,7 @@
 
     public void Dispose()
     {
-        _disbursementCts?.Cancel();
+        _componentScope?.Dispose();
         _disbursementCts?.Dispose();
     }
 
