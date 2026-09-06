@@ -14,12 +14,14 @@ namespace Application.Services.Tenants
         private readonly ITenant _tenantRepository;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IQRCodeService _qrCodeService;
 
-        public TenantService(ITenant tenantRepository, IEmailService emailService, IConfiguration configuration)
+        public TenantService(ITenant tenantRepository, IEmailService emailService, IConfiguration configuration, IQRCodeService qrCodeService)
         {
             _tenantRepository = tenantRepository;
             _emailService = emailService;
             _configuration = configuration;
+            _qrCodeService = qrCodeService;
         }
 
         public async Task<bool> RegisterTenantAsync(TenantRegistrationDTO dto)
@@ -60,15 +62,17 @@ namespace Application.Services.Tenants
                 await _tenantRepository.AddTenantAsync(tenant);
 
                 // Send email to tenant
+                string appUrl = _configuration["AppUrl"] ?? "https://localhost:7082";
+                string qrUrl = $"https://quickchart.io/qr?text={Uri.EscapeDataString(appUrl)}&size=150";
                 string subject = "Registration Received - Pending Approval";
-                string body = $"<h3>Hello,</h3><p>Your registration for Guriza has been received. You will be waiting for 2 days for Approval. You may check your email (including Spam folder) for updates.</p>";
+                string body = $"<div style='text-align: center;'><img src='{appUrl}/Images/guriza_logo.png' alt='Guriza Logo' style='max-width: 200px;'/></div><h3>Hello,</h3><p>Your registration for Guriza has been received. You will be waiting for 2 days for Approval. You may check your email (including Spam folder) for updates.</p><div style='text-align: center; margin-top: 20px;'><p>Scan to visit our platform:</p><img src='{qrUrl}' alt='QR Code' /></div>";
                 await _emailService.SendEmailAsync(tenant.Email, subject, body);
 
                 // Send email to admin
-                string appUrl = _configuration["AppUrl"] ?? "https://localhost:7082";
                 string adminEmail = _configuration["AdminEmail"] ?? "admin@example.com";
                 string adminSubject = "New Tenant Registration Requires Approval";
-                string adminBody = $"<h3>Hello Admin,</h3><p>A new tenant ({tenant.CompanyName ?? tenant.FirstName + " " + tenant.LastName}) has registered and is awaiting approval.</p><p>Please log in to the admin portal and navigate to <a href='{appUrl}/tenants'>Tenants</a> to review and approve their registration.</p>";
+                string adminQrUrl = $"https://quickchart.io/qr?text={Uri.EscapeDataString(appUrl + "/tenants")}&size=150";
+                string adminBody = $"<div style='text-align: center;'><img src='{appUrl}/Images/guriza_logo.png' alt='Guriza Logo' style='max-width: 200px;'/></div><h3>Hello Admin,</h3><p>A new tenant ({tenant.CompanyName ?? tenant.FirstName + " " + tenant.LastName}) has registered and is awaiting approval.</p><p>Please log in to the admin portal and navigate to <a href='{appUrl}/tenants'>Tenants</a> to review and approve their registration.</p><div style='text-align: center; margin-top: 20px;'><p>Scan to review tenant:</p><img src='{adminQrUrl}' alt='QR Code' /></div>";
                 await _emailService.SendEmailAsync(adminEmail, adminSubject, adminBody);
 
                 return true;
@@ -93,7 +97,9 @@ namespace Application.Services.Tenants
 
             string appUrl = _configuration["AppUrl"] ?? "https://localhost:7082";
             string subject = "Account Approved - Create Your Password";
-            string body = $"<h3>Hello,</h3><p>Your tenant registration has been approved.</p><p>Please <a href='{appUrl}/account/setup?email={tenant.Email}'>click here</a> to create your password and finalize your account setup.</p>";
+            string setupUrl = $"{appUrl}/account/setup?email={tenant.Email}";
+            string qrUrl = $"https://quickchart.io/qr?text={Uri.EscapeDataString(setupUrl)}&size=150";
+            string body = $"<div style='text-align: center;'><img src='{appUrl}/Images/guriza_logo.png' alt='Guriza Logo' style='max-width: 200px;'/></div><h3>Hello,</h3><p>Your tenant registration has been approved.</p><p>Please <a href='{setupUrl}'>click here</a> to create your password and finalize your account setup.</p><div style='text-align: center; margin-top: 20px;'><p>Or scan to set up your account:</p><img src='{qrUrl}' alt='QR Code' /></div>";
             await _emailService.SendEmailAsync(tenant.Email, subject, body);
 
             return true;
