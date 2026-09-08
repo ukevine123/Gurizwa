@@ -282,6 +282,41 @@
     .dark-mode-layout .shortcut-info p {
         color: #A3AED0;
     }
+
+    /* Mobile Responsiveness */
+    @@media (max-width: 768px) {
+        .welcome-container {
+            padding: 16px;
+        }
+
+        .welcome-hero-card {
+            padding: 24px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .hero-content {
+            max-width: 100%;
+        }
+
+        .hero-graphic {
+            display: none; /* Hide graphic on mobile to save vertical space */
+        }
+
+        .hero-title {
+            font-size: 24px;
+        }
+
+        .hero-meta {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .shortcuts-grid {
+            grid-template-columns: 1fr; /* 1 column on mobile */
+        }
+    }
 </style>
 
 <!-- Trigger dotnet watch rebuild -->
